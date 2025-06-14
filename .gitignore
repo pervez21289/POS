@@ -1,0 +1,18 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/BunnyCDN.Net.Storage/bin/Debug
+/BunnyCDN.Net.Storage/obj
+/LMS.Core/bin
+/LMS.Core/obj
+/LMS.Repository/bin
+/LMS.Repository/obj
+/POS/.vs
+/POS/Files
+/POS/obj
+/Rent.BunnyNet/bin
+/Rent.BunnyNet/obj
+/Rent.Cordinates/bin/Debug/net6.0
+/Rent.Cordinates/obj
