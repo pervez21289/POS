@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!--
+https://go.microsoft.com/fwlink/?LinkID=208121.
+-->
+<Project>
+  <PropertyGroup>
+    <_PublishTargetUrl>C:\inetpub\wwwroot</_PublishTargetUrl>
+    <History>True|2024-05-27T17:57:48.0187514Z;True|2024-01-09T13:21:07.5124538+05:30;False|2024-01-09T13:17:48.5846472+05:30;True|2023-10-02T23:49:14.5808124+05:30;True|2023-10-02T22:56:02.1088106+05:30;False|2023-06-25T11:29:11.9633819+05:30;True|2023-03-05T00:43:28.0334190+05:30;True|2023-03-05T00:35:30.3483116+05:30;False|2023-03-05T00:32:33.0460546+05:30;False|2023-03-05T00:30:13.8309176+05:30;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>
