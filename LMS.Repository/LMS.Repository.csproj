@@ -20,7 +20,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LMS.Core\LMS.Core.csproj" />
-    <ProjectReference Include="..\Rent.BunnyNet\Rent.BunnyNet.csproj" />
   </ItemGroup>
 
 </Project>

@@ -16,15 +16,15 @@ namespace LMS.Controllers
     public class UserController : ControllerBase
     {
         public IUser _user;
-        public IProperty _property;
+       
         public readonly AppSettings _appSettings;
         private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public UserController(IUser user, IProperty property, AppSettings appSettings, IWebHostEnvironment hostingEnvironment)
+        public UserController(IUser user,  AppSettings appSettings, IWebHostEnvironment hostingEnvironment)
         {
             _user = user;
             _appSettings = appSettings;
-            _property = property;
+        
             _hostingEnvironment = hostingEnvironment;
         }
 
@@ -109,20 +109,6 @@ namespace LMS.Controllers
             }
         }
 
-        [HttpPost]
-        [Route("api/GetProperties")]
-        public async Task<IEnumerable<PropertyModel>> GetProperties(LocationModel location)
-        {
-            return await _property.GetProperties(location);
-        }
-
-
-        [HttpGet]
-        [Route("api/GetProperty")]
-        public async Task<PropertyModel> GetProperty(long propertyId)
-        {
-            return await _property.GetProperty(propertyId);
-        }
 
         [HttpGet]
         [Route("api/GetMessages")]
@@ -139,40 +125,7 @@ namespace LMS.Controllers
         }
 
 
-        [HttpGet]
-        [Route("api/GetPropertyFiles")]
-        public async Task<IEnumerable<FileModel>> GetPropertyFiles(long propertyId)
-        {
-            string folderPath =Path.Combine(_hostingEnvironment.ContentRootPath, "Files", Convert.ToString(propertyId));
-            List<FileModel> fileList = new();
-            await Task.Run(() =>
-            {
-                if (Directory.Exists(folderPath))
-                {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(folderPath);
-                    var filesData = directoryInfo.GetFiles();
-                    var request = HttpContext.Request;
-                    var baseUrl = $"{request.Scheme}://{request.Host}{request.PathBase}/Files/{Convert.ToString(propertyId)}/";
-                    int i = 0;
-                    foreach (FileInfo file in filesData)
-                    {
-                        fileList.Add(new FileModel()
-                        {
-                            Id = i,
-                            title = file.Name,
-                            img = baseUrl + file.Name+"?v="+DateTime.Now.Ticks,
-                            src = baseUrl + file.Name,
-                            rows = i == 0 ? 4 : 2,
-                            cols = i == 0 ? 2 : 1,   
-                            PropertyId=propertyId
-                        });
-                        i++;
-                    }
-                }
-               
-            });
-            return fileList;
-        }
+      
 
         [HttpGet]
         [Route("api/DeletePhoto")]
@@ -217,22 +170,7 @@ namespace LMS.Controllers
 
         }
 
-        [HttpPost]
-        [Route("api/SavePhoto")]
-        [DisableRequestSizeLimit]
-        public async Task<Result> SavePhoto([FromForm] Property property, List<IFormFile> formFiles)
-        {
-            try
-            {
-                string path = _hostingEnvironment.ContentRootPath;
-                return await _property.SavePhoto(property, formFiles, path);
-            }
-            catch (Exception)
-            {
-                return new Result() { IsSuccess = false };
-            }
-        }
-
+       
 
         [Authorize]
         [HttpPost]

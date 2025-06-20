@@ -28,11 +28,12 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
-builder.Services.AddScoped<IMasters, MasterRepo>();
-builder.Services.AddScoped<IProperty, PropertyRepo>();
+
 builder.Services.AddScoped<IUser, UserRepo>();
-builder.Services.AddScoped<IContact, ContactRepo>();
-builder.Services.AddScoped<IAccounts, AccountsRepo>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();

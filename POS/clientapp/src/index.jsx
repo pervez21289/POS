@@ -1,5 +1,5 @@
 import { createRoot } from 'react-dom/client';
-
+import { StrictMode } from 'react';
 // style.scss
 import 'assets/style.css';
 
@@ -34,13 +34,21 @@ import '@fontsource/public-sans/700.css';
 // project imports
 import App from './App';
 import reportWebVitals from './reportWebVitals';
+import { Provider as ReduxProvider } from 'react-redux';
+import { store } from 'store';
 
 const container = document.getElementById('root');
 const root = createRoot(container);
 
 // ==============================|| MAIN - REACT DOM RENDER ||============================== //
 
-root.render(<App />);
+root.render(
+    <StrictMode>
+        <ReduxProvider store={store}>
+                <App />
+        </ReduxProvider>
+    </StrictMode>
+);
 
 // If you want to start measuring performance in your app, pass a function
 // to log results (for example: reportWebVitals(console.log))

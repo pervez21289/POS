@@ -1,0 +1,98 @@
+﻿using LMS.Core.Entities;
+using LMS.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+
+namespace LMS.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ProductsController : ControllerBase
+    {
+        private readonly IProductRepository _repo;
+        private readonly IErrorLogger _logger;
+
+        public ProductsController(IProductRepository repo, IErrorLogger logger)
+        {
+            _repo = repo;
+            _logger = logger;
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                return Ok(await _repo.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
+        {
+            try
+            {
+                var product = await _repo.GetByIdAsync(id);
+                return product == null ? NotFound() : Ok(product);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create(Product product)
+        {
+            try
+            {
+                var id = await _repo.CreateAsync(product);
+                return CreatedAtAction(nameof(Get), new { id }, product);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, Product product)
+        {
+            if (id != product.ProductID) return BadRequest();
+
+            try
+            {
+                var updated = await _repo.UpdateAsync(product);
+                return updated ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                var deleted = await _repo.DeleteAsync(id);
+                return deleted ? NoContent() : NotFound();
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+    }
+
+}

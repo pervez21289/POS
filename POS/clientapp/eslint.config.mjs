@@ -21,7 +21,7 @@ export default [
 
   {
     plugins: {
-      prettier,
+    
       react,
       'react-hooks': reactHooks,
       'jsx-a11y': jsxA11y
@@ -59,7 +59,7 @@ export default [
           bracketSpacing: true,
           printWidth: 140,
           singleQuote: true,
-          trailingComma: 'none',
+          trailingComma: 'none',                                                             
           tabWidth: 2,
           useTabs: false
         }

@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace LMS.Core.Entities
 {
-    public class IndustryType
+    public class Category
     {
-        public int IndustryTypeId { get; set; }
-        public string IndustryTypeName { get; set; }
+        public int CategoryID { get; set; }
+        public string CategoryName { get; set; }
     }
+
 }

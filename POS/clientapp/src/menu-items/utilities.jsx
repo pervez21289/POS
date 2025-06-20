@@ -24,7 +24,21 @@ const utilities = {
   id: 'utilities',
   title: 'Utilities',
   type: 'group',
-  children: [
+    children: [
+        {
+            id: 'util-category',
+            title: 'Category',
+            type: 'item',
+            url: '/category',
+            icon: icons.FontSizeOutlined
+        },
+        {
+            id: 'util-product',
+            title: 'Product',
+            type: 'item',
+            url: '/product',
+            icon: icons.FontSizeOutlined
+        },
     {
       id: 'util-typography',
       title: 'Typography',
