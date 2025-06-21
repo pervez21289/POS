@@ -1,10 +1,12 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
-    Typography, Button, Box, Snackbar, Alert, IconButton, Grid
+    Typography, Box, Snackbar, Alert, IconButton, TextField
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import { DataGrid } from '@mui/x-data-grid';
+import debounce from 'lodash/debounce';
+
 import ProductForm from './ProductForm';
 
 import {
@@ -14,9 +16,7 @@ import {
     useDeleteProductMutation
 } from './../../services/productApi';
 
-import {
-    useGetCategoriesQuery
-} from './../../services/categoryApi';
+import { useGetCategoriesQuery } from './../../services/categoryApi';
 
 const ProductManager = () => {
     const { data: products = [], isLoading } = useGetProductsQuery();
@@ -28,19 +28,19 @@ const ProductManager = () => {
 
     const [editingProduct, setEditingProduct] = useState(null);
     const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+    const [searchText, setSearchText] = useState('');
 
     const handleFormSubmit = async (product) => {
         try {
             if (editingProduct) {
                 await updateProduct(product).unwrap();
                 showAlert('Product updated successfully!');
-                
             } else {
                 await createProduct(product).unwrap();
                 showAlert('Product added successfully!');
             }
             setEditingProduct(null);
-        } catch (err) {
+        } catch {
             showAlert('Failed to save product', 'error');
         }
     };
@@ -49,7 +49,7 @@ const ProductManager = () => {
         try {
             await deleteProduct(id).unwrap();
             showAlert('Product deleted.');
-        } catch (err) {
+        } catch {
             showAlert('Failed to delete product', 'error');
         }
     };
@@ -57,6 +57,26 @@ const ProductManager = () => {
     const showAlert = (message, severity = 'success') => {
         setAlert({ open: true, message, severity });
     };
+
+    // 🔁 Debounced search handler
+    const debouncedSearch = useCallback(
+        debounce((value) => {
+            setSearchText(value.toLowerCase());
+        }, 300),
+        []
+    );
+
+    const handleSearchChange = (e) => {
+        debouncedSearch(e.target.value);
+    };
+
+    // 🧠 useMemo to avoid recalculating on every render
+    const filteredProducts = useMemo(() => {
+        return products.filter((product) =>
+            product.name.toLowerCase().includes(searchText) ||
+            product.sku.toLowerCase().includes(searchText)
+        );
+    }, [products, searchText]);
 
     const columns = [
         { field: 'name', headerName: 'Name', flex: 1 },
@@ -68,20 +88,10 @@ const ProductManager = () => {
             sortable: false,
             renderCell: (params) => (
                 <>
-                    <IconButton
-                        onClick={() => {
-                            debugger;
-                            setEditingProduct(params.row)
-                        }
-                        }
-                        color="primary"
-                    >
+                    <IconButton onClick={() => setEditingProduct(params.row)} color="primary">
                         <EditIcon />
                     </IconButton>
-                    <IconButton
-                        onClick={() => handleDelete(params.row.productID)}
-                        color="error"
-                    >
+                    <IconButton onClick={() => handleDelete(params.row.productID)} color="error">
                         <DeleteIcon />
                     </IconButton>
                 </>
@@ -95,6 +105,8 @@ const ProductManager = () => {
                 Product Management
             </Typography>
 
+           
+
             <Box sx={{ mb: 4 }}>
                 <ProductForm
                     initialData={editingProduct}
@@ -104,8 +116,16 @@ const ProductManager = () => {
                 />
             </Box>
 
+            <TextField
+                label="Search by name or SKU"
+                variant="outlined"
+                fullWidth
+                sx={{ mb: 2 }}
+                onChange={handleSearchChange}
+            />
+
             <DataGrid
-                rows={products}
+                rows={filteredProducts}
                 columns={columns}
                 autoHeight
                 loading={isLoading}
@@ -114,6 +134,7 @@ const ProductManager = () => {
             />
 
             <Snackbar
+                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
                 open={alert.open}
                 autoHideDuration={3000}
                 onClose={() => setAlert({ ...alert, open: false })}

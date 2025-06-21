@@ -7,20 +7,13 @@ import {
     Checkbox,
     FormControlLabel,
     Typography,
+    Box,
+    Select
 } from '@mui/material';
+import { useEffect } from 'react';
 
-const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
-    const [product, setProduct] = useState({
-        name: initialData.name || '',
-        sku: initialData.sku || '',
-        barcode: initialData.barcode || '',
-        description: initialData.description || '',
-        price: initialData.price || '',
-        costPrice: initialData.costPrice || '',
-        stock: initialData.stock || '',
-        categoryID: initialData.categoryID || '',
-        isActive: initialData.isActive ?? true,
-    });
+const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) => {
+    const [product, setProduct] = useState(null);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -36,17 +29,23 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
         onSubmit(product);
     };
 
+    useEffect(() => {
+        debugger;
+            setProduct(initialData);
+
+    }, [initialData]);
+
     return (
         <form onSubmit={handleSubmit}>
             <Typography variant="h6" gutterBottom>
-                {initialData.productID ? 'Edit Product' : 'Add Product'}
+                {initialData?.productID ? 'Edit Product' : 'Add Product'}
             </Typography>
             <Grid container spacing={2}>
                 <Grid item xs={12} sm={6}>
                     <TextField
                         label="Product Name"
                         name="name"
-                        value={product.name}
+                        value={product?.name||''}
                         onChange={handleChange}
                         required
                         fullWidth
@@ -56,7 +55,7 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
                     <TextField
                         label="SKU"
                         name="sku"
-                        value={product.sku}
+                        value={product?.sku || ''}
                         onChange={handleChange}
                         fullWidth
                     />
@@ -65,28 +64,18 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
                     <TextField
                         label="Barcode"
                         name="barcode"
-                        value={product.barcode}
+                        value={product?.barcode || ''}
                         onChange={handleChange}
                         fullWidth
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Description"
-                        name="description"
-                        value={product.description}
-                        onChange={handleChange}
-                        multiline
-                        rows={2}
-                        fullWidth
-                    />
-                </Grid>
+               
                 <Grid item xs={12} sm={4}>
                     <TextField
                         label="Price"
                         name="price"
                         type="number"
-                        value={product.price}
+                        value={product?.price || ''}
                         onChange={handleChange}
                         fullWidth
                     />
@@ -96,7 +85,7 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
                         label="Cost Price"
                         name="costPrice"
                         type="number"
-                        value={product.costPrice}
+                        value={product?.costPrice || ''}
                         onChange={handleChange}
                         fullWidth
                     />
@@ -106,33 +95,42 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
                         label="Stock"
                         name="stock"
                         type="number"
-                        value={product.stock}
+                        value={product?.stock || ''}
                         onChange={handleChange}
                         fullWidth
                     />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        select
-                        label="Category"
+                    <Select
+                        labelId="category-label"
                         name="categoryID"
-                        value={product.categoryID}
+                        value={product?.categoryID || ''}
                         onChange={handleChange}
-                        fullWidth
+                        label="Category"
                     >
-                        <MenuItem value="">Select Category</MenuItem>
                         {categories.map((cat) => (
                             <MenuItem key={cat.categoryID} value={cat.categoryID}>
                                 {cat.categoryName}
                             </MenuItem>
                         ))}
-                    </TextField>
+                    </Select>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="Description"
+                        name="description"
+                        value={product?.description || ''}
+                        onChange={handleChange}
+                        multiline
+                        rows={2}
+                        fullWidth
+                    />
                 </Grid>
                 <Grid item xs={12}>
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={product.isActive}
+                                checked={product?.isActive}
                                 onChange={handleCheckbox}
                                 name="isActive"
                             />
@@ -141,9 +139,16 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {} }) => {
                     />
                 </Grid>
                 <Grid item xs={12}>
-                    <Button type="submit" variant="contained" color="primary">
-                        {initialData.productID ? 'Update' : 'Create'}
-                    </Button>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                        <Button variant="contained" type="submit" color="primary">
+                            {initialData ? 'Update' : 'Add'} Product
+                        </Button>
+                        {initialData && (
+                            <Button variant="outlined" color="secondary" onClick={onCancel}>
+                                Cancel
+                            </Button>
+                        )}
+                    </Box>
                 </Grid>
             </Grid>
         </form>
