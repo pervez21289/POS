@@ -38,6 +38,12 @@ const utilities = {
             type: 'item',
             url: '/product',
             icon: icons.FontSizeOutlined
+        }, {
+            id: 'util-sales',
+            title: 'Sales',
+            type: 'item',
+            url: '/sales',
+            icon: icons.FontSizeOutlined
         },
     {
       id: 'util-typography',
