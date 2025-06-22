@@ -23,7 +23,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
         saleItemsTable.Columns.Add("Discount", typeof(decimal));
         saleItemsTable.Columns.Add("Tax", typeof(decimal));
 
-        foreach (var item in saleDto.Items)
+        foreach (var item in saleDto.saleItems)
         {
             saleItemsTable.Rows.Add(item.ProductID, item.Quantity, item.UnitPrice, item.Discount, item.Tax);
         }

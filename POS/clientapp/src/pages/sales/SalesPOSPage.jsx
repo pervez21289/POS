@@ -1,35 +1,53 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
-    Container, Typography, Grid, Card, CardContent, CardActions,
-    Button, TextField, List, ListItem, ListItemText, Divider, Box, Autocomplete
+    Container, Typography, Button, TextField,
+    List, ListItem, ListItemText, Divider, Box, Autocomplete, CircularProgress
 } from '@mui/material';
-import { useCreateSaleMutation } from './../../services/salesApi'; // Adjust the import path as needed
-
-// Replace this with an API call in production
-const fetchProducts = async () => [
-    { id: 1, name: 'Item A', price: 10.0 },
-    { id: 2, name: 'Item B', price: 15.5 },
-    { id: 3, name: 'Item C', price: 7.25 },
-];
+import debounce from 'lodash.debounce';
+import axios from 'axios';
+import { useCreateSaleMutation } from './../../services/salesApi';
+import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
 
 const SalesPOSPage = () => {
-    const [products, setProducts] = useState([]);
     const [cart, setCart] = useState([]);
     const [searchValue, setSearchValue] = useState(null);
+    const [searchInput, setSearchInput] = useState('');
+    const [searchResults, setSearchResults] = useState([]);
+    const [loading, setLoading] = useState(false);
     const [notes, setNotes] = useState('');
     const [status, setStatus] = useState('');
     const [createSale, { isLoading }] = useCreateSaleMutation();
 
+    // 🔁 Debounced API call to search products
+    const fetchProducts = useMemo(() => debounce(async (query) => {
+        if (!query) {
+            setSearchResults([]);
+            return;
+        }
+        setLoading(true);
+        try {
+            const data = await ProductService.GetProduct(query);
+            setSearchResults(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Error fetching products:', err);
+            setSearchResults([]);
+        } finally {
+            setLoading(false);
+        }
+    }, 300), []);
+
+    // Trigger search on input change
     useEffect(() => {
-        fetchProducts().then(setProducts);
-    }, []);
+        fetchProducts(searchInput);
+        return () => fetchProducts.cancel();
+    }, [searchInput, fetchProducts]);
 
     const addToCart = (product) => {
         setCart((prev) => {
-            const found = prev.find((i) => i.id === product.id);
+            const found = prev.find((i) => i.productID === product.productID);
             if (found) {
                 return prev.map((i) =>
-                    i.id === product.id ? { ...i, qty: i.qty + 1 } : i
+                    i.productID === product.productID ? { ...i, qty: i.qty + 1 } : i
                 );
             }
             return [...prev, { ...product, qty: 1, discount: 0, tax: 0 }];
@@ -37,16 +55,16 @@ const SalesPOSPage = () => {
         setSearchValue(null);
     };
 
-    const updateQty = (id, qty) => {
+    const updateQty = (productID, qty) => {
         setCart((prev) =>
             prev.map((i) =>
-                i.id === id ? { ...i, qty: Math.max(1, Number(qty)) } : i
+                i.productID === productID ? { ...i, qty: Math.max(1, Number(qty)) } : i
             )
         );
     };
 
-    const removeFromCart = (id) => {
-        setCart((prev) => prev.filter((i) => i.id !== id));
+    const removeFromCart = (productID) => {
+        setCart((prev) => prev.filter((i) => i.productID !== productID));
     };
 
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
@@ -57,14 +75,14 @@ const SalesPOSPage = () => {
     const handleCheckout = async () => {
         try {
             const sale = {
-                userID: 1, // Replace with actual user
+                userID: 3, // Replace with actual user
                 totalAmount: total,
                 discountAmount: discount,
                 taxAmount: tax,
                 paymentStatus: 'Paid',
                 notes,
                 saleItems: cart.map(i => ({
-                    productID: i.id,
+                    productID: i.productID,
                     quantity: i.qty,
                     unitPrice: i.price,
                     discount: i.discount,
@@ -89,29 +107,31 @@ const SalesPOSPage = () => {
                     onChange={(event, newValue) => {
                         if (newValue) addToCart(newValue);
                     }}
-                    options={products}
-                    getOptionLabel={(option) => option.name}
-                    renderInput={(params) => <TextField {...params} label="Search Product" />}
-                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    onInputChange={(event, newInputValue) => {
+                        setSearchInput(newInputValue);
+                    }}
+                    options={searchResults||[]}
+                    getOptionLabel={(option) => option.name || ''}
+                    isOptionEqualToValue={(option, value) => option.productID === value.productID}
+                    loading={loading}
+                    renderInput={(params) => (
+                        <TextField
+                            {...params}
+                            label="Search Product"
+                            InputProps={{
+                                ...params.InputProps,
+                                endAdornment: (
+                                    <>
+                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                        {params.InputProps.endAdornment}
+                                    </>
+                                ),
+                            }}
+                        />
+                    )}
                 />
             </Box>
-            {/*<Grid container spacing={2}>*/}
-            {/*    {products.map((item) => (*/}
-            {/*        <Grid item xs={12} sm={4} key={item.id}>*/}
-            {/*            <Card>*/}
-            {/*                <CardContent>*/}
-            {/*                    <Typography variant="h6">{item.name}</Typography>*/}
-            {/*                    <Typography color="text.secondary">${item.price.toFixed(2)}</Typography>*/}
-            {/*                </CardContent>*/}
-            {/*                <CardActions>*/}
-            {/*                    <Button variant="contained" onClick={() => addToCart(item)} fullWidth>*/}
-            {/*                        Add to Cart*/}
-            {/*                    </Button>*/}
-            {/*                </CardActions>*/}
-            {/*            </Card>*/}
-            {/*        </Grid>*/}
-            {/*    ))}*/}
-            {/*</Grid>*/}
+
             <Box mt={4}>
                 <Typography variant="h5">Cart</Typography>
                 <List>
@@ -131,11 +151,11 @@ const SalesPOSPage = () => {
                                     type="number"
                                     size="small"
                                     value={item.qty}
-                                    onChange={(e) => updateQty(item.id, e.target.value)}
+                                    onChange={(e) => updateQty(item.productID, e.target.value)}
                                     inputProps={{ min: 1, style: { width: 50 } }}
                                     sx={{ mr: 2 }}
                                 />
-                                <Button color="error" onClick={() => removeFromCart(item.id)}>
+                                <Button color="error" onClick={() => removeFromCart(item.productID)}>
                                     Remove
                                 </Button>
                             </ListItem>

@@ -23,7 +23,7 @@ namespace LMS.Core.Entities
         public decimal TaxAmount { get; set; }
         public string PaymentStatus { get; set; }
         public string Notes { get; set; }
-        public List<SaleItemDto> Items { get; set; }
+        public List<SaleItemDto> saleItems { get; set; }
     }
 
 }

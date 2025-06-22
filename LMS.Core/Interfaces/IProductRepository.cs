@@ -14,5 +14,6 @@ namespace LMS.Core.Interfaces
         Task<int> CreateAsync(Product product);
         Task<bool> UpdateAsync(Product product);
         Task<bool> DeleteAsync(int id);
+        Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm);
     }
 }

@@ -57,5 +57,18 @@ namespace LMS.Repository.Repo
             (await  ExecuteAsync(
                 "DeleteProduct", new { ProductID = id }, commandType: CommandType.StoredProcedure)) > 0;
 
+
+        public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm)
+        {
+            var parameters = new DynamicParameters();
+            parameters.Add("@SearchTerm", searchTerm);
+
+            return await QueryAsync<Product>(
+                "SearchProducts",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
     }
 }

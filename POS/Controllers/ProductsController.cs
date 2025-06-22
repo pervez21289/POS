@@ -93,6 +93,13 @@ namespace LMS.Controllers
                 return StatusCode(500, "Internal Server Error");
             }
         }
+
+        [HttpGet("search")]
+        public async Task<IActionResult> Search(string q)
+        {
+            var result = await _repo.SearchProductsAsync(q ?? "");
+            return Ok(result);
+        }
     }
 
 }

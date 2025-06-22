@@ -3,8 +3,15 @@ import Config from "./config";
 import Auth from "./Auth";
 const url = Config.baseurl;
 
-class PropertyService {
+class ProductService {
     constructor() { }
+
+   
+
+    GetProduct = async (query) => {
+        const res = await axios.get(`${url}products/search?q=${encodeURIComponent(query) }`);
+        return res.data;
+    };
 
     SaveLocation = async (contact) => {
         const res = await axios.post(`${url}SaveLocation`, contact,{
@@ -46,4 +53,4 @@ class PropertyService {
 
 }
 
-export default new PropertyService();
+export default new ProductService();
