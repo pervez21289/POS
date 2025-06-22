@@ -34,11 +34,14 @@ namespace LMS.Repository.Repo
                     product.CostPrice,
                     product.Stock,
                     product.CategoryID,
-                    product.IsActive
+                    product.IsActive,
+                    product.DiscountAmount,
+                    product.DiscountPercent
                 }, commandType: CommandType.StoredProcedure);
 
-        public async Task<bool> UpdateAsync(Product product) =>
-            (await  ExecuteAsync(
+        public async Task<bool> UpdateAsync(Product product)
+        {
+           var id= await ExecuteScalarAsync<int>(
                 "UpdateProduct", new
                 {
                     product.ProductID,
@@ -50,8 +53,13 @@ namespace LMS.Repository.Repo
                     product.CostPrice,
                     product.Stock,
                     product.CategoryID,
-                    product.IsActive
-                }, commandType: CommandType.StoredProcedure)) > 0;
+                    product.IsActive,
+                    product.DiscountAmount,
+                    product.DiscountPercent
+                }, commandType: CommandType.StoredProcedure);
+
+            return id > 0;
+        }
 
         public async Task<bool> DeleteAsync(int id) =>
             (await  ExecuteAsync(

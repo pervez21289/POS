@@ -43,17 +43,44 @@ const SalesPOSPage = () => {
     }, [searchInput, fetchProducts]);
 
     const addToCart = (product) => {
+        let discount = 0;
+
+        if (product.discountPercent > 0) {
+            discount = (product.price * product.discountPercent) / 100;
+        } else if (product.discountAmount > 0) {
+            discount = product.discountAmount;
+        }
+
         setCart((prev) => {
             const found = prev.find((i) => i.productID === product.productID);
             if (found) {
                 return prev.map((i) =>
-                    i.productID === product.productID ? { ...i, qty: i.qty + 1 } : i
+                    i.id === product.productID ? { ...i, qty: i.qty + 1 } : i
                 );
             }
-            return [...prev, { ...product, qty: 1, discount: 0, tax: 0 }];
+            return [...prev, {
+                ...product,
+                qty: 1,
+                discount,
+                tax: 0
+            }];
         });
         setSearchValue(null);
     };
+
+
+    //const addToCart = (product) => {
+    //    setCart((prev) => {
+    //        const found = prev.find((i) => i.productID === product.productID);
+    //        if (found) {
+    //            return prev.map((i) =>
+    //                i.productID === product.productID ? { ...i, qty: i.qty + 1 } : i
+    //            );
+    //        }
+    //        return [...prev, { ...product, qty: 1, discount: 0, tax: 0 }];
+    //    });
+    //    setSearchValue(null);
+    //};
 
     const updateQty = (productID, qty) => {
         setCart((prev) =>
@@ -68,12 +95,14 @@ const SalesPOSPage = () => {
     };
 
     const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const discount = cart.reduce((sum, i) => sum + (i.discount || 0), 0);
+    const discount = cart.reduce((sum, i) => sum + (i.discount || 0) * i.qty, 0);
     const tax = cart.reduce((sum, i) => sum + (i.tax || 0), 0);
     const net = total - discount + tax;
 
+
     const handleCheckout = async () => {
         try {
+
             const sale = {
                 userID: 3, // Replace with actual user
                 totalAmount: total,
@@ -145,17 +174,23 @@ const SalesPOSPage = () => {
                             <ListItem>
                                 <ListItemText
                                     primary={item.name}
-                                    secondary={`$${item.price.toFixed(2)} x ${item.qty}`}
+                                    secondary={
+                                        <>
+                                            <Typography variant="body2">
+                                                <s>${item.price.toFixed(2)}</s> → ${(item.price - item.discount).toFixed(2)} × {item.qty}
+                                            </Typography>
+                                        </>
+                                    }
                                 />
                                 <TextField
                                     type="number"
                                     size="small"
                                     value={item.qty}
-                                    onChange={(e) => updateQty(item.productID, e.target.value)}
+                                    onChange={(e) => updateQty(item.id, e.target.value)}
                                     inputProps={{ min: 1, style: { width: 50 } }}
                                     sx={{ mr: 2 }}
                                 />
-                                <Button color="error" onClick={() => removeFromCart(item.productID)}>
+                                <Button color="error" onClick={() => removeFromCart(item.id)}>
                                     Remove
                                 </Button>
                             </ListItem>
@@ -163,6 +198,7 @@ const SalesPOSPage = () => {
                         </React.Fragment>
                     ))}
                 </List>
+
                 <TextField
                     label="Notes"
                     value={notes}
@@ -170,6 +206,7 @@ const SalesPOSPage = () => {
                     fullWidth
                     sx={{ mt: 2 }}
                 />
+
                 <Box display="flex" justifyContent="space-between" mt={2}>
                     <Typography variant="h6">Total: ${net.toFixed(2)}</Typography>
                     <Button

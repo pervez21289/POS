@@ -30,7 +30,7 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
     };
 
     useEffect(() => {
-        debugger;
+      
             setProduct(initialData);
 
     }, [initialData]);
@@ -96,6 +96,26 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         name="stock"
                         type="number"
                         value={product?.stock || ''}
+                        onChange={handleChange}
+                        fullWidth
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="Discount Amount"
+                        name="discountAmount"
+                        type="number"
+                        value={product?.discountAmount || ''}
+                        onChange={handleChange}
+                        fullWidth
+                    />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="Discount %"
+                        name="discountPercent"
+                        type="number"
+                        value={product?.discountPercent || ''}
                         onChange={handleChange}
                         fullWidth
                     />
