@@ -45,6 +45,13 @@ const utilities = {
             url: '/sales',
             icon: icons.FontSizeOutlined
         },
+        {
+            id: 'util-sales',
+            title: 'Invoice',
+            type: 'item',
+            url: '/invoice',
+            icon: icons.FontSizeOutlined
+        },
     {
       id: 'util-typography',
       title: 'Typography',

@@ -3,6 +3,7 @@
 import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { productApi } from './../services/productApi';
 import { categoryApi } from './../services/categoryApi';
+import { salesApi } from './../services/salesApi';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
@@ -17,6 +18,7 @@ export const store = configureStore({
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware().concat(
             productApi.middleware,
-            categoryApi.middleware
+            categoryApi.middleware,
+            salesApi.middleware
         ),
 });

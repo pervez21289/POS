@@ -15,6 +15,7 @@ const CategoryPage = Loadable(lazy(() => import('pages/categories/CategoryPage')
 const ProductPage = Loadable(lazy(() => import('pages/product/ProductPage')));
 const Sales = Loadable(lazy(() => import('pages/sales/SalesPOSPage')));
 
+
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 

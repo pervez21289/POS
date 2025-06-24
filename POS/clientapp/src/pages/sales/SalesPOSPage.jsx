@@ -7,6 +7,7 @@ import debounce from 'lodash.debounce';
 import axios from 'axios';
 import { useCreateSaleMutation } from './../../services/salesApi';
 import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
+import ReceiptPrintWrapper from './ReceiptPrintWrapper'
 
 const SalesPOSPage = () => {
     const [cart, setCart] = useState([]);
@@ -17,7 +18,11 @@ const SalesPOSPage = () => {
     const [notes, setNotes] = useState('');
     const [status, setStatus] = useState('');
     const [createSale, { isLoading }] = useCreateSaleMutation();
-
+    const [showReceipt, setShowReceipt] = useState(false);
+    const [receiptInfo, setReceiptInfo] = useState({});
+    const [billNo, setBillNo] = useState('OPI');
+    const [userId, setUserId] = useState(1);
+    const [dateTime, setDateTime] = useState('2/2/2029');
     // 🔁 Debounced API call to search products
     const fetchProducts = useMemo(() => debounce(async (query) => {
         if (!query) {
@@ -102,7 +107,7 @@ const SalesPOSPage = () => {
 
     const handleCheckout = async () => {
         try {
-
+          
             const sale = {
                 userID: 3, // Replace with actual user
                 totalAmount: total,
@@ -118,109 +123,123 @@ const SalesPOSPage = () => {
                     tax: i.tax
                 }))
             };
-            await createSale(sale).unwrap();
+           const saledata= await createSale(sale).unwrap();
+           
+            setReceiptInfo({ cart, total, discount, tax, net, billNo, dateTime, userId });
+            setShowReceipt(true);
             setStatus('Sale saved!');
             setCart([]);
             setNotes('');
-        } catch {
+        } catch (error) {
+            console.error('Error saving sale:', error);
             setStatus('Error saving sale.');
         }
     };
 
     return (
-        <Container maxWidth="md" sx={{ mt: 4 }}>
-            <Typography variant="h4" gutterBottom>Point of Sale</Typography>
-            <Box sx={{ mb: 3 }}>
-                <Autocomplete
-                    value={searchValue}
-                    onChange={(event, newValue) => {
-                        if (newValue) addToCart(newValue);
-                    }}
-                    onInputChange={(event, newInputValue) => {
-                        setSearchInput(newInputValue);
-                    }}
-                    options={searchResults||[]}
-                    getOptionLabel={(option) => option.name || ''}
-                    isOptionEqualToValue={(option, value) => option.productID === value.productID}
-                    loading={loading}
-                    renderInput={(params) => (
-                        <TextField
-                            {...params}
-                            label="Search Product"
-                            InputProps={{
-                                ...params.InputProps,
-                                endAdornment: (
-                                    <>
-                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                        {params.InputProps.endAdornment}
-                                    </>
-                                ),
-                            }}
-                        />
-                    )}
-                />
-            </Box>
-
-            <Box mt={4}>
-                <Typography variant="h5">Cart</Typography>
-                <List>
-                    {cart.length === 0 && (
-                        <ListItem>
-                            <ListItemText primary="Cart is empty" />
-                        </ListItem>
-                    )}
-                    {cart.map((item) => (
-                        <React.Fragment key={item.id}>
-                            <ListItem>
-                                <ListItemText
-                                    primary={item.name}
-                                    secondary={
+        <>
+            {!showReceipt && (<Container maxWidth="md" sx={{ mt: 4 }}>
+                <Typography variant="h4" gutterBottom>Point of Sale</Typography>
+                <Box sx={{ mb: 3 }}>
+                    <Autocomplete
+                        value={searchValue}
+                        onChange={(event, newValue) => {
+                            if (newValue) addToCart(newValue);
+                        }}
+                        onInputChange={(event, newInputValue) => {
+                            setSearchInput(newInputValue);
+                        }}
+                        options={searchResults || []}
+                        getOptionLabel={(option) => option.name || ''}
+                        isOptionEqualToValue={(option, value) => option.productID === value.productID}
+                        loading={loading}
+                        renderInput={(params) => (
+                            <TextField
+                                {...params}
+                                label="Search Product"
+                                InputProps={{
+                                    ...params.InputProps,
+                                    endAdornment: (
                                         <>
-                                            <Typography variant="body2">
-                                                <s>${item.price.toFixed(2)}</s> → ${(item.price - item.discount).toFixed(2)} × {item.qty}
-                                            </Typography>
+                                            {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                            {params.InputProps.endAdornment}
                                         </>
-                                    }
-                                />
-                                <TextField
-                                    type="number"
-                                    size="small"
-                                    value={item.qty}
-                                    onChange={(e) => updateQty(item.id, e.target.value)}
-                                    inputProps={{ min: 1, style: { width: 50 } }}
-                                    sx={{ mr: 2 }}
-                                />
-                                <Button color="error" onClick={() => removeFromCart(item.id)}>
-                                    Remove
-                                </Button>
-                            </ListItem>
-                            <Divider />
-                        </React.Fragment>
-                    ))}
-                </List>
-
-                <TextField
-                    label="Notes"
-                    value={notes}
-                    onChange={e => setNotes(e.target.value)}
-                    fullWidth
-                    sx={{ mt: 2 }}
-                />
-
-                <Box display="flex" justifyContent="space-between" mt={2}>
-                    <Typography variant="h6">Total: ${net.toFixed(2)}</Typography>
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        disabled={cart.length === 0 || isLoading}
-                        onClick={handleCheckout}
-                    >
-                        {isLoading ? 'Saving...' : 'Checkout'}
-                    </Button>
+                                    ),
+                                }}
+                            />
+                        )}
+                    />
                 </Box>
-                {status && <Typography sx={{ mt: 2 }}>{status}</Typography>}
-            </Box>
-        </Container>
+
+                <Box mt={4}>
+                    <Typography variant="h5">Cart</Typography>
+                    <List>
+                        {cart.length === 0 && (
+                            <ListItem>
+                                <ListItemText primary="Cart is empty" />
+                            </ListItem>
+                        )}
+                        {cart.map((item) => (
+                            <React.Fragment key={item.productID}>
+                                <ListItem>
+                                    <ListItemText
+                                        primary={item.name}
+                                        secondary={
+                                            <>
+                                                <Typography variant="body2">
+                                                    <s>${item.price.toFixed(2)}</s> → ${(item.price - item.discount).toFixed(2)} × {item.qty}
+                                                </Typography>
+                                            </>
+                                        } >
+                                    </ListItemText>
+                                    <TextField
+                                        type="number"
+                                        size="small"
+                                        value={item.qty}
+                                        onChange={(e) => updateQty(item.productID, e.target.value)}
+                                        inputProps={{ min: 1, style: { width: 50 } }}
+                                        sx={{ mr: 2 }} >
+                                    </TextField>
+                                    <Button color="error" onClick={() => removeFromCart(item.productID)}>
+                                        Remove
+                                    </Button>
+                                </ListItem>
+                                <Divider />
+                            </React.Fragment>
+                        ))}
+                    </List>
+
+                    <TextField
+                        label="Notes"
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        fullWidth
+                        sx={{ mt: 2 }}
+                    />
+
+                    <Box display="flex" justifyContent="space-between" mt={2}>
+                        <Typography variant="h6">Total: ${net.toFixed(2)}</Typography>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            disabled={cart.length === 0 || isLoading}
+                            onClick={handleCheckout}
+                        >
+                            {isLoading ? 'Saving...' : 'Checkout'}
+                        </Button>
+                    </Box>
+                    {status && <Typography sx={{ mt: 2 }}>{status}</Typography>}
+                </Box>
+            </Container>)
+            }
+
+            {
+                showReceipt && (
+                    <ReceiptPrintWrapper {...receiptInfo} />
+              )}
+        
+           
+        </>
     );
 };
 

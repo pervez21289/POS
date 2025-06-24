@@ -124,10 +124,13 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                     <Select
                         labelId="category-label"
                         name="categoryID"
-                        value={product?.categoryID || ''}
+                        value={product?.categoryID ?? 0}
                         onChange={handleChange}
                         label="Category"
                     >
+                        <MenuItem key="0" value="0">
+                            <em>-Category--</em>
+                        </MenuItem>
                         {categories.map((cat) => (
                             <MenuItem key={cat.categoryID} value={cat.categoryID}>
                                 {cat.categoryName}

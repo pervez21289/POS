@@ -1,6 +1,6 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
-    Typography, Box, Snackbar, Alert, IconButton, TextField
+    Typography, Box, Snackbar, Alert, IconButton, breadcrumb
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -101,11 +101,6 @@ const ProductManager = () => {
 
     return (
         <Box sx={{ p: 3 }}>
-            <Typography variant="h5" gutterBottom>
-                Product Management
-            </Typography>
-
-           
 
             <Box sx={{ mb: 4 }}>
                 <ProductForm

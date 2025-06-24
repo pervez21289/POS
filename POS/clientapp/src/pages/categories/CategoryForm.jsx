@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import {
+    Container, // ✅ Add this
     TextField,
     Button,
     Box,
@@ -9,6 +10,8 @@ import {
     ListItem,
     ListItemText,
     IconButton,
+    Divider,
+    Stack
 } from '@mui/material';
 import { Edit, Delete } from '@mui/icons-material';
 
@@ -33,77 +36,98 @@ export default function CategoryForm() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (category.categoryID === 0) {
-            await createCategory(category);
-        } else {
-            await updateCategory(category);
+        if (!category.categoryName.trim()) return;
+
+        try {
+            if (category.categoryID === 0) {
+                await createCategory({ categoryName: category.categoryName });
+            } else {
+                await updateCategory(category);
+            }
+            resetForm();
+            refetch();
+        } catch (err) {
+            console.error('Error saving category:', err);
         }
-        setCategory({ categoryID: 0, categoryName: '' });
-        refetch();
     };
 
     const handleEdit = (cat) => {
-        setCategory(cat);
+        setCategory({ categoryID: cat.categoryID, categoryName: cat.categoryName });
     };
 
     const handleDelete = async (id) => {
-        await deleteCategory(id);
-        refetch();
+        try {
+            await deleteCategory(id);
+            refetch();
+        } catch (err) {
+            console.error('Error deleting category:', err);
+        }
+    };
+
+    const resetForm = () => {
+        setCategory({ categoryID: 0, categoryName: '' });
     };
 
     return (
-        <Paper sx={{ p: 3, maxWidth: 500, margin: 'auto', mt: 5 }}>
-            <Typography variant="h6" gutterBottom>
-                {category.CategoryID === 0 ? 'Add Category' : 'Edit Category'}
-            </Typography>
-            <form onSubmit={handleSubmit}>
+        <Container maxWidth="sm" sx={{ mt: 5 }}>
+            <Paper sx={{ p: 4 }}>
+                <Typography variant="h5" gutterBottom>
+                    {category.categoryID === 0 ? 'Add New Category' : 'Edit Category'}
+                </Typography>
 
-                <TextField
-                    fullWidth
-                    name="categoryName"
-                    label="Category Name"
-                    value={category.categoryName}
-                    onChange={handleChange}
-                    margin="normal"
-                    required   >
-                </TextField>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                    <Button type="submit" variant="contained">
-                        {category.CategoryID === 0 ? 'Create' : 'Update'}
-                    </Button>
-                    {category.CategoryID !== 0 && (
-                        <Button
-                            color="secondary"
-                            onClick={() => setCategory({ CategoryID: 0, CategoryName: '' })}
-                        >
-                            Cancel
+                <form onSubmit={handleSubmit}>
+                    <TextField
+                        fullWidth
+                        name="categoryName"
+                        label="Category Name"
+                        value={category.categoryName}
+                        onChange={handleChange}
+                        margin="normal"
+                        required
+                    />
+
+                    <Stack direction="row" spacing={2} sx={{ mt: 2 }}>
+                        <Button type="submit" variant="contained">
+                            {category.categoryID === 0 ? 'Create' : 'Update'}
                         </Button>
-                    )}
-                </Box>
-            </form>
+                        {category.categoryID !== 0 && (
+                            <Button variant="outlined" color="secondary" onClick={resetForm}>
+                                Cancel
+                            </Button>
+                        )}
+                    </Stack>
+                </form>
 
-            <Typography variant="h6" sx={{ mt: 4 }}>
-                Categories
-            </Typography>
-            <List>
-                {categories.map((cat) => (
-                    <ListItem
-                        key={cat.CategoryID}
-                        secondaryAction={
-                            <>
-                                <IconButton edge="end" onClick={() => handleEdit(cat)}>
-                                    <Edit />
-                                </IconButton>
-                                <IconButton edge="end" onClick={() => handleDelete(cat.categoryID)}>
-                                    <Delete />
-                                </IconButton>
-                            </>
-                        }
-                    >
-                        <ListItemText primary={cat.categoryName} />
-                    </ListItem>
-                ))}
-            </List>
-        </Paper>
+                <Typography variant="h6" sx={{ mt: 4 }}>
+                    All Categories
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+
+                <List>
+                    {categories.length === 0 && (
+                        <ListItem>
+                            <ListItemText primary="No categories found." />
+                        </ListItem>
+                    )}
+                    {categories.map((cat) => (
+                        <ListItem
+                            key={cat.categoryID}
+                            secondaryAction={
+                                <>
+                                    <IconButton edge="end" onClick={() => handleEdit(cat)}>
+                                        <Edit />
+                                    </IconButton>
+                                    <IconButton edge="end" onClick={() => handleDelete(cat.categoryID)}>
+                                        <Delete />
+                                    </IconButton>
+                                </>
+                            }
+                        >
+                            <ListItemText primary={cat.categoryName} />
+                        </ListItem>
+                    ))}
+                </List>
+            </Paper>
+        </Container>
     );
 }
