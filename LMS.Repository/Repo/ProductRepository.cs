@@ -55,7 +55,8 @@ namespace LMS.Repository.Repo
                     product.CategoryID,
                     product.IsActive,
                     product.DiscountAmount,
-                    product.DiscountPercent
+                    product.DiscountPercent,
+                    product.GstRate
                 }, commandType: CommandType.StoredProcedure);
 
             return id > 0;

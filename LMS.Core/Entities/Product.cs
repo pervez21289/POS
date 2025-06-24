@@ -20,5 +20,6 @@ namespace LMS.Core.Entities
         public int Stock { get; set; }
         public int? CategoryID { get; set; }
         public bool IsActive { get; set; }
+        public decimal? GstRate { get; set; }
     }
 }

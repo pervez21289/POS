@@ -149,6 +149,16 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         fullWidth
                     />
                 </Grid>
+                <Grid item xs={12} sm={4}>
+                    <TextField
+                        label="GST (%)"
+                        name="gstRate"
+                        type="number"
+                        value={product?.gstRate || ''}
+                        onChange={handleChange}
+                        fullWidth
+                    />
+                </Grid>
                 <Grid item xs={12}>
                     <FormControlLabel
                         control={

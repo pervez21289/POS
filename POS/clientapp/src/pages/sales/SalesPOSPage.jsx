@@ -1,7 +1,8 @@
 ﻿import React, { useState, useEffect, useMemo } from 'react';
 import {
     Container, Typography, Button, TextField,
-    List, ListItem, ListItemText, Divider, Box, Autocomplete, CircularProgress
+    List, ListItem, ListItemText, Divider, Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
+    TableBody, IconButton
 } from '@mui/material';
 import debounce from 'lodash.debounce';
 import axios from 'axios';
@@ -173,41 +174,55 @@ const SalesPOSPage = () => {
 
                 <Box mt={4}>
                     <Typography variant="h5">Cart</Typography>
-                    <List>
-                        {cart.length === 0 && (
-                            <ListItem>
-                                <ListItemText primary="Cart is empty" />
-                            </ListItem>
-                        )}
-                        {cart.map((item) => (
-                            <React.Fragment key={item.productID}>
-                                <ListItem>
-                                    <ListItemText
-                                        primary={item.name}
-                                        secondary={
-                                            <>
-                                                <Typography variant="body2">
-                                                    <s>${item.price.toFixed(2)}</s> → ${(item.price - item.discount).toFixed(2)} × {item.qty}
-                                                </Typography>
-                                            </>
-                                        } >
-                                    </ListItemText>
-                                    <TextField
-                                        type="number"
-                                        size="small"
-                                        value={item.qty}
-                                        onChange={(e) => updateQty(item.productID, e.target.value)}
-                                        inputProps={{ min: 1, style: { width: 50 } }}
-                                        sx={{ mr: 2 }} >
-                                    </TextField>
-                                    <Button color="error" onClick={() => removeFromCart(item.productID)}>
-                                        Remove
-                                    </Button>
-                                </ListItem>
-                                <Divider />
-                            </React.Fragment>
-                        ))}
-                    </List>
+                
+
+                    {cart.length === 0 ? (
+                        <Typography variant="body1">Cart is empty</Typography>
+                    ) : (
+                        <Table size="small">
+                            <TableHead>
+                                <TableRow>
+                                    <TableCell>Product</TableCell>
+                                    <TableCell>Barcode</TableCell>
+                                    <TableCell align="right">Price</TableCell>
+                                    <TableCell align="right">Discount</TableCell>
+                                    <TableCell align="right">Qty</TableCell>
+                                    <TableCell align="right">Subtotal</TableCell>
+                                    <TableCell align="center">Action</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                {cart.map((item) => (
+                                    <TableRow key={item.productID}>
+                                        <TableCell>{item.name}</TableCell>
+                                        <TableCell>{item.barcode}</TableCell>
+                                        <TableCell align="right">${item.price.toFixed(2)}</TableCell>
+                                        <TableCell align="right">
+                                            {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            <TextField
+                                                type="number"
+                                                size="small"
+                                                value={item.qty}
+                                                onChange={(e) => updateQty(item.productID, e.target.value)}
+                                                inputProps={{ min: 1, style: { width: 60 } }}
+                                            />
+                                        </TableCell>
+                                        <TableCell align="right">
+                                            ${(item.qty * (item.price - (item.discount || 0))).toFixed(2)}
+                                        </TableCell>
+                                        <TableCell align="center">
+                                            <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
+                                               
+                                            </IconButton>
+                                        </TableCell>
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    )}
+
 
                     <TextField
                         label="Notes"
