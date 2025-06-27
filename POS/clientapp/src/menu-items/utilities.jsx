@@ -26,19 +26,6 @@ const utilities = {
   type: 'group',
     children: [
         {
-            id: 'util-category',
-            title: 'Category',
-            type: 'item',
-            url: '/category',
-            icon: icons.FontSizeOutlined
-        },
-        {
-            id: 'util-product',
-            title: 'Product',
-            type: 'item',
-            url: '/product',
-            icon: icons.FontSizeOutlined
-        }, {
             id: 'util-sales',
             title: 'Sales',
             type: 'item',

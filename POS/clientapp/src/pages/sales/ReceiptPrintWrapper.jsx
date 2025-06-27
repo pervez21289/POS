@@ -1,8 +1,9 @@
 ﻿import React, { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SalesReceipt from './SalesReceipt'; // Your receipt component
+import { useEffect } from 'react';
 
-const ReceiptPrintWrapper = (receiptInfo) => {
+const ReceiptPrintWrapper = ({ setShowReceipt, receiptInfo }) => {
     const printRef = useRef();
     const navigate = useNavigate();
 
@@ -19,6 +20,11 @@ const ReceiptPrintWrapper = (receiptInfo) => {
         navigate('/sales'); // Replace '/sales' with your actual POS route
     };
 
+    //useEffect(() => {
+    //    debugger;
+    //    const data = receiptInfo;
+    //}, [receiptInfo]);
+
     return (
         <>
             <div ref={printRef}>
@@ -26,7 +32,7 @@ const ReceiptPrintWrapper = (receiptInfo) => {
             </div>
             <div style={{ marginTop: 20, display: 'flex', gap: 10 }}>
                 <button onClick={handlePrint}>🖨 Print Receipt</button>
-                <button onClick={handleGoBack}>⬅ Go Back to Sale Page</button>
+                <button onClick={()=>setShowReceipt(false)}>⬅ Go Back to Sale Page</button>
             </div>
         </>
     );

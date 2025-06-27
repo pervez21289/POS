@@ -12,8 +12,9 @@ const Color = Loadable(lazy(() => import('pages/component-overview/color')));
 const Typography = Loadable(lazy(() => import('pages/component-overview/typography')));
 const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const CategoryPage = Loadable(lazy(() => import('pages/categories/CategoryPage')));
-const ProductPage = Loadable(lazy(() => import('pages/product/ProductPage')));
-const Sales = Loadable(lazy(() => import('pages/sales/SalesPOSPage')));
+import ProductPage from './../pages/product/ProductPage';
+import Sales from './../pages/sales/SalesPOSPage';
+import SalesGrid from './../pages/sales/SalesGrid';
 
 
 // render - sample page
@@ -51,8 +52,8 @@ const MainRoutes = {
         element: <Sales />
     },
     {
-      path: 'color',
-      element: <Color />
+      path: 'invoice',
+        element: <SalesGrid />
     },
     {
       path: 'shadow',

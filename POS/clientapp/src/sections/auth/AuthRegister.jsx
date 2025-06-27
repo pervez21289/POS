@@ -17,7 +17,7 @@ import Box from '@mui/material/Box';
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-
+import { useNavigate } from 'react-router-dom';
 // project imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
@@ -27,12 +27,14 @@ import { strengthColor, strengthIndicator } from 'utils/password-strength';
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
+import UserService from '../../services/UserService';
 
 // ============================|| JWT - REGISTER ||============================ //
 
 export default function AuthRegister() {
   const [level, setLevel] = useState();
-  const [showPassword, setShowPassword] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const navigate = useNavigate();
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -61,8 +63,8 @@ export default function AuthRegister() {
           lastname: '',
           email: '',
           company: '',
-          password: '',
-          submit: null
+          password: ''
+         
         }}
         validationSchema={Yup.object().shape({
           firstname: Yup.string().max(255).required('First Name is required'),
@@ -73,9 +75,21 @@ export default function AuthRegister() {
             .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
             .max(10, 'Password must be less than 10 characters')
         })}
+              onSubmit={async (values, { setSubmitting, setErrors }) => {
+                  debugger;
+                  try {
+                      await UserService.SaveUser(values);
+                      navigate('/login'); // redirect on success
+                  } catch (error) {
+                      const msg = error?.response?.data || 'Registration failed';
+                      setErrors({ submit: msg });
+                  } finally {
+                      setSubmitting(false);
+                  }
+              }}
       >
-        {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate>
+              {({ errors, handleBlur, handleChange, touched, values, handleSubmit }) => (
+          <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <Stack sx={{ gap: 1 }}>
@@ -228,7 +242,7 @@ export default function AuthRegister() {
               )}
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
+                                  <Button type="submit" fullWidth size="large" variant="contained" color="primary">
                     Create Account
                   </Button>
                 </AnimateButton>

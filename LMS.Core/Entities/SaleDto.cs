@@ -26,4 +26,18 @@ namespace LMS.Core.Entities
         public List<SaleItemDto> saleItems { get; set; }
     }
 
+    public class Sale
+    {
+        public int SaleID { get; set; }
+        public string  BilledBy { get; set; }
+        public string SaleTime { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal NetAmount { get; set; }
+        public string PaymentStatus { get; set; }
+        public string Notes { get; set; }
+        public long TotalCount { get; set; }  
+    }
+
 }

@@ -5,70 +5,77 @@ import {
 } from '@mui/material';
 
 const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, net }) => {
-    const rightCell = { p: 0.5, textAlign: 'right', fontSize: '10px' };
-    const itemCell = { p: 0.5, fontSize: '10px', maxWidth: 140, wordWrap: 'break-word' };
+    const fontSize = '10px';
 
     return (
-        <Box sx={{ p: 1, fontFamily: 'monospace', width: 300, border: '1px solid #ccc', fontSize: '10px' }}>
-            <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>VISHAL MEGA MART</Typography>
-            <Typography align="center" sx={{ fontSize: '10px' }}>DEHRADUN-2</Typography>
+        <Box sx={{ p: 1, fontFamily: 'monospace', width: 300, border: '1px solid #ccc', fontSize }}>
+            <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
+                VISHAL MEGA MART
+            </Typography>
+            <Typography align="center" sx={{ fontSize }}>DEHRADUN-2</Typography>
             <Divider sx={{ my: 0.5 }} />
 
-            <Typography sx={{ fontSize: '10px' }}>Bill No: {billNo}</Typography>
-            <Typography sx={{ fontSize: '10px' }}>Date: {dateTime}</Typography>
-            <Typography sx={{ fontSize: '10px' }}>User ID: {userId}</Typography>
+            <Typography sx={{ fontSize }}>Bill No: {billNo}</Typography>
+            <Typography sx={{ fontSize }}>Date: {dateTime}</Typography>
+            <Typography sx={{ fontSize }}>User ID: {userId}</Typography>
             <Divider sx={{ my: 0.5 }} />
 
-            {/* Item Table */}
-            <Table size="small" sx={{ fontSize: '10px' }}>
+            <Table size="small" sx={{ fontSize }}>
                 <TableHead>
                     <TableRow>
-                        <TableCell sx={itemCell}>Item</TableCell>
-                        <TableCell sx={rightCell}>Qty</TableCell>
-                        <TableCell sx={rightCell}>Rate</TableCell>
-                        <TableCell sx={rightCell}>Amt</TableCell>
+                        <TableCell sx={{ p: 0.5, fontSize }}>Barcode</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>Qty</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>Rate</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>Amount</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
                     {cart?.map((item, index) => (
-                        <TableRow key={index}>
-                            <TableCell sx={itemCell}>{item.name}</TableCell>
-                            <TableCell sx={rightCell}>{item.qty}</TableCell>
-                            <TableCell sx={rightCell}>₹{item.price.toFixed(2)}</TableCell>
-                            <TableCell sx={rightCell}>
-                                ₹{(item.qty * (item.price - (item.discount || 0))).toFixed(2)}
-                            </TableCell>
-                        </TableRow>
+                        <React.Fragment key={index}>
+                            <TableRow>
+                                <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                    {item.name}
+                                </TableCell>
+                            </TableRow>
+                            <TableRow sx={{ p: 0 }} >
+                            
+                                <TableCell sx={{ p: 0, borderTop: 'none', fontSize }}>{item.barcode || '-'}</TableCell>
+                                <TableCell align="right" sx={{ p: 0, borderTop: 'none', fontSize }}>{item.qty}</TableCell>
+                                <TableCell align="right" sx={{ p: 0, borderTop: 'none', fontSize }}>₹{item.price.toFixed(2)}</TableCell>
+                                <TableCell align="right" sx={{ p: 0, borderTop: 'none', fontSize }}>
+                                    ₹{(item.qty * (item.price - (item.discount || 0))).toFixed(2)}
+                                </TableCell>
+                            </TableRow>
+                        </React.Fragment>
                     ))}
                 </TableBody>
             </Table>
 
             <Divider sx={{ my: 0.5 }} />
 
-            {/* Totals Table */}
-            <Table size="small" sx={{ fontSize: '10px' }}>
+            <Table size="small">
                 <TableBody>
                     <TableRow>
-                        <TableCell colSpan={3} sx={rightCell}>Subtotal</TableCell>
-                        <TableCell sx={rightCell}>₹{total?.toFixed(2)}</TableCell>
+                        <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Subtotal</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{total?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell colSpan={3} sx={rightCell}>Discount</TableCell>
-                        <TableCell sx={rightCell}>₹{discount?.toFixed(2)}</TableCell>
+                        <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Discount</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{discount?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell colSpan={3} sx={rightCell}>Tax</TableCell>
-                        <TableCell sx={rightCell}>₹{tax?.toFixed(2)}</TableCell>
+                        <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Tax</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{tax?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
-                        <TableCell colSpan={3} sx={{ ...rightCell, fontWeight: 'bold' }}>Total</TableCell>
-                        <TableCell sx={{ ...rightCell, fontWeight: 'bold' }}>₹{net?.toFixed(2)}</TableCell>
+                        <TableCell colSpan={4} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{net?.toFixed(2)}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
 
             <Divider sx={{ my: 0.5 }} />
-            <Typography align="center" sx={{ fontSize: '10px', mt: 1 }}>Thank you! Visit again.</Typography>
+            <Typography align="center" sx={{ fontSize, mt: 1 }}>Thank you! Visit again.</Typography>
         </Box>
     );
 };

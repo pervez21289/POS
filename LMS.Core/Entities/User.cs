@@ -17,4 +17,29 @@ namespace LMS.Core.Entities
         public string? OTP{get; set; } = "";
         public int? CityId { get; set; }
     }
+    public class RegisterRequest
+    {
+        public string Company { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class LoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+
+    public class UserLoginDto
+    {
+        public int UserID { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public int CompanyID { get; set; }
+        public string CompanyName { get; set; }
+        public string RoleName { get; set; }
+    }
 }

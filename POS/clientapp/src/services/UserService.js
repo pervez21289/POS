@@ -7,9 +7,14 @@ class UserService {
   constructor() {}
 
   SaveUser = async (user) => {
-    const res = await axios.post(`${url}SaveUser`, user);
+      const res = await axios.post(`${url}Account/register`, user);
     return res.data;
-  };
+    };
+
+    LoginUser = async (user) => {
+        const res = await axios.post(`${url}Account/Login`, user);
+        return res.data;
+    };
 
   SaveMessage = async (message) => {
     const res = await axios.post(`${url}SaveMessage`, message);

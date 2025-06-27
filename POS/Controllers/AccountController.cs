@@ -1,81 +1,49 @@
 ﻿using LMS.Core.Entities;
 using LMS.Core.Interfaces;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
+using LMS.Repo.Repository;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
+using System.Reflection;
 
-namespace LMS.Controllers
+
+[ApiController]
+[Route("api/[controller]")]
+public class AccountController : ControllerBase
 {
-    
-    [ApiController]
-    public class AccountController : ControllerBase
+    private readonly IUser _accountService;
+
+    public AccountController(IUser accountService)
     {
-        public readonly AppSettings _appSettings;
-        public IUser _user;
-        public AccountController(IUser user, AppSettings appSettings)
+        _accountService = accountService;
+    }
+
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterRequest request)
+    {
+        if (!ModelState.IsValid) return BadRequest(ModelState);
+
+        try
         {
-            _user = user;
-            _appSettings = appSettings;
+            CreateUserResult result = await _accountService.RegisterCompanyWithAdminAsync(request);
+
+            if (result.Success == 1)
+                return Ok(result);
+            else
+                return BadRequest(result.Message);
         }
-
-        //[HttpPost]
-        //[Route("api/SaveUser")]
-        //public async Task<Result> SaveUser(User user)
-        //{
-
-        //    return await _user.SaveUser(user);
-        //}
-
-        [HttpPost]
-        [Route("api/Login")]
-        public async Task<IActionResult> Login(User user)
+        catch (Exception ex)
         {
-
-            UserViewModel userData = await _user.Login(user);
-            if (userData != null)
-            {
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, Convert.ToString(user.UserId)),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleName));
-                var token = GetToken(authClaims);
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo,
-                    userId= user.UserId
-                });
-            }
-            return Unauthorized();
+            return StatusCode(500, new { Message = "Error occurred", Error = ex.Message });
         }
-        [HttpPost]
-        [Route("api/PasswordReset")]
-        public async Task<Result> PasswordReset(User user)
-        {
-            return await _user.PasswordReset(user);
-        }
+    }
 
-        private JwtSecurityToken GetToken(List<Claim> authClaims)
-        {
-            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.TSecret));
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _accountService.LoginAsync(request.Email, request.Password);
 
-            var token = new JwtSecurityToken(
-                issuer: _appSettings.ValidIssuer,
-                audience: _appSettings.ValidAudience,
-                expires: DateTime.Now.AddHours(3),
-                claims: authClaims,
-                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-                );
+        if (user == null)
+            return Unauthorized(new { Success = false, Message = "Invalid email or password" });
 
-            return token;
-        }
+        return Ok(new { Success = true, Data = user });
     }
 }

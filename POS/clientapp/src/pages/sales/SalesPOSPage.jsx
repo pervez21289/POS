@@ -1,9 +1,10 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo,useRef } from 'react';
 import {
     Container, Typography, Button, TextField,
     List, ListItem, ListItemText, Divider, Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
     TableBody, IconButton
 } from '@mui/material';
+import ClearIcon from '@mui/icons-material/Clear';
 import debounce from 'lodash.debounce';
 import axios from 'axios';
 import { useCreateSaleMutation } from './../../services/salesApi';
@@ -11,6 +12,9 @@ import ProductService from './../../services/ProductService'; // Assuming you ha
 import ReceiptPrintWrapper from './ReceiptPrintWrapper'
 
 const SalesPOSPage = () => {
+    const [isSearching, setIsSearching] = useState(false);
+    const [barcodeInput, setBarcodeInput] = useState('');
+    const barcodeInputRef = useRef(null);
     const [cart, setCart] = useState([]);
     const [searchValue, setSearchValue] = useState(null);
     const [searchInput, setSearchInput] = useState('');
@@ -71,10 +75,28 @@ const SalesPOSPage = () => {
                 tax: 0
             }];
         });
-        setSearchValue(null);
+        setSearchValue('');
+        
     };
 
+    const handleBarcodeScan = async (e) => {
+        if (e.key === 'Enter' && barcodeInput.trim()) {
+            try {
+                const results = await ProductService.GetProduct(barcodeInput.trim());
+                const product = Array.isArray(results) ? results.find(p => p.barcode === barcodeInput.trim()) : null;
 
+                if (product) {
+                    addToCart(product);
+                } else {
+                    setStatus('Product not found');
+                }
+            } catch (error) {
+                console.error('Error scanning barcode:', error);
+                setStatus('Error fetching product');
+            }
+            setBarcodeInput('');
+        }
+    };
     //const addToCart = (product) => {
     //    setCart((prev) => {
     //        const found = prev.find((i) => i.productID === product.productID);
@@ -137,11 +159,33 @@ const SalesPOSPage = () => {
         }
     };
 
+
+
+
+    useEffect(() => {
+       
+        const interval = setInterval(() => {
+            if (!isSearching) {
+                barcodeInputRef.current?.focus();
+            }
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [isSearching]);
+
     return (
         <>
             {!showReceipt && (<Container maxWidth="md" sx={{ mt: 4 }}>
                 <Typography variant="h4" gutterBottom>Point of Sale</Typography>
                 <Box sx={{ mb: 3 }}>
+                    <input
+                        ref={barcodeInputRef}
+                        value={barcodeInput}
+                        onChange={(e) => setBarcodeInput(e.target.value)}
+                        onKeyDown={handleBarcodeScan}
+                        style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
+                        autoFocus
+                    />
                     <Autocomplete
                         value={searchValue}
                         onChange={(event, newValue) => {
@@ -149,11 +193,14 @@ const SalesPOSPage = () => {
                         }}
                         onInputChange={(event, newInputValue) => {
                             setSearchInput(newInputValue);
+                            setIsSearching(true);
                         }}
                         options={searchResults || []}
                         getOptionLabel={(option) => option.name || ''}
                         isOptionEqualToValue={(option, value) => option.productID === value.productID}
                         loading={loading}
+                        onBlur={() => setIsSearching(false)}
+                        onFocus={() => setIsSearching(true)}
                         renderInput={(params) => (
                             <TextField
                                 {...params}
@@ -214,7 +261,7 @@ const SalesPOSPage = () => {
                                         </TableCell>
                                         <TableCell align="center">
                                             <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
-                                               
+                                                <ClearIcon></ClearIcon>
                                             </IconButton>
                                         </TableCell>
                                     </TableRow>
@@ -250,7 +297,7 @@ const SalesPOSPage = () => {
 
             {
                 showReceipt && (
-                    <ReceiptPrintWrapper {...receiptInfo} />
+                    <ReceiptPrintWrapper setShowReceipt={setShowReceipt} receiptInfo={receiptInfo} />
               )}
         
            

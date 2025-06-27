@@ -1,7 +1,5 @@
 import PropTypes from 'prop-types';
 import React from 'react';
-import { Link as RouterLink } from 'react-router-dom';
-
 // material-ui
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -18,7 +16,7 @@ import Typography from '@mui/material/Typography';
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 // project imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
@@ -26,12 +24,14 @@ import AnimateButton from 'components/@extended/AnimateButton';
 // assets
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
+import UserService from '../../services/UserService';
 
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
-  const [checked, setChecked] = React.useState(false);
-
+    const [checked, setChecked] = React.useState(false);
+    const [submitError, setSubmitError] = React.useState('');
+    const navigate = useNavigate();
   const [showPassword, setShowPassword] = React.useState(false);
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
@@ -41,13 +41,31 @@ export default function AuthLogin({ isDemo = false }) {
     event.preventDefault();
   };
 
+    const handleLogin = async (values, { setSubmitting }) => {
+        debugger;
+        setSubmitError('');
+        try {
+            const response = await UserService.LoginUser(values);
+
+            if (response?.success) {
+                // Save token or user info if needed
+                navigate('/dashboard/default'); // Redirect to dashboard
+            } else {
+                setSubmitError(response.data.message || 'Login failed');
+            }
+        } catch (error) {
+            setSubmitError(error.response?.data?.message || 'Login error occurred');
+        }
+        setSubmitting(false);
+    };
+
   return (
     <>
       <Formik
         initialValues={{
-          email: 'info@codedthemes.com',
-          password: '123456',
-          submit: null
+          email: 'imran13189@gmail.com',
+          password: 'abc123'
+         
         }}
         validationSchema={Yup.object().shape({
           email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
@@ -56,9 +74,10 @@ export default function AuthLogin({ isDemo = false }) {
             .test('no-leading-trailing-whitespace', 'Password cannot start or end with spaces', (value) => value === value.trim())
             .max(10, 'Password must be less than 10 characters')
         })}
+              onSubmit={handleLogin}
       >
-        {({ errors, handleBlur, handleChange, touched, values }) => (
-          <form noValidate>
+              {({ errors, handleBlur, handleChange, touched, values, handleSubmit }) => (
+          <form noValidate onSubmit={handleSubmit}>
             <Grid container spacing={3}>
               <Grid size={12}>
                 <Stack sx={{ gap: 1 }}>
@@ -133,10 +152,15 @@ export default function AuthLogin({ isDemo = false }) {
                     Forgot Password?
                   </Link>
                 </Stack>
-              </Grid>
+                          </Grid>
+                          {submitError && (
+                              <Grid item xs={12}>
+                                  <FormHelperText error>{submitError}</FormHelperText>
+                              </Grid>
+                          )}
               <Grid size={12}>
                 <AnimateButton>
-                  <Button fullWidth size="large" variant="contained" color="primary">
+                  <Button type="submit" fullWidth size="large" variant="contained" color="primary">
                     Login
                   </Button>
                 </AnimateButton>

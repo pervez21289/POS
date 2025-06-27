@@ -10,5 +10,6 @@ namespace LMS.Core.Interfaces
     public interface ISaleRepository
     {
         Task<int> SaveSaleAsync(SaleDto saleDto);
+        Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, DateTime? date, int page, int pageSize);
     }
 }

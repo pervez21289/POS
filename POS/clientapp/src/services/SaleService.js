@@ -3,13 +3,13 @@ import Config from "./config";
 import Auth from "./Auth";
 const url = Config.baseurl;
 
-class SaleService {
+class ProductService {
     constructor() { }
 
    
 
-    GetProduct = async (query) => {
-        const res = await axios.get(`${url}products/search?q=${encodeURIComponent(query) }`);
+    GetSales = async (params) => {
+        const res = await axios.get(`${url}Sales`, { params: params });
         return res.data;
     };
 
@@ -53,4 +53,4 @@ class SaleService {
 
 }
 
-export default new SaleService();
+export default new ProductService();

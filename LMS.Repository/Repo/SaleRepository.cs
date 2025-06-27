@@ -41,4 +41,27 @@ public class SaleRepository : BaseRepository,ISaleRepository
         await ExecuteScalarAsync<int>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
         return parameters.Get<int>("@SaleID");
     }
+
+    public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, DateTime? date, int page, int pageSize)
+    {
+        var parameters = new DynamicParameters();
+        parameters.Add("@Search", string.IsNullOrWhiteSpace(search) ? null : search);
+        parameters.Add("@Date", date);
+        parameters.Add("@Page", page);
+        parameters.Add("@PageSize", pageSize);
+
+        IEnumerable<Sale> rows = await QueryAsync<Sale>("GetSalesWithFilters", parameters, commandType: CommandType.StoredProcedure);
+        Sale sale= rows.FirstOrDefault();
+        long total;
+        if (sale == null)
+        {
+            total = 0;
+        }
+        else
+        {
+            total=sale.TotalCount;
+        }
+
+        return (rows, total);
+    }
 }

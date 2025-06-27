@@ -34,6 +34,7 @@ builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
 builder.Services.AddScoped<ISaleRepository,SaleRepository>();
+builder.Services.AddScoped<IUser, UserRepo>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
