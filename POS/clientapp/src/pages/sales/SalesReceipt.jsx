@@ -8,7 +8,7 @@ const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, ne
     const fontSize = '10px';
 
     return (
-        <Box sx={{ p: 1, fontFamily: 'monospace', width: 300, border: '1px solid #ccc', fontSize }}>
+        <Box sx={{ p:5, fontFamily: 'monospace', width: 300, border: '1px solid #ccc', fontSize }}>
             <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
                 VISHAL MEGA MART
             </Typography>

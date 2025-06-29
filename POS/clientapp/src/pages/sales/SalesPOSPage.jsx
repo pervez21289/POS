@@ -10,6 +10,9 @@ import axios from 'axios';
 import { useCreateSaleMutation } from './../../services/salesApi';
 import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
 import ReceiptPrintWrapper from './ReceiptPrintWrapper'
+import DrawerComponent from "./../../components/Drawer";
+import { useDispatch, useSelector } from 'react-redux';
+import { openDrawer, setDrawerComponent } from "./../../store/reducers/drawer";
 
 const SalesPOSPage = () => {
     const [isSearching, setIsSearching] = useState(false);
@@ -24,10 +27,15 @@ const SalesPOSPage = () => {
     const [status, setStatus] = useState('');
     const [createSale, { isLoading }] = useCreateSaleMutation();
     const [showReceipt, setShowReceipt] = useState(false);
-    const [receiptInfo, setReceiptInfo] = useState({});
+   
     const [billNo, setBillNo] = useState('OPI');
     const [userId, setUserId] = useState(1);
     const [dateTime, setDateTime] = useState('2/2/2029');
+
+    /*const { drawerOpen } = useSelector((state) => state.drawer);*/
+    const { DrawerComponentChild } = useSelector((state) => state.drawer);
+    const dispatch = useDispatch();
+
     // 🔁 Debounced API call to search products
     const fetchProducts = useMemo(() => debounce(async (query) => {
         if (!query) {
@@ -97,18 +105,7 @@ const SalesPOSPage = () => {
             setBarcodeInput('');
         }
     };
-    //const addToCart = (product) => {
-    //    setCart((prev) => {
-    //        const found = prev.find((i) => i.productID === product.productID);
-    //        if (found) {
-    //            return prev.map((i) =>
-    //                i.productID === product.productID ? { ...i, qty: i.qty + 1 } : i
-    //            );
-    //        }
-    //        return [...prev, { ...product, qty: 1, discount: 0, tax: 0 }];
-    //    });
-    //    setSearchValue(null);
-    //};
+  
 
     const updateQty = (productID, qty) => {
         setCart((prev) =>
@@ -130,13 +127,16 @@ const SalesPOSPage = () => {
 
     const handleCheckout = async () => {
         try {
+
+            debugger;
+          
           
             const sale = {
                 userID: 3, // Replace with actual user
                 totalAmount: total,
                 discountAmount: discount,
                 taxAmount: tax,
-                paymentStatus: 'Paid',
+                paymentStatus: 1,
                 notes,
                 saleItems: cart.map(i => ({
                     productID: i.productID,
@@ -146,13 +146,31 @@ const SalesPOSPage = () => {
                     tax: i.tax
                 }))
             };
-           const saledata= await createSale(sale).unwrap();
+            const saleId = await createSale(sale).unwrap();
+            
            
-            setReceiptInfo({ cart, total, discount, tax, net, billNo, dateTime, userId });
-            setShowReceipt(true);
+            const receiptInfo ={ saleId, cart, total, discount, tax, net, billNo, dateTime, userId };
+           // setShowReceipt(true);
             setStatus('Sale saved!');
-            setCart([]);
+           // setCart([]);
             setNotes('');
+
+            setIsSearching(true);
+
+            //dispatch(
+            //    setDrawerComponent({
+            //        DrawerComponentChild: <ReceiptPrintWrapper receiptInfo={receiptInfo}></ReceiptPrintWrapper>,
+            //    })
+            //);
+
+            dispatch(
+                setDrawerComponent({
+                    DrawerComponentChild: ReceiptPrintWrapper,  // 👈 the function, not JSX
+                    receiptInfo: { ...receiptInfo },
+                })
+            );
+
+            dispatch(openDrawer({ drawerOpen: true }));
         } catch (error) {
             console.error('Error saving sale:', error);
             setStatus('Error saving sale.');
@@ -175,7 +193,7 @@ const SalesPOSPage = () => {
 
     return (
         <>
-            {!showReceipt && (<Container maxWidth="md" sx={{ mt: 4 }}>
+         <Container maxWidth="md" sx={{ mt: 4 }}>
                 <Typography variant="h4" gutterBottom>Point of Sale</Typography>
                 <Box sx={{ mb: 3 }}>
                     <input
@@ -212,7 +230,7 @@ const SalesPOSPage = () => {
                                             {loading ? <CircularProgress color="inherit" size={20} /> : null}
                                             {params.InputProps.endAdornment}
                                         </>
-                                    ),
+                                    ),          
                                 }}
                             />
                         )}
@@ -286,21 +304,19 @@ const SalesPOSPage = () => {
                             color="primary"
                             disabled={cart.length === 0 || isLoading}
                             onClick={handleCheckout}
+                           
                         >
                             {isLoading ? 'Saving...' : 'Checkout'}
                         </Button>
                     </Box>
                     {status && <Typography sx={{ mt: 2 }}>{status}</Typography>}
                 </Box>
-            </Container>)
-            }
+            </Container>
+            
 
-            {
-                showReceipt && (
-                    <ReceiptPrintWrapper setShowReceipt={setShowReceipt} receiptInfo={receiptInfo} />
-              )}
+         
         
-           
+                <DrawerComponent component={<DrawerComponentChild />} />
         </>
     );
 };

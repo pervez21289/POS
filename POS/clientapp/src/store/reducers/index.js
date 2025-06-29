@@ -7,10 +7,10 @@ import property from './property';
 import users from './users'
 import propertydetails from './propertydetails'
 import { categoryApi } from './../../services/categoryApi'
-
+import drawer from './drawer';
 
 // ==============================|| COMBINE REDUCERS ||============================== //
 
-const reducers = combineReducers({ menu, property, users, propertydetails, categoryApi });
+const reducers = combineReducers({ drawer, menu, property, users, propertydetails, categoryApi });
 
 export default reducers;

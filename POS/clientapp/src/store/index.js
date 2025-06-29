@@ -4,12 +4,14 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { productApi } from './../services/productApi';
 import { categoryApi } from './../services/categoryApi';
 import { salesApi } from './../services/salesApi';
+import drawer from './reducers/drawer';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
 const rootReducer = combineReducers({
     [productApi.reducerPath]: productApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
+    drawer
     // auth: authReducer,
 });
 

@@ -33,7 +33,7 @@ const utilities = {
             icon: icons.FontSizeOutlined
         },
         {
-            id: 'util-sales',
+            id: 'util-invoice',
             title: 'Invoice',
             type: 'item',
             url: '/invoice',

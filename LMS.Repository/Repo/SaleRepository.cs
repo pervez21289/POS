@@ -64,4 +64,15 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
         return (rows, total);
     }
+
+    public async Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode)
+    {
+        var parameters = new DynamicParameters();
+        parameters.Add("@SaleID", saleId);
+        parameters.Add("@CustomerName", CustomerName);
+        parameters.Add("@Mobile", mobile);
+        parameters.Add("@PaymentMode", paymentMode);
+
+        await ExecuteAsync("UpdateSaleOnPrint", parameters, commandType: CommandType.StoredProcedure);
+    }
 }
