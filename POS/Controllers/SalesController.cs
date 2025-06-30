@@ -31,10 +31,10 @@ public class SalesController : ControllerBase
         return Ok(new { SaleID = saleId, Message = "Sale saved successfully." });
     }
 
-    [HttpPost("UpdateOnPrint")]
-    public async Task<IActionResult> UpdateOnPrint([FromBody] UpdatePrintDto dto)
-    {
-        await _saleRepository.UpdateSaleOnPrintAsync(dto.SaleId, dto.CustomerName, dto.Mobile, dto.PaymentMode);
-        return Ok();
-    }
+    //[HttpPost("UpdateOnPrint")]
+    //public async Task<IActionResult> UpdateOnPrint([FromBody] UpdatePrintDto dto)
+    //{
+    //    await _saleRepository.UpdateSaleOnPrintAsync(dto.SaleId, dto.CustomerName, dto.Mobile, dto.PaymentMode);
+    //    return Ok();
+    //}
 }

@@ -35,6 +35,9 @@ public class SaleRepository : BaseRepository,ISaleRepository
         parameters.Add("@TaxAmount", saleDto.TaxAmount);
         parameters.Add("@PaymentStatus", saleDto.PaymentStatus);
         parameters.Add("@Notes", saleDto.Notes);
+        parameters.Add("@PaymentMode", saleDto.PaymentMode); // e.g. "Cash", "UPI"
+        parameters.Add("@CustomerName", saleDto.CustomerName);
+        parameters.Add("@Mobile", saleDto.Mobile);
         parameters.Add("@SaleItems", saleItemsTable.AsTableValuedParameter("dbo.SaleItemTableType"));
         parameters.Add("@SaleID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 

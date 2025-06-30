@@ -7,12 +7,13 @@ import {
 import ClearIcon from '@mui/icons-material/Clear';
 import debounce from 'lodash.debounce';
 import axios from 'axios';
-import { useCreateSaleMutation } from './../../services/salesApi';
+
 import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
 import ReceiptPrintWrapper from './ReceiptPrintWrapper'
-import DrawerComponent from "./../../components/Drawer";
+
 import { useDispatch, useSelector } from 'react-redux';
 import { openDrawer, setDrawerComponent } from "./../../store/reducers/drawer";
+import {  setReceiptInfo } from "./../../store/reducers/sales";
 
 const SalesPOSPage = () => {
     const [isSearching, setIsSearching] = useState(false);
@@ -25,15 +26,15 @@ const SalesPOSPage = () => {
     const [loading, setLoading] = useState(false);
     const [notes, setNotes] = useState('');
     const [status, setStatus] = useState('');
-    const [createSale, { isLoading }] = useCreateSaleMutation();
-    const [showReceipt, setShowReceipt] = useState(false);
+ 
+    const [saleId, setSaleId] = useState(null);
    
     const [billNo, setBillNo] = useState('OPI');
     const [userId, setUserId] = useState(1);
     const [dateTime, setDateTime] = useState('2/2/2029');
 
     /*const { drawerOpen } = useSelector((state) => state.drawer);*/
-    const { DrawerComponentChild } = useSelector((state) => state.drawer);
+    const { receiptInfo } = useSelector((state) => state.sales);
     const dispatch = useDispatch();
 
     // 🔁 Debounced API call to search products
@@ -84,7 +85,6 @@ const SalesPOSPage = () => {
             }];
         });
         setSearchValue('');
-        
     };
 
     const handleBarcodeScan = async (e) => {
@@ -129,27 +129,13 @@ const SalesPOSPage = () => {
         try {
 
             debugger;
-          
-          
-            const sale = {
-                userID: 3, // Replace with actual user
-                totalAmount: total,
-                discountAmount: discount,
-                taxAmount: tax,
-                paymentStatus: 1,
-                notes,
-                saleItems: cart.map(i => ({
-                    productID: i.productID,
-                    quantity: i.qty,
-                    unitPrice: i.price,
-                    discount: i.discount,
-                    tax: i.tax
-                }))
-            };
-            const saleId = await createSale(sale).unwrap();
+
+    
+                const receiptInfo = { cart, total, discount, tax, net, billNo, dateTime, userId };
+                dispatch(setReceiptInfo({ receiptInfo: receiptInfo }));
             
            
-            const receiptInfo ={ saleId, cart, total, discount, tax, net, billNo, dateTime, userId };
+          
            // setShowReceipt(true);
             setStatus('Sale saved!');
            // setCart([]);
@@ -157,20 +143,17 @@ const SalesPOSPage = () => {
 
             setIsSearching(true);
 
-            //dispatch(
-            //    setDrawerComponent({
-            //        DrawerComponentChild: <ReceiptPrintWrapper receiptInfo={receiptInfo}></ReceiptPrintWrapper>,
-            //    })
-            //);
-
             dispatch(
                 setDrawerComponent({
-                    DrawerComponentChild: ReceiptPrintWrapper,  // 👈 the function, not JSX
-                    receiptInfo: { ...receiptInfo },
+                    DrawerComponentChild: ReceiptPrintWrapper,
+                    drawerProps: {
+                        receiptInfo: { ...receiptInfo }
+                    },
+                    drawerOpen: true
                 })
             );
 
-            dispatch(openDrawer({ drawerOpen: true }));
+            //dispatch(openDrawer({ drawerOpen: true }));
         } catch (error) {
             console.error('Error saving sale:', error);
             setStatus('Error saving sale.');
@@ -302,21 +285,16 @@ const SalesPOSPage = () => {
                         <Button
                             variant="contained"
                             color="primary"
-                            disabled={cart.length === 0 || isLoading}
+                            disabled={cart.length===0}
                             onClick={handleCheckout}
                            
                         >
-                            {isLoading ? 'Saving...' : 'Checkout'}
+                             Checkout
                         </Button>
                     </Box>
                     {status && <Typography sx={{ mt: 2 }}>{status}</Typography>}
                 </Box>
             </Container>
-            
-
-         
-        
-                <DrawerComponent component={<DrawerComponentChild />} />
         </>
     );
 };

@@ -8,9 +8,10 @@ import users from './users'
 import propertydetails from './propertydetails'
 import { categoryApi } from './../../services/categoryApi'
 import drawer from './drawer';
+import sales from './sales';
 
 // ==============================|| COMBINE REDUCERS ||============================== //
 
-const reducers = combineReducers({ drawer, menu, property, users, propertydetails, categoryApi });
+const reducers = combineReducers({ drawer, menu, property, users, propertydetails, categoryApi, sales });
 
 export default reducers;

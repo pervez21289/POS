@@ -5,13 +5,15 @@ import { productApi } from './../services/productApi';
 import { categoryApi } from './../services/categoryApi';
 import { salesApi } from './../services/salesApi';
 import drawer from './reducers/drawer';
+import sales from './reducers/sales';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
 const rootReducer = combineReducers({
     [productApi.reducerPath]: productApi.reducer,
     [categoryApi.reducerPath]: categoryApi.reducer,
-    drawer
+    drawer,
+    sales
     // auth: authReducer,
 });
 

@@ -23,6 +23,9 @@ namespace LMS.Core.Entities
         public decimal TaxAmount { get; set; }
         public int PaymentStatus { get; set; }
         public string Notes { get; set; }
+        public string CustomerName { get; set; }
+        public string Mobile { get; set; }
+        public string PaymentMode { get; set; }
         public List<SaleItemDto> saleItems { get; set; }
     }
 
@@ -37,15 +40,14 @@ namespace LMS.Core.Entities
         public decimal NetAmount { get; set; }
         public string PaymentStatus { get; set; }
         public string Notes { get; set; }
-        public long TotalCount { get; set; }  
+        public long TotalCount { get; set; }
     }
 
     public class UpdatePrintDto
     {
         public int SaleId { get; set; }
-        public string CustomerName { get; set; }
-        public string Mobile { get; set; }
-        public string PaymentMode { get; set; }
+      
+   
     }
 
 }

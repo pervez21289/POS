@@ -13,7 +13,7 @@ import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
-
+import DrawerComponent from "./../../components/Drawer";
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
@@ -48,7 +48,9 @@ export default function DashboardLayout() {
           <Outlet />
           <Footer />
         </Box>
-      </Box>
+          </Box>
+
+      <DrawerComponent />
     </Box>
   );
 }

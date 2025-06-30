@@ -3,8 +3,9 @@ import {
     Box, Typography, Divider,
     Table, TableBody, TableCell, TableRow, TableHead
 } from '@mui/material';
+import { useDispatch, useSelector } from 'react-redux';
 
-const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, net }) => {
+const SalesReceipt = (receiptInfo) => {
     const fontSize = '10px';
 
     return (
@@ -15,9 +16,9 @@ const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, ne
             <Typography align="center" sx={{ fontSize }}>DEHRADUN-2</Typography>
             <Divider sx={{ my: 0.5 }} />
 
-            <Typography sx={{ fontSize }}>Bill No: {billNo}</Typography>
-            <Typography sx={{ fontSize }}>Date: {dateTime}</Typography>
-            <Typography sx={{ fontSize }}>User ID: {userId}</Typography>
+            <Typography sx={{ fontSize }}>Bill No: {receiptInfo?.billNo}</Typography>
+            <Typography sx={{ fontSize }}>Date: {receiptInfo?.dateTime}</Typography>
+            <Typography sx={{ fontSize }}>User ID: {receiptInfo?.userId}</Typography>
             <Divider sx={{ my: 0.5 }} />
 
             <Table size="small" sx={{ fontSize }}>
@@ -30,7 +31,7 @@ const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, ne
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {cart?.map((item, index) => (
+                    {receiptInfo?.cart?.map((item, index) => (
                         <React.Fragment key={index}>
                             <TableRow>
                                 <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
@@ -57,19 +58,19 @@ const SalesReceipt = ({ cart, billNo, dateTime, userId, total, discount, tax, ne
                 <TableBody>
                     <TableRow>
                         <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Subtotal</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{total?.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.total?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Discount</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{discount?.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.discount?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell colSpan={4} sx={{ p: 0.5, fontSize }}>Tax</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{tax?.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.tax?.toFixed(2)}</TableCell>
                     </TableRow>
                     <TableRow>
                         <TableCell colSpan={4} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{net?.toFixed(2)}</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{receiptInfo?.net?.toFixed(2)}</TableCell>
                     </TableRow>
                 </TableBody>
             </Table>
