@@ -22,4 +22,21 @@ namespace LMS.Core.Entities
         public bool IsActive { get; set; }
         public decimal? GstRate { get; set; }
     }
+
+    public class ProductInventoryLog
+    {
+        public int LogID { get; set; }
+        public int ProductID { get; set; }
+        public int QuantityChanged { get; set; }
+        public string Reason { get; set; }
+        public int UserID { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+
+    public class AdjustStockDto
+    {
+        public int Quantity { get; set; }
+        public string Reason { get; set; }
+        public int UserID { get; set; }
+    }
 }

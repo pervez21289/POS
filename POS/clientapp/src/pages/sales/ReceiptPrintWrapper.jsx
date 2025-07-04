@@ -6,24 +6,27 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useCreateSaleMutation } from './../../services/salesApi';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+import { setReceiptInfo } from "./../../store/reducers/sales";
+import { openDrawer } from "./../../store/reducers/drawer";
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
 
 const ReceiptPrintWrapper = ({ receiptInfo }) => {
     const printRef = useRef();
     const navigate = useNavigate();
     const dispatch = useDispatch();
 
-    const [paymentMode, setPaymentMode] = useState('1');
+    const [PaymentModeID, setPaymentModeID] = useState('1');
     const [mobileError, setMobileError] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [customerName, setCustomerName] = useState('');
     const [customerId, setCustomerId] = useState(null);
+    const [createSale] = useCreateSaleMutation();
+    const [saleId, setSaleId] = useState(null);
+    const [openSnackbar, setOpenSnackbar] = useState(false);
 
     const handlePrint = () => {
-        const printContents = printRef.current.innerHTML;
-        const originalContents = document.body.innerHTML;
-        document.body.innerHTML = printContents;
         window.print();
-        document.body.innerHTML = originalContents;
     };
 
 
@@ -67,79 +70,86 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             return;
         }
         debugger;
-        if (receiptInfo === null) {
+        if (receiptInfo) {
             const sale = {
                 userID: 3, // Replace with actual user
-                totalAmount: receiptInfo?.total,
-                discountAmount: receiptInfo?.discount,
-                taxAmount: receiptInfo?.tax,
+                totalAmount: receiptInfo?.totalAmount,
+                discountAmount: receiptInfo?.discountAmount,
+                taxAmount: receiptInfo?.taxAmount,
                 paymentStatus: 1,
                 notes: receiptInfo?.notes,
                 mobileNumber: mobileNumber,
                 customerName: customerName,
-                PaymentModeID: paymentMode,
-                saleItems: cart.map(i => ({
+                PaymentModeID: PaymentModeID,
+                saleItems: receiptInfo.cart.map(i => ({
                     productID: i.productID,
-                    quantity: i.qty,
-                    unitPrice: i.price,
+                    quantity: i.quantity,
+                    price: i.price,
                     discount: i.discount,
                     tax: i.tax
                 }))
             };
-            const saleId = await createSale(sale).unwrap();
-            handlePrint();
+            const data = await createSale(sale).unwrap();
+            setSaleId(data);
+           
+            dispatch(setReceiptInfo({ receiptInfo: null }));
+            setOpenSnackbar(true);
+           // handlePrint();
         }
     }
 
     return (
-        <Box sx={{ p: 3 }}>
-            <Typography variant="h5" mb={2}>Receipt Details</Typography>
+        <>
+            <Box sx={{ p: 3 }}>
+                <Typography variant="h5" mb={2}>Receipt Details</Typography>
 
-            <Grid container spacing={2} alignItems="flex-start">
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        fullWidth
-                        label="Mobile Number"
-                        value={mobileNumber}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setMobileNumber(value);
+                <Grid container spacing={2} alignItems="flex-start">
+                    <Grid item xs={12} sm={2} lg={4}>
+                        <TextField
+                            fullWidth
+                            label="Mobile Number"
+                            value={mobileNumber}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setMobileNumber(value);
 
-                            // Clear error when user starts typing
-                            if (mobileError && /^[6-9]\d{9}$/.test(value)) {
-                                setMobileError('');
-                            }
-                        }}
-                        onBlur={() => {
-                            if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
-                                setMobileError('Invalid mobile number');
-                            } else {
-                                setMobileError('');
-                                handleMobileSearch();
-                            }
-                        }}
-                        error={mobileError}
-                        helperText={mobileError || ' '}
-                    />
+                                // Clear error when user starts typing
+                                if (mobileError && /^[6-9]\d{9}$/.test(value)) {
+                                    setMobileError('');
+                                }
+                            }}
+                            onBlur={() => {
+                                if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
+                                    setMobileError('Invalid mobile number');
+                                } else {
+                                    setMobileError('');
+                                    handleMobileSearch();
+                                }
+                            }}
+                            error={mobileError}
+                            helperText={mobileError || ' '}
+                            disabled={!!saleId}
+                        />
 
-                </Grid>
+                    </Grid>
 
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        fullWidth
-                        label="Customer Name"
-                        value={customerName}
-                        onChange={(e) => setCustomerName(e.target.value)}
-                        disabled={!!customerId}
-                    />
-                </Grid>
+                    <Grid item xs={12} sm={6} lg={4}>
+                        <TextField
+                            fullWidth
+                            label="Customer Name"
+                            value={customerName}
+                            onChange={(e) => setCustomerName(e.target.value)}
+                            disabled={!!customerId && !!saleId}
 
-                <Grid item xs={12} lg={4}>
+                        />
+                    </Grid>
+
+                    <Grid item xs={12} lg={4}>
                         <ToggleButtonGroup
                             color="primary"
-                            value={paymentMode}
+                            value={PaymentModeID}
                             exclusive
-                            onChange={(e) => setPaymentMode(e.target.value)}
+                            onChange={(e) => setPaymentModeID(e.target.value)}
                             aria-label="Platform"
                             name="Parking"
                         >
@@ -147,36 +157,49 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                                 Cash
                             </ToggleButton>
                             <ToggleButton size="small" name="Parking" color="success" value="2">
-                              UPI
-                        </ToggleButton>
-                        <ToggleButton size="small" name="Parking" color="success" value="3">
-                            Card
-                        </ToggleButton>
+                                UPI
+                            </ToggleButton>
+                            <ToggleButton size="small" name="Parking" color="success" value="3">
+                                Card
+                            </ToggleButton>
                         </ToggleButtonGroup>
-                  
+
+                    </Grid>
+
+
                 </Grid>
 
-              
-            </Grid>
+                <Box id="printSection" ref={printRef} mt={4}>
+                    <SalesReceipt
+                        receiptInfo={receiptInfo}
+                        Bill={saleId}
+                    />
+                </Box>
 
-            <Box ref={printRef} mt={4}>
-                <SalesReceipt
-                    {...receiptInfo}
-                    customerName={customerName}
-                    mobileNumber={mobileNumber}
-                    paymentMode={paymentMode}
-                />
+                <Box mt={4} display="flex" gap={2}>
+                    {!saleId && <Button variant="contained" onClick={handleCheckout}>
+                        🖨 Submit
+                    </Button>
+                    }
+                    {saleId && <Button variant="contained" onClick={handlePrint}>
+                        🖨 Print Receipt
+                    </Button>}
+                    <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
+                        ⬅ Back to Sale Page
+                    </Button>
+                </Box>
             </Box>
-
-            <Box mt={4} display="flex" gap={2}>
-                <Button variant="contained" onClick={handleCheckout}>
-                    🖨 Save/Print Receipt
-                </Button>
-                <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
-                    ⬅ Back to Sale Page
-                </Button>
-            </Box>
-        </Box>
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={3000}
+                onClose={() => setOpenSnackbar(false)}
+                anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+            >
+                <MuiAlert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
+                    Sale saved successfully!
+                </MuiAlert>
+            </Snackbar>
+        </>
     );
 };
 

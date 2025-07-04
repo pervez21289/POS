@@ -1,8 +1,30 @@
 ﻿import React, { useEffect, useState,useMemo } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField, Box } from '@mui/material';
+import { TextField, Box,Button } from '@mui/material';
 import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
+import { styled } from "@mui/system";
+import { useDispatch, useSelector } from 'react-redux';
+import { setDrawerComponent } from "./../../store/reducers/drawer";
+import ReceiptPrintWrapper from './ReceiptPrintWrapper'
+
+const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
+    "& .MuiDataGrid-main": {
+        backgroundColor: theme.palette.background.paper,
+    },
+    "& .MuiDataGrid-cell": {
+        borderBottom: `1px solid ${theme.palette.divider}`,
+    },
+    "& .MuiDataGrid-columnHeaders": {
+        backgroundColor: "#fff", // Optional: white background
+        color: "#000", // Set text color to black
+        fontSize: 13,
+        fontWeight: "bold", // Make text bold
+    },
+    height: 600,
+    width: "100%"
+}));
+
 
 const SalesGrid = () => {
     const [rows, setRows] = useState([]);
@@ -12,6 +34,7 @@ const SalesGrid = () => {
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(10);
     const [rowCount, setRowCount] = useState(0);
+    const dispatch = useDispatch();
 
     const fetchSales = useMemo(() => debounce(async () => {
         
@@ -29,27 +52,22 @@ const SalesGrid = () => {
         }
     }, 300), []);
 
-    //const fetchSales = async () => {
-    //    setLoading(true);
-    //    try {
-    //        //const response = await axios.get('/api/sales', {
-    //        //    params: {
-    //        //        search,
-    //        //        date,
-    //        //        page: page + 1,
-    //        //        pageSize,
-    //        //    },
-    //        //});
-    //        const response = await SaleService.GetSales({ search, date, page: page + 1, pageSize });
-    //        debugger;
-    //        setRows(response.rows);
-    //        setRowCount(response.total);
-    //    } catch (error) {
-    //        console.error('Error fetching sales:', error);
-    //    } finally {
-    //        setLoading(false);
-    //    }
-    //};
+    const handleViewInvoice = async (row) => {
+
+        const data = await SaleService.GetSalesById(row.saleID);
+
+        dispatch(
+            setDrawerComponent({
+                DrawerComponentChild: ReceiptPrintWrapper,
+                drawerProps: {
+                    receiptInfo: data 
+                },
+                drawerOpen: true
+            })
+        );
+       
+
+    }
 
     useEffect(() => {
         /* fetchSales();*/
@@ -60,15 +78,29 @@ const SalesGrid = () => {
     }, [search, date, page, pageSize]);
 
     const columns = [
-        { field: 'saleID', headerName: 'Sale ID', width: 100 },
-        { field: 'billedBy', headerName: 'Billed By', width: 100 },
+        { field: 'billNo', headerName: 'Bill No.', width: 150 },
+        { field: 'customerName', headerName: 'Customer Name', width: 140 },
         { field: 'saleTime', headerName: 'Sale Time', width: 180 },
         { field: 'totalAmount', headerName: 'Total Amount', width: 130 },
         { field: 'discountAmount', headerName: 'Discount', width: 120 },
-        { field: 'taxAmount', headerName: 'Tax', width: 100 },
+        //{ field: 'taxAmount', headerName: 'Tax', width: 100 },
         { field: 'netAmount', headerName: 'Net Amount', width: 130 },
-        { field: 'paymentStatus', headerName: 'Payment Status', width: 140 }
-        
+        { field: 'p_Status', headerName: 'Payment Status', width: 140 },
+        {
+            field: 'action',
+            headerName: 'Action',
+            width: 150,
+            sortable: false,
+            renderCell: (params) => (
+                <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleViewInvoice(params.row)}
+                >
+                    View Invoice
+                </Button>
+            )
+        },
     ];
     return (
         <Box sx={{ height: 600, width: '100%' }}>
@@ -87,7 +119,7 @@ const SalesGrid = () => {
                     onChange={(e) => setDate(e.target.value)}
                 />
             </Box>
-            <DataGrid
+            <StyledDataGrid
                 rows={rows}
                 columns={columns}
                 pagination

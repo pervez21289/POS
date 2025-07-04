@@ -3,7 +3,7 @@ import Config from "./config";
 import Auth from "./Auth";
 const url = Config.baseurl;
 
-class SaleService {
+class ProductService {
     constructor() { }
 
    
@@ -53,4 +53,4 @@ class SaleService {
 
 }
 
-export default new SaleService();
+export default new ProductService();

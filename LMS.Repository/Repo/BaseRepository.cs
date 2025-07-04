@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Dapper;
+using LMS.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper;
-using LMS.Core.Entities;
+using static Dapper.SqlMapper;
 
 namespace LMS.Repo.Repository
 {
@@ -61,6 +62,23 @@ namespace LMS.Repo.Repository
                 return await conn.QueryAsync<T>(sql, param, commandType: commandType);
             }
         }
+
+        public async Task<(T1 First, List<T2> Second)> QueryMultipleAsync<T1, T2>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var reader = await conn.QueryMultipleAsync(sql, param, commandType: commandType))
+                {
+                    var first = await reader.ReadFirstOrDefaultAsync<T1>();
+                    var second = (await reader.ReadAsync<T2>()).ToList();
+
+                    return (first, second);
+                }
+            }
+        }
+
 
         public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
         {

@@ -5,6 +5,7 @@ using LMS.Repo.Repository;
 using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
+using static Dapper.SqlMapper;
 
 
 public class SaleRepository : BaseRepository,ISaleRepository
@@ -12,7 +13,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
  
 
-    public async Task<int> SaveSaleAsync(SaleDto saleDto)
+    public async Task<BillNoDto> SaveSaleAsync(SaleDto saleDto)
     {
       
 
@@ -25,7 +26,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
         foreach (var item in saleDto.saleItems)
         {
-            saleItemsTable.Rows.Add(item.ProductID, item.Quantity, item.UnitPrice, item.Discount, item.Tax);
+            saleItemsTable.Rows.Add(item.ProductID, item.Quantity, item.Price, item.Discount, item.Tax);
         }
 
         var parameters = new DynamicParameters();
@@ -35,14 +36,14 @@ public class SaleRepository : BaseRepository,ISaleRepository
         parameters.Add("@TaxAmount", saleDto.TaxAmount);
         parameters.Add("@PaymentStatus", saleDto.PaymentStatus);
         parameters.Add("@Notes", saleDto.Notes);
-        parameters.Add("@PaymentMode", saleDto.PaymentMode); // e.g. "Cash", "UPI"
+        parameters.Add("@PaymentModeID", saleDto.PaymentModeID); // e.g. "Cash", "UPI"
         parameters.Add("@CustomerName", saleDto.CustomerName);
-        parameters.Add("@Mobile", saleDto.Mobile);
+        parameters.Add("@MobileNumber", saleDto.MobileNumber);
         parameters.Add("@SaleItems", saleItemsTable.AsTableValuedParameter("dbo.SaleItemTableType"));
         parameters.Add("@SaleID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        await ExecuteScalarAsync<int>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
-        return parameters.Get<int>("@SaleID");
+        BillNoDto dto=await QueryFirstOrDefaultAsync<BillNoDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
+        return dto;
     }
 
     public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, DateTime? date, int page, int pageSize)
@@ -66,6 +67,26 @@ public class SaleRepository : BaseRepository,ISaleRepository
         }
 
         return (rows, total);
+    }
+
+    public async Task<SaleListDto?> GetSaleWithItems(int saleId)
+    {
+        try
+        {
+            var (saleItem, saleItems) = await QueryMultipleAsync<SaleListDto, SaleItemListDto>(
+                "GetSaleWithItems",
+                new { SaleID = saleId },
+                commandType: CommandType.StoredProcedure
+            );
+
+           saleItem.Cart = saleItems.ToList();
+           return saleItem;
+        }
+        catch (Exception ex)
+        {
+           return null; // Handle or log the exception as needed
+        }
+       
     }
 
     public async Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode)

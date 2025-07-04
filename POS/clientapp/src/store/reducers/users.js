@@ -46,7 +46,8 @@ const users = createSlice({
   name: 'users',
   initialState,
   reducers: {
-    setUserDetails(state, action) {
+      setUserDetails(state, action) {
+          debugger;
       if (action.payload.userDetails) state.userDetails = action.payload.userDetails;
       else state.userDetails = null;
     },

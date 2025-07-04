@@ -36,6 +36,17 @@ export const productApi = createApi({
             }),
             invalidatesTags: ['Products'],
         }),
+        adjustStock: builder.mutation({
+            query: ({ productId, data }) => ({
+                url: `products/${productId}/adjust-stock`,
+                method: 'POST',
+                body: data,
+            }),
+            invalidatesTags: ['Products'],
+        }),
+        getInventoryLogs: builder.query({
+            query: (productId) => `products/${productId}/inventory-logs`,
+        })
     }),
 });
 

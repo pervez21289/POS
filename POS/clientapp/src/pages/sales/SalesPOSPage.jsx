@@ -6,14 +6,15 @@ import {
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import debounce from 'lodash.debounce';
-import axios from 'axios';
+import { format } from 'date-fns';
 
 import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
 import ReceiptPrintWrapper from './ReceiptPrintWrapper'
 
 import { useDispatch, useSelector } from 'react-redux';
-import { openDrawer, setDrawerComponent } from "./../../store/reducers/drawer";
-import {  setReceiptInfo } from "./../../store/reducers/sales";
+import {  setDrawerComponent } from "./../../store/reducers/drawer";
+import { setReceiptInfo } from "./../../store/reducers/sales";
+
 
 const SalesPOSPage = () => {
     const [isSearching, setIsSearching] = useState(false);
@@ -31,7 +32,7 @@ const SalesPOSPage = () => {
    
     const [billNo, setBillNo] = useState('OPI');
     const [userId, setUserId] = useState(1);
-    const [dateTime, setDateTime] = useState('2/2/2029');
+    const [saleTime, setSaleTime] = useState(format(new Date(), 'dd-MM-yyyy hh:mm a'));
 
     /*const { drawerOpen } = useSelector((state) => state.drawer);*/
     const { receiptInfo } = useSelector((state) => state.sales);
@@ -63,7 +64,7 @@ const SalesPOSPage = () => {
 
     const addToCart = (product) => {
         let discount = 0;
-
+        debugger;
         if (product.discountPercent > 0) {
             discount = (product.price * product.discountPercent) / 100;
         } else if (product.discountAmount > 0) {
@@ -74,17 +75,16 @@ const SalesPOSPage = () => {
             const found = prev.find((i) => i.productID === product.productID);
             if (found) {
                 return prev.map((i) =>
-                    i.id === product.productID ? { ...i, qty: i.qty + 1 } : i
+                    i.productID === product.productID ? { ...i, quantity: i.quantity + 1 } : i
                 );
             }
             return [...prev, {
                 ...product,
-                qty: 1,
+                quantity: 1,
                 discount,
                 tax: 0
             }];
         });
-        setSearchValue('');
     };
 
     const handleBarcodeScan = async (e) => {
@@ -119,23 +119,18 @@ const SalesPOSPage = () => {
         setCart((prev) => prev.filter((i) => i.productID !== productID));
     };
 
-    const total = cart.reduce((sum, i) => sum + i.price * i.qty, 0);
-    const discount = cart.reduce((sum, i) => sum + (i.discount || 0) * i.qty, 0);
-    const tax = cart.reduce((sum, i) => sum + (i.tax || 0), 0);
-    const net = total - discount + tax;
+    const totalAmount = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+    const discountAmount = cart.reduce((sum, i) => sum + (i.discount || 0) * i.quantity, 0);
+    const taxAmount = cart.reduce((sum, i) => sum + (i.tax || 0), 0);
+    const net = totalAmount - discountAmount + taxAmount;
 
 
     const handleCheckout = async () => {
         try {
 
-            debugger;
-
-    
-                const receiptInfo = { cart, total, discount, tax, net, billNo, dateTime, userId };
+            const receiptInfo = { cart, totalAmount, discountAmount, taxAmount, net, billNo, saleTime, userId };
                 dispatch(setReceiptInfo({ receiptInfo: receiptInfo }));
             
-           
-          
            // setShowReceipt(true);
             setStatus('Sale saved!');
            // setCart([]);
@@ -174,6 +169,13 @@ const SalesPOSPage = () => {
         return () => clearInterval(interval);
     }, [isSearching]);
 
+    useEffect(() => {
+
+        if (receiptInfo == null)
+            setCart([]);
+
+    }, [receiptInfo]);
+
     return (
         <>
          <Container maxWidth="md" sx={{ mt: 4 }}>
@@ -190,8 +192,13 @@ const SalesPOSPage = () => {
                     <Autocomplete
                         value={searchValue}
                         onChange={(event, newValue) => {
-                            if (newValue) addToCart(newValue);
+                            if (newValue) {
+                                addToCart(newValue);
+                                setSearchValue(null);        // Clear selected value
+                                setSearchInput('');          // Clear typed input
+                            }
                         }}
+                        inputValue={searchInput}
                         onInputChange={(event, newInputValue) => {
                             setSearchInput(newInputValue);
                             setIsSearching(true);
@@ -252,13 +259,13 @@ const SalesPOSPage = () => {
                                             <TextField
                                                 type="number"
                                                 size="small"
-                                                value={item.qty}
+                                                value={item.quantity}
                                                 onChange={(e) => updateQty(item.productID, e.target.value)}
                                                 inputProps={{ min: 1, style: { width: 60 } }}
                                             />
                                         </TableCell>
                                         <TableCell align="right">
-                                            ${(item.qty * (item.price - (item.discount || 0))).toFixed(2)}
+                                            ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
                                         </TableCell>
                                         <TableCell align="center">
                                             <IconButton color="error" onClick={() => removeFromCart(item.productID)}>

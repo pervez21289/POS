@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Navigate } from 'react-router-dom';
 
 import useMediaQuery from '@mui/material/useMediaQuery';
 import Toolbar from '@mui/material/Toolbar';
@@ -11,7 +11,7 @@ import Header from './Header';
 import Footer from './Footer';
 import Loader from 'components/Loader';
 import Breadcrumbs from 'components/@extended/Breadcrumbs';
-
+import { useSelector } from 'react-redux';
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import DrawerComponent from "./../../components/Drawer";
 // ==============================|| MAIN LAYOUT ||============================== //
@@ -19,7 +19,11 @@ import DrawerComponent from "./../../components/Drawer";
 export default function DashboardLayout() {
   const { pathname } = useLocation();
   const { menuMasterLoading } = useGetMenuMaster();
-  const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+    const downXL = useMediaQuery((theme) => theme.breakpoints.down('xl'));
+
+
+    const { userDetails } = useSelector((state) => state.users);
+
 
   // set media wise responsive drawer
   useEffect(() => {
@@ -29,7 +33,7 @@ export default function DashboardLayout() {
   if (menuMasterLoading) return <Loader />;
 
   return (
-    <Box sx={{ display: 'flex', width: '100%' }}>
+      userDetails ? ( <Box sx={{ display: 'flex', width: '100%' }}>
       <Header />
       <Drawer />
 
@@ -51,6 +55,6 @@ export default function DashboardLayout() {
           </Box>
 
       <DrawerComponent />
-    </Box>
+      </Box>) : (<Navigate to="/login" />)
   );
 }

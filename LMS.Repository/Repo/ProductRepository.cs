@@ -79,5 +79,25 @@ namespace LMS.Repository.Repo
             );
         }
 
+
+        public async Task<bool> AdjustStockAsync(int productId, int quantity, string reason, int userId)
+        {
+            var result = await ExecuteAsync(
+                "AdjustProductStock",
+                new { ProductID = productId, Quantity = quantity, Reason = reason, UserID = userId },
+                commandType: CommandType.StoredProcedure
+            );
+            return result > 0;
+        }
+
+        public async Task<IEnumerable<ProductInventoryLog>> GetInventoryLogsAsync(int productId)
+        {
+            return await QueryAsync<ProductInventoryLog>(
+                "GetProductInventoryLogs",
+                new { ProductID = productId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
     }
 }

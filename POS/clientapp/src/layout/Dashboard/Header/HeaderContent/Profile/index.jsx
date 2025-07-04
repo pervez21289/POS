@@ -30,6 +30,10 @@ import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import avatar1 from 'assets/images/users/avatar-1.png';
 
+
+import { useDispatch, useSelector } from "react-redux";
+import { setUserDetails } from "./../../../../../store/reducers/users";
+
 // tab panel wrapper
 function TabPanel({ children, value, index, ...other }) {
   return (
@@ -50,12 +54,18 @@ function a11yProps(index) {
 
 export default function Profile() {
   const theme = useTheme();
-
+    const dispatch = useDispatch();
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
+
+    const handleLogout = async () => {
+        debugger;
+        window.localStorage.removeItem('userDetails',);
+        dispatch(setUserDetails({ userDetails: null }));
+    };
 
   const handleClose = (event) => {
     if (anchorRef.current && anchorRef.current.contains(event.target)) {
@@ -132,7 +142,7 @@ export default function Profile() {
                       </Grid>
                       <Grid>
                         <Tooltip title="Logout">
-                          <IconButton size="large" sx={{ color: 'text.primary' }}>
+                                                  <IconButton size="large" sx={{ color: 'text.primary' }} onClick={handleLogout}>
                             <LogoutOutlined />
                           </IconButton>
                         </Tooltip>
@@ -176,7 +186,7 @@ export default function Profile() {
                       />
                     </Tabs>
                   </Box>
-                  <TabPanel value={value} index={0} dir={theme.direction}>
+                  <TabPanel value={value} index={0} dir={theme.direction} handleLogout={handleLogout}>
                     <ProfileTab />
                   </TabPanel>
                   <TabPanel value={value} index={1} dir={theme.direction}>

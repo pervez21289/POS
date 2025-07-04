@@ -2,19 +2,26 @@
 using LMS.Core.Interfaces;
 using LMS.Repo.Repository;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
+using System.Security.Claims;
+using System.Text;
 
 
 [ApiController]
 [Route("api/[controller]")]
 public class AccountController : ControllerBase
 {
-    private readonly IUser _accountService;
 
-    public AccountController(IUser accountService)
+    public readonly AppSettings _appSettings;
+    public IUser _accountService;
+    public AccountController(IUser accountService, AppSettings appSettings)
     {
         _accountService = accountService;
+        _appSettings = appSettings;
     }
+    
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -39,11 +46,45 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _accountService.LoginAsync(request.Email, request.Password);
+        var userData = await _accountService.LoginAsync(request.Email, request.Password);
+        if (userData != null)
+        {
+            var authClaims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, Convert.ToString(request.Email)),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                };
 
-        if (user == null)
+            authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleName));
+            var token = GetToken(authClaims);
+
+            return Ok(new
+            {
+                token = new JwtSecurityTokenHandler().WriteToken(token),
+                expiration = token.ValidTo,
+                email = request.Email,
+                success=true
+            });
+        }
+
+        
             return Unauthorized(new { Success = false, Message = "Invalid email or password" });
 
-        return Ok(new { Success = true, Data = user });
+     
+    }
+
+    private JwtSecurityToken GetToken(List<Claim> authClaims)
+    {
+        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.TSecret));
+
+        var token = new JwtSecurityToken(
+            issuer: _appSettings.ValidIssuer,
+            audience: _appSettings.ValidAudience,
+            expires: DateTime.Now.AddHours(3),
+            claims: authClaims,
+            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+            );
+
+        return token;
     }
 }

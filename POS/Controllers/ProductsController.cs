@@ -100,6 +100,37 @@ namespace LMS.Controllers
             var result = await _repo.SearchProductsAsync(q ?? "");
             return Ok(result);
         }
+
+
+        [HttpPost("{id}/adjust-stock")]
+        public async Task<IActionResult> AdjustStock(int id, [FromBody] AdjustStockDto dto)
+        {
+            try
+            {
+                var success = await _repo.AdjustStockAsync(id, dto.Quantity, dto.Reason, dto.UserID);
+                return success ? Ok() : BadRequest();
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
+
+        [HttpGet("{id}/inventory-logs")]
+        public async Task<IActionResult> GetInventoryLogs(int id)
+        {
+            try
+            {
+                var logs = await _repo.GetInventoryLogsAsync(id);
+                return Ok(logs);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
     }
 
 }

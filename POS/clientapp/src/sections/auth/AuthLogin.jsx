@@ -25,14 +25,16 @@ import AnimateButton from 'components/@extended/AnimateButton';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 import UserService from '../../services/UserService';
-
+import { setUserDetails, setShowLoginModal } from "./../../store/reducers/users";
+import { useDispatch, useSelector } from "react-redux";
 // ============================|| JWT - LOGIN ||============================ //
 
 export default function AuthLogin({ isDemo = false }) {
     const [checked, setChecked] = React.useState(false);
     const [submitError, setSubmitError] = React.useState('');
     const navigate = useNavigate();
-  const [showPassword, setShowPassword] = React.useState(false);
+    const [showPassword, setShowPassword] = React.useState(false);
+    const dispatch = useDispatch();
   const handleClickShowPassword = () => {
     setShowPassword(!showPassword);
   };
@@ -47,8 +49,10 @@ export default function AuthLogin({ isDemo = false }) {
         try {
             const response = await UserService.LoginUser(values);
 
-            if (response?.success) {
-                // Save token or user info if needed
+            if (response.success) {
+                window.localStorage.setItem('userDetails', JSON.stringify(response));
+                dispatch(setUserDetails({ userDetails: response }));
+
                 navigate('/dashboard/default'); // Redirect to dashboard
             } else {
                 setSubmitError(response.data.message || 'Login failed');

@@ -14,7 +14,7 @@ const drawer = createSlice({
     initialState,
     reducers: {
         openDrawer(state, action) {
-            debugger;
+        
             state.drawerOpen = action.payload.drawerOpen;
         },
         setDrawerComponent(state, action) {

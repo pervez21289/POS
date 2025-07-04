@@ -9,11 +9,15 @@ namespace LMS.Core.Entities
     public class SaleItemDto
     {
         public int ProductID { get; set; }
-        public int Quantity { get; set; }
-        public decimal UnitPrice { get; set; }
+        public string? ProductName { get; set; }
+        public string? Barcode { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Price { get; set; }
         public decimal Discount { get; set; }
         public decimal Tax { get; set; }
     }
+
+   
 
     public class SaleDto
     {
@@ -22,10 +26,10 @@ namespace LMS.Core.Entities
         public decimal DiscountAmount { get; set; }
         public decimal TaxAmount { get; set; }
         public int PaymentStatus { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
         public string CustomerName { get; set; }
-        public string Mobile { get; set; }
-        public string PaymentMode { get; set; }
+        public string MobileNumber { get; set; }
+        public string PaymentModeID { get; set; }
         public List<SaleItemDto> saleItems { get; set; }
     }
 
@@ -40,14 +44,45 @@ namespace LMS.Core.Entities
         public decimal NetAmount { get; set; }
         public string PaymentStatus { get; set; }
         public string Notes { get; set; }
+        public string P_Status { get; set; }
+        public string CustomerName { get; set; }
+        public string BillNo { get; set; }  
         public long TotalCount { get; set; }
     }
 
-    public class UpdatePrintDto
+    public class BillNoDto
     {
-        public int SaleId { get; set; }
+        public string BillNo { get; set; }
       
    
     }
+
+    public class SaleListDto
+    {
+        public int SaleID { get; set; }
+        public string BillNo { get; set; }
+        public string SaleTime { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal Net { get; set; }
+        public string CustomerName { get; set; }
+        public string MobileNumber { get; set; }
+        public string UserName { get; set; }
+        public string CompanyName { get; set; }
+        public List<SaleItemListDto> Cart { get; set; } = new();
+    }
+
+    public class SaleItemListDto
+    {
+        public int ProductID { get; set; }
+        public string ProductName { get; set; }
+        public string Barcode { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal Price { get; set; }
+        public decimal Discount { get; set; }
+        public decimal Tax { get; set; }
+    }
+
 
 }

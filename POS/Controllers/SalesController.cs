@@ -27,8 +27,15 @@ public class SalesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var saleId = await _saleRepository.SaveSaleAsync(saleDto);
-        return Ok(new { SaleID = saleId, Message = "Sale saved successfully." });
+        BillNoDto bill = await _saleRepository.SaveSaleAsync(saleDto);
+        return Ok(bill);
+    }
+
+    [HttpGet("GetSalesById/{saleId}")]
+    public async Task<IActionResult> GetSalesById(int saleId)
+    {
+        var sale = await _saleRepository.GetSaleWithItems(saleId);
+        return sale == null ? NotFound() : Ok(sale);
     }
 
     //[HttpPost("UpdateOnPrint")]
