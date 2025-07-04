@@ -30,7 +30,7 @@ namespace LMS.Core.Entities
         public int QuantityChanged { get; set; }
         public string Reason { get; set; }
         public int UserID { get; set; }
-        public DateTime Timestamp { get; set; }
+        public string Timestamp { get; set; }
     }
 
     public class AdjustStockDto

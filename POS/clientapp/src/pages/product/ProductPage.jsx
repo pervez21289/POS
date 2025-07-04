@@ -4,11 +4,13 @@ import {
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
+import InventoryIcon from '@mui/icons-material/Inventory';
 import { DataGrid } from '@mui/x-data-grid';
 import debounce from 'lodash/debounce';
-
+import ProductInventoryManager from './ProductInventoryManager';
 import ProductForm from './ProductForm';
-
+import { setDrawerComponent } from "./../../store/reducers/drawer";
+import { useDispatch, useSelector } from 'react-redux';
 import {
     useGetProductsQuery,
     useCreateProductMutation,
@@ -29,6 +31,24 @@ const ProductManager = () => {
     const [editingProduct, setEditingProduct] = useState(null);
     const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
     const [searchText, setSearchText] = useState('');
+    const dispatch = useDispatch();
+
+    const handleAddInventory = async (row) => {
+
+        //const data = await SaleService.GetSalesById(row.saleID);
+
+        dispatch(
+            setDrawerComponent({
+                DrawerComponentChild: ProductInventoryManager,
+                drawerProps: {
+                    product: row
+                },
+                drawerOpen: true
+            })
+        );
+
+
+    }
 
     const handleFormSubmit = async (product) => {
         try {
@@ -81,10 +101,12 @@ const ProductManager = () => {
     const columns = [
         { field: 'name', headerName: 'Name', flex: 1 },
         { field: 'sku', headerName: 'SKU', flex: 1 },
+        { field: 'stock', headerName: 'Stock', flex: 1 },
         { field: 'price', headerName: 'Price', type: 'number', flex: 1 },
         {
             field: 'actions',
             headerName: 'Actions',
+            flex: 1,
             sortable: false,
             renderCell: (params) => (
                 <>
@@ -93,6 +115,9 @@ const ProductManager = () => {
                     </IconButton>
                     <IconButton onClick={() => handleDelete(params.row.productID)} color="error">
                         <DeleteIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleAddInventory(params.row)} color="success">
+                        <InventoryIcon />
                     </IconButton>
                 </>
             ),

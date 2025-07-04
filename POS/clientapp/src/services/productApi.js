@@ -56,4 +56,6 @@ export const {
     useCreateProductMutation,
     useUpdateProductMutation,
     useDeleteProductMutation,
+    useAdjustStockMutation,
+    useGetInventoryLogsQuery
 } = productApi;

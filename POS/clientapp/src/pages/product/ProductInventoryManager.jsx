@@ -15,13 +15,13 @@ import {
 } from '@mui/material';
 import { useAdjustStockMutation, useGetInventoryLogsQuery } from '../../services/productApi';
 
-const ProductInventoryManager = ({ productId, userId }) => {
+const ProductInventoryManager = ({ product }) => {
     const [quantity, setQuantity] = useState('');
     const [reason, setReason] = useState('');
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
     const [adjustStock, { isLoading: isAdjusting }] = useAdjustStockMutation();
-    const { data: logs, isLoading: isLogsLoading, refetch } = useGetInventoryLogsQuery(productId);
+    const { data: logs, isLoading: isLogsLoading, refetch } = useGetInventoryLogsQuery(product?.productID);
 
     const handleAdjust = async (e) => {
         e.preventDefault();
@@ -33,8 +33,8 @@ const ProductInventoryManager = ({ productId, userId }) => {
         }
         try {
             await adjustStock({
-                productId,
-                data: { quantity: Number(quantity), reason, userID: userId },
+                productId: product?.productID,
+                data: { quantity: Number(quantity), reason, userID: 23 },
             }).unwrap();
             setSuccess('Stock adjusted successfully.');
             setQuantity('');
@@ -44,6 +44,8 @@ const ProductInventoryManager = ({ productId, userId }) => {
             setError('Failed to adjust stock.');
         }
     };
+
+    console.log('Product:', product);
 
     return (
         <Paper sx={{ p: 3, maxWidth: 500, margin: '0 auto' }}>
@@ -83,33 +85,42 @@ const ProductInventoryManager = ({ productId, userId }) => {
             {isLogsLoading ? (
                 <CircularProgress size={24} />
             ) : (
+                    <Box sx={{ maxHeight: 400, overflowY: 'auto', mt: 1 }}>
                 <List dense>
                     {logs && logs.length > 0 ? (
-                        logs.map(log => (
-                            <React.Fragment key={log.logID}>
-                                <ListItem>
-                                    <ListItemText
-                                        primary={`[${new Date(log.timestamp).toLocaleString()}] ${log.quantityChanged > 0 ? '+' : ''}${log.quantityChanged}`}
-                                        secondary={`Reason: ${log.reason} | By User: ${log.userID}`}
-                                    />
-                                </ListItem>
-                                <Divider component="li" />
-                            </React.Fragment>
-                        ))
+                            logs.map(log => (
+                                <React.Fragment key={log.logID}>
+                                    <ListItem>
+                                        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                            <span>{log.timestamp}</span>
+                                            <Typography
+                                                variant="body1"
+                                                sx={{ minWidth: 60, textAlign: 'right', fontWeight: 600, color: log.quantityChanged > 0 ? 'success.main' : 'error.main' }}
+                                            >
+                                                {log.quantityChanged > 0 ? '+' : ''}
+                                                {log.quantityChanged}
+                                            </Typography>
+                                        </Box>
+                                    </ListItem>
+                                    <ListItem>
+                                        <ListItemText
+                                            secondary={`Reason: ${log.reason} | By User: ${log.userID}`}
+                                        />
+                                    </ListItem>
+                                    <Divider component="li" />
+                                </React.Fragment>
+                            ))
                     ) : (
                         <ListItem>
                             <ListItemText primary="No inventory logs found." />
                         </ListItem>
                     )}
-                </List>
+                        </List>
+                    </Box>
             )}
         </Paper>
     );
 };
 
-ProductInventoryManager.propTypes = {
-    productId: PropTypes.number.isRequired,
-    userId: PropTypes.number.isRequired,
-};
 
 export default ProductInventoryManager;
