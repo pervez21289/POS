@@ -1,10 +1,12 @@
 ﻿import React, { useState, useEffect, useMemo,useRef } from 'react';
 import {
     Container, Typography, Button, TextField,
-    List, ListItem, ListItemText, Divider, Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
-    TableBody, IconButton
+    Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
+    TableBody, IconButton, Card, CardContent, Paper, Divider, Stack
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash.debounce';
 import { format } from 'date-fns';
 
@@ -17,6 +19,7 @@ import { setReceiptInfo } from "./../../store/reducers/sales";
 
 
 const SalesPOSPage = () => {
+    const fontSize = '12px';
     const [isSearching, setIsSearching] = useState(false);
     const [barcodeInput, setBarcodeInput] = useState('');
     const barcodeInputRef = useRef(null);
@@ -177,132 +180,168 @@ const SalesPOSPage = () => {
     }, [receiptInfo]);
 
     return (
-        <>
-         <Container maxWidth="md" sx={{ mt: 4 }}>
-                <Typography variant="h4" gutterBottom>Point of Sale</Typography>
-                <Box sx={{ mb: 3 }}>
-                    <input
-                        ref={barcodeInputRef}
-                        value={barcodeInput}
-                        onChange={(e) => setBarcodeInput(e.target.value)}
-                        onKeyDown={handleBarcodeScan}
-                        style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
-                        autoFocus
-                    />
-                    <Autocomplete
-                        value={searchValue}
-                        onChange={(event, newValue) => {
-                            if (newValue) {
-                                addToCart(newValue);
-                                setSearchValue(null);        // Clear selected value
-                                setSearchInput('');          // Clear typed input
-                            }
-                        }}
-                        inputValue={searchInput}
-                        onInputChange={(event, newInputValue) => {
-                            setSearchInput(newInputValue);
-                            setIsSearching(true);
-                        }}
-                        options={searchResults || []}
-                        getOptionLabel={(option) => option.name || ''}
-                        isOptionEqualToValue={(option, value) => option.productID === value.productID}
-                        loading={loading}
-                        onBlur={() => setIsSearching(false)}
-                        onFocus={() => setIsSearching(true)}
-                        renderInput={(params) => (
-                            <TextField
-                                {...params}
-                                label="Search Product"
-                                InputProps={{
-                                    ...params.InputProps,
-                                    endAdornment: (
-                                        <>
-                                            {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                            {params.InputProps.endAdornment}
-                                        </>
-                                    ),          
-                                }}
-                            />
+        <Container maxWidth="md" sx={{ mt: 1 }}>
+            <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
+                Point of Sale
+            </Typography>
+            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+                {/* Product Search & Barcode */}
+                <Card sx={{ flex: 1, p: 2, boxShadow: 3 }}>
+                    <CardContent>
+                        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                            <SearchIcon color="action" />
+                            <Typography variant="h6" fontWeight={600}>
+                                Product Lookup
+                            </Typography>
+                        </Stack>
+                        <input
+                            ref={barcodeInputRef}
+                            value={barcodeInput}
+                            onChange={(e) => setBarcodeInput(e.target.value)}
+                            onKeyDown={handleBarcodeScan}
+                            style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
+                            autoFocus
+                        />
+                        <Autocomplete
+                            value={searchValue}
+                            onChange={(event, newValue) => {
+                                if (newValue) {
+                                    addToCart(newValue);
+                                    setSearchValue(null);
+                                    setSearchInput('');
+                                }
+                            }}
+                            inputValue={searchInput}
+                            onInputChange={(event, newInputValue) => {
+                                setSearchInput(newInputValue);
+                                setIsSearching(true);
+                            }}
+                            options={searchResults || []}
+                            getOptionLabel={(option) => option.name || ''}
+                            isOptionEqualToValue={(option, value) => option.productID === value.productID}
+                            loading={loading}
+                            onBlur={() => setIsSearching(false)}
+                            onFocus={() => setIsSearching(true)}
+                            renderInput={(params) => (
+                                <TextField
+                                    {...params}
+                                    label="Search Product"
+                                    variant="outlined"
+                                    InputProps={{
+                                        ...params.InputProps,
+                                        endAdornment: (
+                                            <>
+                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                {params.InputProps.endAdornment}
+                                            </>
+                                        ),
+                                    }}
+                                />
+                            )}
+                        />
+                        <Typography variant="caption" color="text.secondary" mt={1} display="block">
+                            Scan barcode or search by product name.
+                        </Typography>
+                    </CardContent>
+                </Card>
+
+                {/* Cart Section */}
+                <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
+                    <CardContent>
+                        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                            <ShoppingCartIcon color="action" />
+                            <Typography variant="h6" fontWeight={600}>
+                                Cart
+                            </Typography>
+                        </Stack>
+                        {cart.length === 0 ? (
+                            <Typography variant="body1" color="text.secondary">
+                                Cart is empty
+                            </Typography>
+                        ) : (
+                            <Paper variant="outlined" sx={{ mb: 2 }}>
+                                <Table size="small">
+                                    <TableHead>
+                                        <TableRow>
+                                            <TableCell>Barcode</TableCell>
+                                            <TableCell align="right">Price</TableCell>
+                                            <TableCell align="right">Discount</TableCell>
+                                            <TableCell align="right">Qty</TableCell>
+                                            <TableCell align="right">Subtotal</TableCell>
+                                            <TableCell align="center">Action</TableCell>
+                                        </TableRow>
+                                    </TableHead>
+                                    <TableBody>
+                                            {cart.map((item,index) => (
+                                                <React.Fragment key={index}>
+                                                    <TableRow >
+                                             <TableCell colSpan={5} sx={{ p: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                                    {item.name}
+                                                </TableCell>
+                                             </TableRow>
+                                                    <TableRow key={item.productID} >
+                                               
+                                                        <TableCell sx={{ p: 0, fontSize }}>{item.barcode}</TableCell>
+                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>${item.price.toFixed(2)}</TableCell>
+                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                    {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
+                                                </TableCell>
+                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                            {item.quantity}
+                                                </TableCell>
+                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                    ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
+                                                </TableCell>
+                                                        <TableCell align="center" sx={{ p: 0, fontSize }}>
+                                                    <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
+                                                        <ClearIcon />
+                                                    </IconButton>
+                                                </TableCell>
+                                                    </TableRow>
+                                                </React.Fragment>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            </Paper>
                         )}
-                    />
-                </Box>
 
-                <Box mt={4}>
-                    <Typography variant="h5">Cart</Typography>
-                
+                        <TextField
+                            label="Notes"
+                            value={notes}
+                            onChange={e => setNotes(e.target.value)}
+                            fullWidth
+                            multiline
+                            minRows={1}
+                            sx={{ mt: 2 }}
+                        />
 
-                    {cart.length === 0 ? (
-                        <Typography variant="body1">Cart is empty</Typography>
-                    ) : (
-                        <Table size="small">
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>Product</TableCell>
-                                    <TableCell>Barcode</TableCell>
-                                    <TableCell align="right">Price</TableCell>
-                                    <TableCell align="right">Discount</TableCell>
-                                    <TableCell align="right">Qty</TableCell>
-                                    <TableCell align="right">Subtotal</TableCell>
-                                    <TableCell align="center">Action</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                                {cart.map((item) => (
-                                    <TableRow key={item.productID}>
-                                        <TableCell>{item.name}</TableCell>
-                                        <TableCell>{item.barcode}</TableCell>
-                                        <TableCell align="right">${item.price.toFixed(2)}</TableCell>
-                                        <TableCell align="right">
-                                            {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            <TextField
-                                                type="number"
-                                                size="small"
-                                                value={item.quantity}
-                                                onChange={(e) => updateQty(item.productID, e.target.value)}
-                                                inputProps={{ min: 1, style: { width: 60 } }}
-                                            />
-                                        </TableCell>
-                                        <TableCell align="right">
-                                            ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
-                                        </TableCell>
-                                        <TableCell align="center">
-                                            <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
-                                                <ClearIcon></ClearIcon>
-                                            </IconButton>
-                                        </TableCell>
-                                    </TableRow>
-                                ))}
-                            </TableBody>
-                        </Table>
-                    )}
+                        <Divider sx={{ my: 2 }} />
 
-
-                    <TextField
-                        label="Notes"
-                        value={notes}
-                        onChange={e => setNotes(e.target.value)}
-                        fullWidth
-                        sx={{ mt: 2 }}
-                    />
-
-                    <Box display="flex" justifyContent="space-between" mt={2}>
-                        <Typography variant="h6">Total: ${net.toFixed(2)}</Typography>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            disabled={cart.length===0}
-                            onClick={handleCheckout}
-                           
-                        >
-                             Checkout
-                        </Button>
-                    </Box>
-                    {status && <Typography sx={{ mt: 2 }}>{status}</Typography>}
-                </Box>
-            </Container>
-        </>
+                        <Stack direction="row" justifyContent="space-between" alignItems="center">
+                            <Box>
+                                <Typography variant="subtitle2" color="text.secondary">
+                                    Total: <Typography component="span" variant="h6" color="primary.main">${net.toFixed(2)}</Typography>
+                                </Typography>
+                                <Typography variant="caption" color="text.secondary">
+                                    Discount: ${discountAmount.toFixed(2)} | Tax: ${taxAmount.toFixed(2)}
+                                </Typography>
+                            </Box>
+                            <Button
+                                variant="contained"
+                                color="primary"
+                                size="large"
+                                disabled={cart.length === 0}
+                                onClick={handleCheckout}
+                                sx={{ minWidth: 140, fontWeight: 600 }}
+                            >
+                                Checkout
+                            </Button>
+                        </Stack>
+                        {status && <Typography sx={{ mt: 2 }} color="success.main">{status}</Typography>}
+                    </CardContent>
+                </Card>
+            </Stack>
+        </Container>
     );
 };
 
