@@ -1,10 +1,12 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
-    TextField, Box, Snackbar, Alert, IconButton
+    TextField, Box, Snackbar, Alert, IconButton, Paper, Typography, 
+    Container, Divider
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import InventoryIcon from '@mui/icons-material/Inventory';
+import SearchIcon from '@mui/icons-material/Search';
 import { DataGrid } from '@mui/x-data-grid';
 import debounce from 'lodash/debounce';
 import ProductInventoryManager from './ProductInventoryManager';
@@ -34,9 +36,6 @@ const ProductManager = () => {
     const dispatch = useDispatch();
 
     const handleAddInventory = async (row) => {
-
-        //const data = await SaleService.GetSalesById(row.saleID);
-
         dispatch(
             setDrawerComponent({
                 DrawerComponentChild: ProductInventoryManager,
@@ -46,9 +45,7 @@ const ProductManager = () => {
                 drawerOpen: true
             })
         );
-
-
-    }
+    };
 
     const handleFormSubmit = async (product) => {
         try {
@@ -78,7 +75,6 @@ const ProductManager = () => {
         setAlert({ open: true, message, severity });
     };
 
-    // 🔁 Debounced search handler
     const debouncedSearch = useCallback(
         debounce((value) => {
             setSearchText(value.toLowerCase());
@@ -90,7 +86,6 @@ const ProductManager = () => {
         debouncedSearch(e.target.value);
     };
 
-    // 🧠 useMemo to avoid recalculating on every render
     const filteredProducts = useMemo(() => {
         return products.filter((product) =>
             product.name.toLowerCase().includes(searchText) ||
@@ -125,33 +120,44 @@ const ProductManager = () => {
     ];
 
     return (
-        <Box sx={{ p: 3 }}>
+        <Container maxWidth="xl">
+            <Box>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Product Management
+                </Typography>
+                
+                <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
+                    <ProductForm
+                        initialData={editingProduct}
+                        categories={categories}
+                        onSubmit={handleFormSubmit}
+                        onCancel={() => setEditingProduct(null)}
+                    />
+                </Paper>
 
-            <Box sx={{ mb: 4 }}>
-                <ProductForm
-                    initialData={editingProduct}
-                    categories={categories}
-                    onSubmit={handleFormSubmit}
-                    onCancel={() => setEditingProduct(null)}
-                />
+                <Paper elevation={3} sx={{ p: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
+                        <TextField
+                            label="Search by name or SKU"
+                            variant="outlined"
+                            fullWidth
+                            size="small"
+                            onChange={handleSearchChange}
+                        />
+                    </Box>
+                    
+                    <DataGrid
+                        rows={filteredProducts}
+                        columns={columns}
+                        autoHeight
+                        loading={isLoading}
+                        disableRowSelectionOnClick
+                        getRowId={(row) => row.productID}
+                       
+                    />
+                </Paper>
             </Box>
-
-            <TextField
-                label="Search by name or SKU"
-                variant="outlined"
-                fullWidth
-                sx={{ mb: 2 }}
-                onChange={handleSearchChange}
-            />
-
-            <DataGrid
-                rows={filteredProducts}
-                columns={columns}
-                autoHeight
-                loading={isLoading}
-                disableRowSelectionOnClick
-                getRowId={(row) => row.productID}
-            />
 
             <Snackbar
                 anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
@@ -159,9 +165,15 @@ const ProductManager = () => {
                 autoHideDuration={3000}
                 onClose={() => setAlert({ ...alert, open: false })}
             >
-                <Alert severity={alert.severity}>{alert.message}</Alert>
+                <Alert 
+                    severity={alert.severity}
+                    variant="filled"
+                    elevation={6}
+                >
+                    {alert.message}
+                </Alert>
             </Snackbar>
-        </Box>
+        </Container>
     );
 };
 

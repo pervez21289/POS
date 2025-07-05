@@ -21,7 +21,7 @@ export default function LogoMain() {
      *
      */
     <>
-          <span>NexBill</span> 
+          <h1>NexBill</h1> 
     </>
   );
 }

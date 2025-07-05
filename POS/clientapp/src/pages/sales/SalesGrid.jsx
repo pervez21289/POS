@@ -1,30 +1,11 @@
-﻿import React, { useEffect, useState,useMemo } from 'react';
+﻿import React, { useEffect, useState, useMemo } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField, Box,Button } from '@mui/material';
+import { TextField, Box, Button, Paper, Typography, Stack } from '@mui/material';
 import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
-import { styled } from "@mui/system";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
-import ReceiptPrintWrapper from './ReceiptPrintWrapper'
-
-const StyledDataGrid = styled(DataGrid)(({ theme }) => ({
-    "& .MuiDataGrid-main": {
-        backgroundColor: theme.palette.background.paper,
-    },
-    "& .MuiDataGrid-cell": {
-        borderBottom: `1px solid ${theme.palette.divider}`,
-    },
-    "& .MuiDataGrid-columnHeaders": {
-        backgroundColor: "#fff", // Optional: white background
-        color: "#000", // Set text color to black
-        fontSize: 13,
-        fontWeight: "bold", // Make text bold
-    },
-    height: 600,
-    width: "100%"
-}));
-
+import ReceiptPrintWrapper from './ReceiptPrintWrapper';
 
 const SalesGrid = () => {
     const [rows, setRows] = useState([]);
@@ -37,13 +18,11 @@ const SalesGrid = () => {
     const dispatch = useDispatch();
 
     const fetchSales = useMemo(() => debounce(async () => {
-        
         setLoading(true);
         try {
             const response = await SaleService.GetSales({ search, date, page: page + 1, pageSize });
             setRows(response.rows);
             setRowCount(response.total);
-            //setSearchResults(Array.isArray(data) ? data : []);
         } catch (err) {
             console.error('Error fetching products:', err);
             setRows([]);
@@ -53,28 +32,21 @@ const SalesGrid = () => {
     }, 300), []);
 
     const handleViewInvoice = async (row) => {
-
         const data = await SaleService.GetSalesById(row.saleID);
-
         dispatch(
             setDrawerComponent({
                 DrawerComponentChild: ReceiptPrintWrapper,
                 drawerProps: {
-                    receiptInfo: data 
+                    receiptInfo: data
                 },
                 drawerOpen: true
             })
         );
-       
-
-    }
+    };
 
     useEffect(() => {
-        /* fetchSales();*/
-
         fetchSales();
         return () => fetchSales.cancel();
-
     }, [search, date, page, pageSize]);
 
     const columns = [
@@ -83,7 +55,6 @@ const SalesGrid = () => {
         { field: 'saleTime', headerName: 'Sale Time', width: 180 },
         { field: 'totalAmount', headerName: 'Total Amount', width: 130 },
         { field: 'discountAmount', headerName: 'Discount', width: 120 },
-        //{ field: 'taxAmount', headerName: 'Tax', width: 100 },
         { field: 'netAmount', headerName: 'Net Amount', width: 130 },
         { field: 'p_Status', headerName: 'Payment Status', width: 140 },
         {
@@ -102,14 +73,19 @@ const SalesGrid = () => {
             )
         },
     ];
+
     return (
-        <Box sx={{ height: 600, width: '100%' }}>
-            <Box display="flex" gap={2} mb={2}>
+        <Paper elevation={2} sx={{ p: 3, width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+            <Typography variant="h6" sx={{ mb: 2, fontWeight: 600 }}>
+                Sales Transactions
+            </Typography>
+            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2 }}>
                 <TextField
                     label="Search"
                     variant="outlined"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
+                    size="small"
                 />
                 <TextField
                     label="Date"
@@ -117,22 +93,26 @@ const SalesGrid = () => {
                     InputLabelProps={{ shrink: true }}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
+                    size="small"
+                />
+            </Stack>
+            <Box sx={{ height: 600, width: '100%' }}>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    pagination
+                    paginationMode="server"
+                    rowCount={rowCount}
+                    page={page}
+                    pageSize={pageSize}
+                    onPageChange={(newPage) => setPage(newPage)}
+                    onPageSizeChange={(newSize) => setPageSize(newSize)}
+                    loading={loading}
+                    getRowId={(row) => row.saleID}
+                    disableSelectionOnClick
                 />
             </Box>
-            <StyledDataGrid
-                rows={rows}
-                columns={columns}
-                pagination
-                paginationMode="server"
-                rowCount={rowCount}
-                page={page}
-                pageSize={pageSize}
-                onPageChange={(newPage) => setPage(newPage)}
-                onPageSizeChange={(newSize) => setPageSize(newSize)}
-                loading={loading}
-                getRowId={(row) => row.saleID}
-            />
-        </Box>
+        </Paper>
     );
 };
 

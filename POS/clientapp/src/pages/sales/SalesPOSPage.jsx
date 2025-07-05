@@ -180,7 +180,7 @@ const SalesPOSPage = () => {
     }, [receiptInfo]);
 
     return (
-        <Container maxWidth="md" >
+        <Container >
             <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
                 Point of Sale
             </Typography>

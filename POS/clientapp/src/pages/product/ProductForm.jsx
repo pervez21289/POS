@@ -1,16 +1,13 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import {
-    TextField,
-    Button,
-    Grid,
-    MenuItem,
-    Checkbox,
-    FormControlLabel,
-    Typography,
-    Box,
-    Select
+    TextField, Button, Grid, MenuItem, Checkbox, FormControlLabel,
+    Typography, Box, Select, FormControl, InputLabel, Paper, Stack,
+    InputAdornment, Divider
 } from '@mui/material';
-import { useEffect } from 'react';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import PercentIcon from '@mui/icons-material/Percent';
+import InventoryIcon from '@mui/icons-material/Inventory';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) => {
     const [product, setProduct] = useState(null);
@@ -30,46 +27,57 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
     };
 
     useEffect(() => {
-      
-            setProduct(initialData);
-
+        setProduct(initialData);
     }, [initialData]);
 
     return (
-        <form onSubmit={handleSubmit}>
-            <Typography variant="h6" gutterBottom>
-                {initialData?.productID ? 'Edit Product' : 'Add Product'}
+        <Box component="form" onSubmit={handleSubmit}>
+            <Typography variant="h6" gutterBottom color="primary">
+                {initialData?.productID ? 'Edit Product' : 'Add New Product'}
             </Typography>
-            <Grid container spacing={2}>
+            <Divider sx={{ mb: 3 }} />
+            
+            <Grid container spacing={3}>
+                {/* Basic Information */}
+                <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>Basic Information</Typography>
+                </Grid>
                 <Grid item xs={12} sm={6}>
                     <TextField
                         label="Product Name"
                         name="name"
-                        value={product?.name||''}
+                        value={product?.name || ''}
                         onChange={handleChange}
                         required
                         fullWidth
+                        size="small"
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={3}>
                     <TextField
                         label="SKU"
                         name="sku"
                         value={product?.sku || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={3}>
                     <TextField
                         label="Barcode"
                         name="barcode"
                         value={product?.barcode || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
-               
+
+                {/* Pricing Section */}
+                <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>Pricing</Typography>
+                </Grid>
                 <Grid item xs={12} sm={4}>
                     <TextField
                         label="Price"
@@ -78,6 +86,14 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         value={product?.price || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <AttachMoneyIcon />
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -88,6 +104,14 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         value={product?.costPrice || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <AttachMoneyIcon />
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </Grid>
                 <Grid item xs={12} sm={4}>
@@ -98,9 +122,22 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         value={product?.stock || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <InventoryIcon />
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+
+                {/* Discount Section */}
+                <Grid item xs={12}>
+                    <Typography variant="subtitle1" gutterBottom>Discounts & Tax</Typography>
+                </Grid>
+                <Grid item xs={12} sm={4}>
                     <TextField
                         label="Discount Amount"
                         name="discountAmount"
@@ -108,9 +145,17 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         value={product?.discountAmount || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <LocalOfferIcon />
+                                </InputAdornment>
+                            ),
+                        }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item xs={12} sm={4}>
                     <TextField
                         label="Discount %"
                         name="discountPercent"
@@ -118,25 +163,50 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         value={product?.discountPercent || ''}
                         onChange={handleChange}
                         fullWidth
+                        size="small"
+                        InputProps={{
+                            endAdornment: <InputAdornment position="end">%</InputAdornment>,
+                        }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <Select
-                        labelId="category-label"
-                        name="categoryID"
-                        value={product?.categoryID ?? 0}
+                <Grid item xs={12} sm={4}>
+                    <TextField
+                        label="GST Rate"
+                        name="gstRate"
+                        type="number"
+                        value={product?.gstRate || ''}
                         onChange={handleChange}
-                        label="Category"
-                    >
-                        <MenuItem key="0" value="0">
-                            <em>-Category--</em>
-                        </MenuItem>
-                        {categories.map((cat) => (
-                            <MenuItem key={cat.categoryID} value={cat.categoryID}>
-                                {cat.categoryName}
-                            </MenuItem>
-                        ))}
-                    </Select>
+                        fullWidth
+                        size="small"
+                        InputProps={{
+                            endAdornment: (
+                                <InputAdornment position="end">
+                                    <PercentIcon />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </Grid>
+
+                {/* Category and Description */}
+                <Grid item xs={12} sm={6}>
+                    <FormControl fullWidth size="small">
+                        <InputLabel id="category-label">Category</InputLabel>
+                        <Select
+                            labelId="category-label"
+                            name="categoryID"
+                            value={product?.categoryID ?? 0}
+                            onChange={handleChange}
+                            label="Category"
+                        >
+                            <MenuItem value={0}><em>-Select Category-</em></MenuItem>
+                            {categories.map((cat) => (
+                                <MenuItem key={cat.categoryID} value={cat.categoryID}>
+                                    {cat.categoryName}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
                 </Grid>
                 <Grid item xs={12} sm={6}>
                     <TextField
@@ -147,18 +217,10 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         multiline
                         rows={2}
                         fullWidth
+                        size="small"
                     />
                 </Grid>
-                <Grid item xs={12} sm={4}>
-                    <TextField
-                        label="GST (%)"
-                        name="gstRate"
-                        type="number"
-                        value={product?.gstRate || ''}
-                        onChange={handleChange}
-                        fullWidth
-                    />
-                </Grid>
+
                 <Grid item xs={12}>
                     <FormControlLabel
                         control={
@@ -171,20 +233,26 @@ const ProductForm = ({ categories = [], onSubmit, initialData = {}, onCancel }) 
                         label="Is Active"
                     />
                 </Grid>
+
                 <Grid item xs={12}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
-                        <Button variant="contained" type="submit" color="primary">
-                            {initialData ? 'Update' : 'Add'} Product
-                        </Button>
+                    <Stack direction="row" spacing={2} justifyContent="flex-end">
                         {initialData && (
                             <Button variant="outlined" color="secondary" onClick={onCancel}>
                                 Cancel
                             </Button>
                         )}
-                    </Box>
+                        <Button 
+                            variant="contained" 
+                            type="submit" 
+                            color="primary"
+                            sx={{ minWidth: 120 }}
+                        >
+                            {initialData ? 'Update' : 'Add'} Product
+                        </Button>
+                    </Stack>
                 </Grid>
             </Grid>
-        </form>
+        </Box>
     );
 };
 

@@ -69,7 +69,7 @@ export default function CategoryForm() {
     };
 
     return (
-        <Container maxWidth="sm" sx={{ mt: 5 }}>
+        <Container >
             <Paper sx={{ p: 4 }}>
                 <Typography variant="h5" gutterBottom>
                     {category.categoryID === 0 ? 'Add New Category' : 'Edit Category'}
