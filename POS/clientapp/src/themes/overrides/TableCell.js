@@ -3,7 +3,6 @@
 export default function TableCell(theme) {
   const commonCell = {
     '&:not(:last-of-type)': {
-      position: 'relative',
       '&:after': {
         position: 'absolute',
         content: '""',

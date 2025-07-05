@@ -2,7 +2,7 @@
 import {
     Container, Typography, Button, TextField,
     Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
-    TableBody, IconButton, Card, CardContent, Paper, Divider, Stack
+    TableBody, IconButton, Card, CardContent, Paper, Divider, Stack, TableContainer
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -113,7 +113,7 @@ const SalesPOSPage = () => {
     const updateQty = (productID, qty) => {
         setCart((prev) =>
             prev.map((i) =>
-                i.productID === productID ? { ...i, qty: Math.max(1, Number(qty)) } : i
+                i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
             )
         );
     };
@@ -180,7 +180,7 @@ const SalesPOSPage = () => {
     }, [receiptInfo]);
 
     return (
-        <Container maxWidth="md" sx={{ mt: 1 }}>
+        <Container maxWidth="md" >
             <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
                 Point of Sale
             </Typography>
@@ -247,98 +247,102 @@ const SalesPOSPage = () => {
 
                 {/* Cart Section */}
                 <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
-                    <CardContent>
-                        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                            <ShoppingCartIcon color="action" />
-                            <Typography variant="h6" fontWeight={600}>
-                                Cart
-                            </Typography>
-                        </Stack>
-                        {cart.length === 0 ? (
-                            <Typography variant="body1" color="text.secondary">
-                                Cart is empty
-                            </Typography>
-                        ) : (
-                            <Paper variant="outlined" sx={{ mb: 2 }}>
-                                <Table size="small">
+                    <Stack direction="row" alignItems="center" spacing={2} mb={2}>
+                        <ShoppingCartIcon color="action" />
+                        <Typography variant="h6" fontWeight={600}>
+                            Cart
+                        </Typography>
+                    </Stack>
+                    {cart.length === 0 ? (
+                        <Typography variant="body1" color="text.secondary">
+                            Cart is empty
+                        </Typography>
+                    ) : (
+                            <TableContainer sx={{ maxHeight: 260 }}>
+                                <Table size="small" stickyHeader>
                                     <TableHead>
                                         <TableRow>
-                                            <TableCell>Barcode</TableCell>
-                                            <TableCell align="right">Price</TableCell>
-                                            <TableCell align="right">Discount</TableCell>
-                                            <TableCell align="right">Qty</TableCell>
-                                            <TableCell align="right">Subtotal</TableCell>
-                                            <TableCell align="center">Action</TableCell>
+                                            <TableCell sx={{ fontSize }}>Barcode</TableCell>
+                                            <TableCell sx={{ fontSize }} align="right">Price</TableCell>
+                                            <TableCell sx={{ fontSize }} align="right">Discount</TableCell>
+                                            <TableCell sx={{ fontSize }} align="right">Qty</TableCell>
+                                            <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
+                                            <TableCell sx={{ fontSize }} align="right">Action</TableCell>
                                         </TableRow>
                                     </TableHead>
                                     <TableBody>
-                                            {cart.map((item,index) => (
-                                                <React.Fragment key={index}>
-                                                    <TableRow >
-                                             <TableCell colSpan={5} sx={{ p: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
-                                                    {item.name}
-                                                </TableCell>
-                                             </TableRow>
-                                                    <TableRow key={item.productID} >
-                                               
-                                                        <TableCell sx={{ p: 0, fontSize }}>{item.barcode}</TableCell>
-                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>${item.price.toFixed(2)}</TableCell>
-                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                    {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
-                                                </TableCell>
-                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                            {item.quantity}
-                                                </TableCell>
-                                                        <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                    ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
-                                                </TableCell>
-                                                        <TableCell align="center" sx={{ p: 0, fontSize }}>
-                                                    <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
-                                                        <ClearIcon />
-                                                    </IconButton>
-                                                </TableCell>
-                                                    </TableRow>
-                                                </React.Fragment>
+                                        {cart.map((item, index) => (
+                                            <React.Fragment key={index}>
+                                                <TableRow>
+                                                    <TableCell colSpan={6} sx={{ p: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                                        {item.name}
+                                                    </TableCell>
+                                                </TableRow>
+                                                <TableRow key={item.productID}>
+                                                    <TableCell sx={{ p: 0, fontSize }}>{item.barcode}</TableCell>
+                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>${item.price.toFixed(2)}</TableCell>
+                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                        {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
+                                                    </TableCell>
+                                                    <TableCell sx={{ fontSize }} align="right">
+                                                        <TextField
+                                                            type="number"
+                                                            size="small"
+                                                            value={item.quantity}
+                                                            onChange={(e) => updateQty(item.productID, e.target.value)}
+                                                            inputProps={{ min: 1, style: { width: 50 } }}
+                                                        />
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                        ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
+                                                    </TableCell>
+                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
+                                                        <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
+                                                            <ClearIcon />
+                                                        </IconButton>
+                                                    </TableCell>
+                                                </TableRow>
+                                            </React.Fragment>
                                         ))}
                                     </TableBody>
                                 </Table>
-                            </Paper>
-                        )}
+                            </TableContainer>
+                    )}
 
-                        <TextField
-                            label="Notes"
-                            value={notes}
-                            onChange={e => setNotes(e.target.value)}
-                            fullWidth
-                            multiline
-                            minRows={1}
-                            sx={{ mt: 2 }}
-                        />
 
-                        <Divider sx={{ my: 2 }} />
+                    <TextField
+                        label="Notes"
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        fullWidth
+                        multiline
+                        minRows={1}
+                        sx={{ mt: 2 }}
+                    />
 
-                        <Stack direction="row" justifyContent="space-between" alignItems="center">
-                            <Box>
-                                <Typography variant="subtitle2" color="text.secondary">
-                                    Total: <Typography component="span" variant="h6" color="primary.main">${net.toFixed(2)}</Typography>
-                                </Typography>
-                                <Typography variant="caption" color="text.secondary">
-                                    Discount: ${discountAmount.toFixed(2)} | Tax: ${taxAmount.toFixed(2)}
-                                </Typography>
-                            </Box>
-                            <Button
-                                variant="contained"
-                                color="primary"
-                                size="large"
-                                disabled={cart.length === 0}
-                                onClick={handleCheckout}
-                                sx={{ minWidth: 140, fontWeight: 600 }}
-                            >
-                                Checkout
-                            </Button>
-                        </Stack>
-                        {status && <Typography sx={{ mt: 2 }} color="success.main">{status}</Typography>}
-                    </CardContent>
+                    <Divider sx={{ my: 2 }} />
+
+                    <Stack direction="row" justifyContent="space-between" alignItems="center">
+                        <Box>
+                            <Typography variant="subtitle2" color="text.secondary">
+                                Total: <Typography component="span" variant="h6" color="primary.main">${net.toFixed(2)}</Typography>
+                            </Typography>
+                            <Typography variant="caption" color="text.secondary">
+                                Discount: ${discountAmount.toFixed(2)} | Tax: ${taxAmount.toFixed(2)}
+                            </Typography>
+                        </Box>
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="large"
+                            disabled={cart.length === 0}
+                            onClick={handleCheckout}
+                            sx={{ minWidth: 140, fontWeight: 600 }}
+                        >
+                            Checkout
+                        </Button>
+                    </Stack>
+                    {status && <Typography sx={{ mt: 2 }} color="success.main">{status}</Typography>}
                 </Card>
             </Stack>
         </Container>

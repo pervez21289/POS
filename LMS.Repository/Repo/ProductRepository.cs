@@ -36,7 +36,8 @@ namespace LMS.Repository.Repo
                     product.CategoryID,
                     product.IsActive,
                     product.DiscountAmount,
-                    product.DiscountPercent
+                    product.DiscountPercent,
+                    product.GstRate
                 }, commandType: CommandType.StoredProcedure);
 
         public async Task<bool> UpdateAsync(Product product)
