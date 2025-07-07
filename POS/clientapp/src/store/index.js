@@ -8,6 +8,7 @@ import drawer from './reducers/drawer';
 import sales from './reducers/sales';
 import users from './reducers/users';
 import alert from './reducers/alert';
+import confirm from './reducers/confirm';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
@@ -17,8 +18,8 @@ const rootReducer = combineReducers({
     drawer,
     sales,
     users,
-    alert
-    // auth: authReducer,
+    alert,
+    confirm
 });
 
 export const store = configureStore({

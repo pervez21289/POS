@@ -13,6 +13,7 @@ import Breadcrumbs from 'components/@extended/Breadcrumbs';
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 import DrawerComponent from './../../components/Drawer';
 import AlertBox from './../../components/AlertBox';
+import ConfirmBox from './../../components/ConfirmBox';
 // ==============================|| MAIN LAYOUT ||============================== //
 
 export default function DashboardLayout() {
@@ -59,6 +60,7 @@ export default function DashboardLayout() {
             </Box>
             <DrawerComponent />
             <AlertBox></AlertBox>
+            <ConfirmBox></ConfirmBox>
         </>
        
     ) : (

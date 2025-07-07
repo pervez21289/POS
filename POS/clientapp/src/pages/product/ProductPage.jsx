@@ -1,7 +1,8 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
     TextField, Box,  IconButton, Paper, Typography, 
-    Container, Button
+    Container, Button  ,   Dialog, DialogTitle, DialogContent, DialogContentText,
+    DialogActions
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -17,6 +18,8 @@ import {
     useGetProductsQuery,
     useDeleteProductMutation
 } from './../../services/productApi';
+import { showConfirmDialog } from './../../store/reducers/confirm';
+import { showAlert } from "./../../store/reducers/alert";
 
 
 const ProductManager = () => {
@@ -49,14 +52,27 @@ const ProductManager = () => {
         );
     };
 
+    const requestDelete = (product) => {
+        dispatch(
+            showConfirmDialog({
+                title: 'Delete Product',
+                message: `Are you sure you want to delete "${product.name}"?`,
+                confirmText: 'Delete',
+                cancelText: 'Cancel',
+                confirmColor: 'error',
+                onConfirm: async () => handleDelete(product.productID)
+            })
+        );
+    };
+
     
 
     const handleDelete = async (id) => {
         try {
             await deleteProduct(id).unwrap();
-            showAlert('Product deleted.');
+            dispatch(showAlert({ open: true, message: 'Deleted succefully!', severity: 'success' }));
         } catch {
-            showAlert('Failed to delete product', 'error');
+            dispatch(showAlert({ open: true, message: 'Deleted succefully!', severity: 'error' }));
         }
     };
 
@@ -117,23 +133,35 @@ const ProductManager = () => {
             flex: 0.8,
             minWidth: 150,
             sortable: false,
+            align: 'center',
+            headerAlign: 'center',
             renderCell: (params) => (
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box
+                    sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 1,
+                        width: '100%',
+                        height: '100%',
+                        py: 0.5
+                    }}
+                >
                     <IconButton
                         onClick={() => handleAddProduct(params.row)}
                         color="primary"
                         size="small"
                         title="Edit Product"
                     >
-                        <EditIcon />
+                        <EditIcon fontSize="small" />
                     </IconButton>
                     <IconButton
-                        onClick={() => handleDelete(params.row.productID)}
+                        onClick={() => requestDelete(params.row)}
                         color="error"
                         size="small"
                         title="Delete Product"
                     >
-                        <DeleteIcon />
+                        <DeleteIcon fontSize="small" />
                     </IconButton>
                     <IconButton
                         onClick={() => handleAddInventory(params.row)}
@@ -141,11 +169,12 @@ const ProductManager = () => {
                         size="small"
                         title="Manage Inventory"
                     >
-                        <InventoryIcon />
+                        <InventoryIcon fontSize="small" />
                     </IconButton>
                 </Box>
             ),
-        },
+        }
+
     ];
 
 

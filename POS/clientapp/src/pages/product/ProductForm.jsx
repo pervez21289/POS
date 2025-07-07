@@ -178,22 +178,7 @@ const ProductForm = ({ initialData = {}}) => {
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Stock"
-                        name="stock"
-                        type="number"
-                        value={product?.stock || ''}
-                        onChange={handleChange}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <InventoryIcon />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                </Grid>
+                
             </Grid>
 
             {/* Discounts & Tax */}

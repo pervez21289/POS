@@ -113,14 +113,14 @@ export default function CategoryForm() {
                         <ListItem
                             key={cat.categoryID}
                             secondaryAction={
-                                <>
-                                    <IconButton edge="end" onClick={() => handleEdit(cat)}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                    <IconButton edge="end" onClick={() => handleEdit(cat)} color="primary">
                                         <Edit />
                                     </IconButton>
-                                    <IconButton edge="end" onClick={() => handleDelete(cat.categoryID)}>
+                                    <IconButton edge="end" onClick={() => handleDelete(cat.categoryID)} color="error">
                                         <Delete />
                                     </IconButton>
-                                </>
+                                </Box>
                             }
                         >
                             <ListItemText primary={cat.categoryName} />
