@@ -7,6 +7,7 @@ import {
 import ClearIcon from '@mui/icons-material/Clear';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import SearchIcon from '@mui/icons-material/Search';
+import CurrencyRupeeRoundedIcon from '@mui/icons-material/CurrencyRupeeRounded';
 import debounce from 'lodash.debounce';
 import { format } from 'date-fns';
 
@@ -111,6 +112,7 @@ const SalesPOSPage = () => {
   
 
     const updateQty = (productID, qty) => {
+        debugger;
         setCart((prev) =>
             prev.map((i) =>
                 i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
@@ -248,7 +250,7 @@ const SalesPOSPage = () => {
                 {/* Cart Section */}
                 <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
                     <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                        <ShoppingCartIcon color="action" />
+                        <ShoppingCartIcon color="warning" />
                         <Typography variant="h6" fontWeight={600}>
                             Cart
                         </Typography>
@@ -280,21 +282,15 @@ const SalesPOSPage = () => {
                                                 </TableRow>
                                                 <TableRow key={item.productID}>
                                                     <TableCell sx={{ p: 0, fontSize }}>{item.barcode}</TableCell>
-                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>${item.price.toFixed(2)}</TableCell>
+                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>{item.price.toFixed(2)}</TableCell>
                                                     <TableCell align="right" sx={{ p: 0, fontSize }}>
                                                         {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
                                                     </TableCell>
                                                     <TableCell sx={{ fontSize }} align="right">
-                                                        <TextField
-                                                            type="number"
-                                                            size="small"
-                                                            value={item.quantity}
-                                                            onChange={(e) => updateQty(item.productID, e.target.value)}
-                                                            inputProps={{ min: 1, style: { width: 50 } }}
-                                                        />
+                                                        {item.quantity}
                                                     </TableCell>
                                                     <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                        ${(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
+                                                        {(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
                                                     </TableCell>
                                                     <TableCell align="right" sx={{ p: 0, fontSize }}>
                                                         <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
@@ -325,10 +321,10 @@ const SalesPOSPage = () => {
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Total: <Typography component="span" variant="h6" color="primary.main">${net.toFixed(2)}</Typography>
+                                Total: <Typography component="span" variant="h6" color="primary.main">&#8377;{net.toFixed(2)}</Typography>
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
-                                Discount: ${discountAmount.toFixed(2)} | Tax: ${taxAmount.toFixed(2)}
+                                Discount: {discountAmount.toFixed(2)} | Tax: {taxAmount.toFixed(2)}
                             </Typography>
                         </Box>
                         <Button

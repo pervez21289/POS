@@ -52,10 +52,10 @@ const SalesReceipt = ({ receiptInfo, Bill }) => {
                                 <TableRow>
                                     <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode || '-'}</TableCell>
                                     <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.quantity}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{item.price.toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{item.discount.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.discount.toFixed(2)}</TableCell>
                                     <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                        ₹{(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
+                                        {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
                                     </TableCell>
                                 </TableRow>
                             </React.Fragment>

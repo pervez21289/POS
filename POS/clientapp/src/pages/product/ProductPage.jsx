@@ -30,7 +30,7 @@ const ProductManager = () => {
             setDrawerComponent({
                 DrawerComponentChild: ProductInventoryManager,
                 drawerProps: {
-                    initialData: row
+                    product: row
                 },
                 drawerOpen: true
             })
@@ -81,40 +81,111 @@ const ProductManager = () => {
     }, [products, searchText]);
 
     const columns = [
-        { field: 'name', headerName: 'Name', flex: 1 },
-        { field: 'sku', headerName: 'SKU', flex: 1 },
-        { field: 'stock', headerName: 'Stock', flex: 1 },
-        { field: 'price', headerName: 'Price', type: 'number', flex: 1 },
+        {
+            field: 'name',
+            headerName: 'Name',
+            flex: 1,
+            minWidth: 200
+        },
+        {
+            field: 'sku',
+            headerName: 'SKU',
+            flex: 0.7,
+            minWidth: 120
+        },
+        {
+            field: 'stock',
+            headerName: 'Stock',
+            flex: 0.5,
+            minWidth: 100,
+            align: 'right',
+            headerAlign: 'right'
+        },
+        {
+            field: 'price',
+            headerName: 'Price',
+            type: 'number',
+            flex: 0.5,
+            minWidth: 100,
+            align: 'right',
+            headerAlign: 'right'
+            
+        },
         {
             field: 'actions',
             headerName: 'Actions',
-            flex: 1,
+            flex: 0.8,
+            minWidth: 150,
             sortable: false,
             renderCell: (params) => (
-                <>
-                    <IconButton onClick={() => handleAddProduct(params.row)} color="primary">
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <IconButton
+                        onClick={() => handleAddProduct(params.row)}
+                        color="primary"
+                        size="small"
+                        title="Edit Product"
+                    >
                         <EditIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleDelete(params.row.productID)} color="error">
+                    <IconButton
+                        onClick={() => handleDelete(params.row.productID)}
+                        color="error"
+                        size="small"
+                        title="Delete Product"
+                    >
                         <DeleteIcon />
                     </IconButton>
-                    <IconButton onClick={() => handleAddInventory(params.row)} color="success">
+                    <IconButton
+                        onClick={() => handleAddInventory(params.row)}
+                        color="success"
+                        size="small"
+                        title="Manage Inventory"
+                    >
                         <InventoryIcon />
                     </IconButton>
-                </>
+                </Box>
             ),
         },
     ];
 
-    return (
-        <Container maxWidth="xl">
-            <Box>
-                <Typography variant="h4" component="h1" gutterBottom>
-                    Product Management
-                </Typography>
-                
 
-                <Paper elevation={3} sx={{ p: 3 }}>
+    return (
+        <Container maxWidth="xl" sx={{ py: 4 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Typography
+                        variant="h4"
+                        component="h1"
+                        sx={{
+                            fontWeight: 600,
+                            color: 'primary.main'
+                        }}
+                    >
+                        Product Management
+                    </Typography>
+                    <Button
+                        variant="contained"
+                        onClick={() => handleAddProduct(null)}
+                        color="primary"
+                        sx={{
+                            minWidth: 120,
+                            height: 40,
+                            textTransform: 'none',
+                            fontWeight: 600
+                        }}
+                    >
+                        Add Product
+                    </Button>
+                </Box>
+
+                <Paper
+                    elevation={2}
+                    sx={{
+                        p: 3,
+                        borderRadius: 2,
+                        backgroundColor: 'background.paper'
+                    }}
+                >
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                         <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
                         <TextField
@@ -123,16 +194,13 @@ const ProductManager = () => {
                             fullWidth
                             size="small"
                             onChange={handleSearchChange}
+                            sx={{
+                                '& .MuiOutlinedInput-root': {
+                                    borderRadius: 1
+                                }
+                            }}
                         />
                     </Box>
-                    <Button
-                        variant="contained"
-                        onClick={() => handleAddProduct(null)}
-                        color="primary"
-                        sx={{ minWidth: 120 }}
-                    >
-                        Add Product
-                    </Button>
                     <DataGrid
                         rows={filteredProducts}
                         columns={columns}
@@ -140,7 +208,17 @@ const ProductManager = () => {
                         loading={isLoading}
                         disableRowSelectionOnClick
                         getRowId={(row) => row.productID}
-                       
+                        sx={{
+                            '& .MuiDataGrid-cell': { py: 1 },
+                            '& .MuiDataGrid-columnHeaders': {
+                                backgroundColor: 'action.hover',
+                                borderRadius: 1
+                            },
+                            border: 'none',
+                            borderRadius: 1
+                        }}
+                        density="comfortable"
+                        pageSize={10}
                     />
                 </Paper>
             </Box>

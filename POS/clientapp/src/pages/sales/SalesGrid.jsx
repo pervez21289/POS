@@ -1,6 +1,6 @@
 ﻿import React, { useEffect, useState, useMemo } from 'react';
 import { DataGrid } from '@mui/x-data-grid';
-import { TextField, Box, Button, Paper, Typography, Stack } from '@mui/material';
+import { TextField, Box, Button, Paper, Typography, Stack,Chip} from '@mui/material';
 import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
 import { useDispatch } from 'react-redux';
@@ -17,19 +17,6 @@ const SalesGrid = () => {
     const [rowCount, setRowCount] = useState(0);
     const dispatch = useDispatch();
 
-    const fetchSales = useMemo(() => debounce(async () => {
-        setLoading(true);
-        try {
-            const response = await SaleService.GetSales({ search, date, page: page + 1, pageSize });
-            setRows(response.rows);
-            setRowCount(response.total);
-        } catch (err) {
-            console.error('Error fetching products:', err);
-            setRows([]);
-        } finally {
-            setLoading(false);
-        }
-    }, 300), []);
 
     const handleViewInvoice = async (row) => {
         const data = await SaleService.GetSalesById(row.saleID);
@@ -45,9 +32,25 @@ const SalesGrid = () => {
     };
 
     useEffect(() => {
-        fetchSales();
-        return () => fetchSales.cancel();
+        const debouncedFetch = debounce(async () => {
+            setLoading(true);
+            try {
+                const response = await SaleService.GetSales({ search, date, page: page + 1, pageSize });
+                setRows(response.rows);
+                setRowCount(response.total);
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                setRows([]);
+            } finally {
+                setLoading(false);
+            }
+        }, 300);
+
+        debouncedFetch();
+
+        return () => debouncedFetch.cancel();
     }, [search, date, page, pageSize]);
+
 
     const columns = [
         { field: 'billNo', headerName: 'Bill No.', width: 150 },
@@ -56,7 +59,20 @@ const SalesGrid = () => {
         { field: 'totalAmount', headerName: 'Total Amount', width: 130 },
         { field: 'discountAmount', headerName: 'Discount', width: 120 },
         { field: 'netAmount', headerName: 'Net Amount', width: 130 },
-        { field: 'p_Status', headerName: 'Payment Status', width: 140 },
+        {
+            field: 'p_Status', headerName: 'Payment Status', width: 140, renderCell: (params) => {
+                const status = params.value?.toLowerCase();
+                const isPaid = status === 'paid';
+                return (
+                    <Chip
+                        label={isPaid ? 'Paid' : 'Not Paid'}
+                        color={isPaid ? 'success' : 'error'}
+                        variant="outlined"
+                        sx={{ fontWeight: 500 }}
+                    />
+                );
+            }
+},
         {
             field: 'action',
             headerName: 'Action',
