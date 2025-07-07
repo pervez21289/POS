@@ -26,7 +26,7 @@ import Tabs from './Tabs';
 import Tooltip from './Tooltip';
 import Typography from './Typography';
 import DataGrid from './DataGrid';
-
+import TextBox from './TextBox';
 // ==============================|| OVERRIDES - MAIN ||============================== //
 
 export default function ComponentsOverrides(theme) {
@@ -54,6 +54,7 @@ export default function ComponentsOverrides(theme) {
     Tabs(),
     Tooltip(theme),
       Typography(),
-      DataGrid(theme)
+      DataGrid(theme),
+      TextBox(theme)    
   );
 }

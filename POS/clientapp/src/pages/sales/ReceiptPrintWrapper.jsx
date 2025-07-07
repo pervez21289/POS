@@ -69,7 +69,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             setMobileError('Invalid mobile number');
             return;
         }
-        debugger;
+      
         if (receiptInfo) {
             const sale = {
                 userID: 3, // Replace with actual user

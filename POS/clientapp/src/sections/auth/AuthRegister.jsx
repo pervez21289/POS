@@ -76,7 +76,7 @@ export default function AuthRegister() {
             .max(10, 'Password must be less than 10 characters')
         })}
               onSubmit={async (values, { setSubmitting, setErrors }) => {
-                  debugger;
+                
                   try {
                       await UserService.SaveUser(values);
                       navigate('/login'); // redirect on success

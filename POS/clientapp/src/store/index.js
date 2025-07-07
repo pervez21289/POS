@@ -7,6 +7,7 @@ import { salesApi } from './../services/salesApi';
 import drawer from './reducers/drawer';
 import sales from './reducers/sales';
 import users from './reducers/users';
+import alert from './reducers/alert';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
@@ -15,7 +16,8 @@ const rootReducer = combineReducers({
     [categoryApi.reducerPath]: categoryApi.reducer,
     drawer,
     sales,
-    users
+    users,
+    alert
     // auth: authReducer,
 });
 

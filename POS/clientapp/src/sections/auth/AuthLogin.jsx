@@ -44,7 +44,7 @@ export default function AuthLogin({ isDemo = false }) {
   };
 
     const handleLogin = async (values, { setSubmitting }) => {
-        debugger;
+      
         setSubmitError('');
         try {
             const response = await UserService.LoginUser(values);

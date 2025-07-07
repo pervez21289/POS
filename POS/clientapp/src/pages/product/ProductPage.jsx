@@ -1,7 +1,7 @@
 ﻿import React, { useState, useMemo, useCallback } from 'react';
 import {
-    TextField, Box, Snackbar, Alert, IconButton, Paper, Typography, 
-    Container, Divider
+    TextField, Box,  IconButton, Paper, Typography, 
+    Container, Button
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -12,26 +12,16 @@ import debounce from 'lodash/debounce';
 import ProductInventoryManager from './ProductInventoryManager';
 import ProductForm from './ProductForm';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import {
     useGetProductsQuery,
-    useCreateProductMutation,
-    useUpdateProductMutation,
     useDeleteProductMutation
 } from './../../services/productApi';
 
-import { useGetCategoriesQuery } from './../../services/categoryApi';
 
 const ProductManager = () => {
     const { data: products = [], isLoading } = useGetProductsQuery();
-    const { data: categories = [] } = useGetCategoriesQuery();
-
-    const [createProduct] = useCreateProductMutation();
-    const [updateProduct] = useUpdateProductMutation();
     const [deleteProduct] = useDeleteProductMutation();
-
-    const [editingProduct, setEditingProduct] = useState(null);
-    const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
     const [searchText, setSearchText] = useState('');
     const dispatch = useDispatch();
 
@@ -40,27 +30,26 @@ const ProductManager = () => {
             setDrawerComponent({
                 DrawerComponentChild: ProductInventoryManager,
                 drawerProps: {
-                    product: row
+                    initialData: row
                 },
                 drawerOpen: true
             })
         );
     };
 
-    const handleFormSubmit = async (product) => {
-        try {
-            if (editingProduct) {
-                await updateProduct(product).unwrap();
-                showAlert('Product updated successfully!');
-            } else {
-                await createProduct(product).unwrap();
-                showAlert('Product added successfully!');
-            }
-            setEditingProduct(null);
-        } catch {
-            showAlert('Failed to save product', 'error');
-        }
+    const handleAddProduct = async (row) => {
+        dispatch(
+            setDrawerComponent({
+                DrawerComponentChild: ProductForm,
+                drawerProps: {
+                    initialData: row, 
+                },
+                drawerOpen: true
+            })
+        );
     };
+
+    
 
     const handleDelete = async (id) => {
         try {
@@ -71,9 +60,7 @@ const ProductManager = () => {
         }
     };
 
-    const showAlert = (message, severity = 'success') => {
-        setAlert({ open: true, message, severity });
-    };
+  
 
     const debouncedSearch = useCallback(
         debounce((value) => {
@@ -105,7 +92,7 @@ const ProductManager = () => {
             sortable: false,
             renderCell: (params) => (
                 <>
-                    <IconButton onClick={() => setEditingProduct(params.row)} color="primary">
+                    <IconButton onClick={() => handleAddProduct(params.row)} color="primary">
                         <EditIcon />
                     </IconButton>
                     <IconButton onClick={() => handleDelete(params.row.productID)} color="error">
@@ -126,14 +113,6 @@ const ProductManager = () => {
                     Product Management
                 </Typography>
                 
-                <Paper elevation={3} sx={{ p: 3, mb: 4 }}>
-                    <ProductForm
-                        initialData={editingProduct}
-                        categories={categories}
-                        onSubmit={handleFormSubmit}
-                        onCancel={() => setEditingProduct(null)}
-                    />
-                </Paper>
 
                 <Paper elevation={3} sx={{ p: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
@@ -146,7 +125,14 @@ const ProductManager = () => {
                             onChange={handleSearchChange}
                         />
                     </Box>
-                    
+                    <Button
+                        variant="contained"
+                        onClick={() => handleAddProduct(null)}
+                        color="primary"
+                        sx={{ minWidth: 120 }}
+                    >
+                        Add Product
+                    </Button>
                     <DataGrid
                         rows={filteredProducts}
                         columns={columns}
@@ -158,21 +144,6 @@ const ProductManager = () => {
                     />
                 </Paper>
             </Box>
-
-            <Snackbar
-                anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-                open={alert.open}
-                autoHideDuration={3000}
-                onClose={() => setAlert({ ...alert, open: false })}
-            >
-                <Alert 
-                    severity={alert.severity}
-                    variant="filled"
-                    elevation={6}
-                >
-                    {alert.message}
-                </Alert>
-            </Snackbar>
         </Container>
     );
 };

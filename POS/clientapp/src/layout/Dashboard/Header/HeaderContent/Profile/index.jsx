@@ -62,7 +62,7 @@ export default function Profile() {
   };
 
     const handleLogout = async () => {
-        debugger;
+     
         window.localStorage.removeItem('userDetails',);
         dispatch(setUserDetails({ userDetails: null }));
     };

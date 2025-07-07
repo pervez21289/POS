@@ -58,7 +58,7 @@ namespace LMS.Controllers
             catch (Exception ex)
             {
                 _logger.Log(ex);
-                return StatusCode(500, "Internal Server Error");
+                return StatusCode(500, ex.Message);
             }
         }
 

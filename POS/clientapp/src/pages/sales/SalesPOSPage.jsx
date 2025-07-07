@@ -67,7 +67,7 @@ const SalesPOSPage = () => {
 
     const addToCart = (product) => {
         let discount = 0;
-        debugger;
+      
         if (product.discountPercent > 0) {
             discount = (product.price * product.discountPercent) / 100;
         } else if (product.discountAmount > 0) {
