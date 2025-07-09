@@ -18,6 +18,11 @@ class SaleService {
         return res.data;
     };
 
+    GetCustomerByNumber = async (query) => {
+        const res = await axios.get(`${url}Sales/GetCustomerByNumber/${query}`);
+        return res.data;
+    };
+
     SaveLocation = async (contact) => {
         const res = await axios.post(`${url}SaveLocation`, contact,{
             headers: Auth.getHeader()

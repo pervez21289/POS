@@ -19,11 +19,11 @@ namespace LMS.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll(string? search)
         {
             try
             {
-                return Ok(await _repo.GetAllAsync());
+                return Ok(await _repo.GetAllAsync(search));
             }
             catch (Exception ex)
             {

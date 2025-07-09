@@ -15,8 +15,8 @@ namespace LMS.Repository.Repo
     {
        
 
-        public async Task<IEnumerable<Product>> GetAllAsync() =>
-     await  QueryAsync<Product>("GetAllProducts", commandType: CommandType.StoredProcedure);
+        public async Task<IEnumerable<Product>> GetAllAsync(string search) =>
+     await  QueryAsync<Product>("GetAllProducts",new {search=search}, commandType: CommandType.StoredProcedure);
 
         public async Task<Product?> GetByIdAsync(int id) =>
             await  QueryFirstOrDefaultAsync<Product>(

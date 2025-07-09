@@ -23,9 +23,10 @@ import { showAlert } from "./../../store/reducers/alert";
 
 
 const ProductManager = () => {
-    const { data: products = [], isLoading } = useGetProductsQuery();
-    const [deleteProduct] = useDeleteProductMutation();
     const [searchText, setSearchText] = useState('');
+    const { data: products = [], isLoading } = useGetProductsQuery(searchText);
+    const [deleteProduct] = useDeleteProductMutation();
+   
     const dispatch = useDispatch();
 
     const handleAddInventory = async (row) => {
@@ -77,7 +78,6 @@ const ProductManager = () => {
     };
 
   
-
     const debouncedSearch = useCallback(
         debounce((value) => {
             setSearchText(value.toLowerCase());
@@ -89,12 +89,7 @@ const ProductManager = () => {
         debouncedSearch(e.target.value);
     };
 
-    const filteredProducts = useMemo(() => {
-        return products.filter((product) =>
-            product.name.toLowerCase().includes(searchText) ||
-            product.sku.toLowerCase().includes(searchText)
-        );
-    }, [products, searchText]);
+ 
 
     const columns = [
         {
@@ -179,7 +174,7 @@ const ProductManager = () => {
 
 
     return (
-        <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Container maxWidth="xl" sx={{ py: 1 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography
@@ -231,22 +226,11 @@ const ProductManager = () => {
                         />
                     </Box>
                     <DataGrid
-                        rows={filteredProducts}
+                        rows={products}
                         columns={columns}
-                        autoHeight
                         loading={isLoading}
                         disableRowSelectionOnClick
                         getRowId={(row) => row.productID}
-                        sx={{
-                            '& .MuiDataGrid-cell': { py: 1 },
-                            '& .MuiDataGrid-columnHeaders': {
-                                backgroundColor: 'action.hover',
-                                borderRadius: 1
-                            },
-                            border: 'none',
-                            borderRadius: 1
-                        }}
-                        density="comfortable"
                         pageSize={10}
                     />
                 </Paper>

@@ -34,7 +34,7 @@ const SalesPOSPage = () => {
  
     const [saleId, setSaleId] = useState(null);
    
-    const [billNo, setBillNo] = useState('OPI');
+    const [billNo, setBillNo] = useState(null);
     const [userId, setUserId] = useState(1);
     const [saleTime, setSaleTime] = useState(format(new Date(), 'dd-MM-yyyy hh:mm a'));
 
@@ -128,7 +128,7 @@ const SalesPOSPage = () => {
     const discountAmount = cart.reduce((sum, i) => sum + (i.discount || 0) * i.quantity, 0);
     const taxAmount = cart.reduce((sum, i) => sum + (i.tax || 0), 0);
     const net = totalAmount - discountAmount + taxAmount;
-
+    const totalItems = useMemo(() => cart.reduce((sum, i) => sum + i.quantity, 0), [cart]);
 
     const handleCheckout = async () => {
         try {
@@ -321,8 +321,10 @@ const SalesPOSPage = () => {
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
                             <Typography variant="subtitle2" color="text.secondary">
-                                Total: <Typography component="span" variant="h6" color="primary.main">&#8377;{net.toFixed(2)}</Typography>
+                                Total: <Typography component="span" variant="h6" color="primary.main">&#8377;{net.toFixed(2)}</Typography><br />
+                                Items: <Typography component="span" fontWeight={600}>{totalItems}</Typography>
                             </Typography>
+                           
                             <Typography variant="caption" color="text.secondary">
                                 Discount: {discountAmount.toFixed(2)} | Tax: {taxAmount.toFixed(2)}
                             </Typography>
@@ -338,7 +340,7 @@ const SalesPOSPage = () => {
                             Checkout
                         </Button>
                     </Stack>
-                    {status && <Typography sx={{ mt: 2 }} color="success.main">{status}</Typography>}
+                    
                 </Card>
             </Stack>
         </Container>

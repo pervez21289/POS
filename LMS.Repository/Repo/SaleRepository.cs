@@ -89,6 +89,20 @@ public class SaleRepository : BaseRepository,ISaleRepository
        
     }
 
+    public async Task<Customer> GetCustomerByNumber(long mobileNumber)
+    {
+        try
+        {
+            Customer rows = await QueryFirstOrDefaultAsync<Customer>("GetCustomerByNumber", new { MobileNumber = mobileNumber }, commandType: CommandType.StoredProcedure);
+            return rows;
+        }
+        catch (Exception ex)
+        {
+            return null; // Handle or log the exception as needed
+        }
+
+    }
+
     public async Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode)
     {
         var parameters = new DynamicParameters();

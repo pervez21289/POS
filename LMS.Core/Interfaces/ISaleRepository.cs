@@ -13,5 +13,6 @@ namespace LMS.Core.Interfaces
         Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, DateTime? date, int page, int pageSize);
         Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode);
         Task<SaleListDto?> GetSaleWithItems(int saleId);
-    }
+        Task<Customer> GetCustomerByNumber(long mobileNumber);
+    }               
 }

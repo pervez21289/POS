@@ -8,9 +8,9 @@ import { useDispatch, useSelector } from 'react-redux';
 
 const SalesReceipt = ({ receiptInfo, Bill }) => {
     const fontSize = '10px';
-
+    const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     return (
-        <Box sx={{ p: 5, fontFamily: 'monospace', width: 400, border: '1px solid #ccc', fontSize }}>
+        <Box>
             <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
                 {receiptInfo?.companyName}
             </Typography>
@@ -24,14 +24,9 @@ const SalesReceipt = ({ receiptInfo, Bill }) => {
 
             <TableContainer
                 component={Paper}
-                sx={{
-                    maxHeight: 150,
-                    width: '100%',
-                    overflowX: 'hidden',
-                    boxShadow: 'none'
-                }}
+              
             >
-                <Table size="small" sx={{ fontSize, width: '100%' }} stickyHeader>
+                <Table size="small" sx={{ fontSize, width: '100%' }}>
                     <TableHead>
                         <TableRow>
                             <TableCell sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
@@ -85,6 +80,11 @@ const SalesReceipt = ({ receiptInfo, Bill }) => {
                         <TableCell colSpan={3} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
                         <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{receiptInfo?.net?.toFixed(2)}</TableCell>
                     </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Items</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>{totalItems}</TableCell>
+                    </TableRow>
+
                 </TableBody>
             </Table>
 

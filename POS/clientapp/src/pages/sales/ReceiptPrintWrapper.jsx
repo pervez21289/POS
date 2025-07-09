@@ -1,7 +1,8 @@
-﻿import React, { useRef, useState } from 'react';
+﻿import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, InputLabel, Stack, Grid, MenuItem, Select, TextField, Typography } from '@mui/material';
-import SalesReceipt from './SalesReceipt';
+import { Box, Button, InputLabel, Stack,Divider, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
+    TableContainer, Paper } from '@mui/material';
+import SaleService from './../../services/SaleService';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCreateSaleMutation } from './../../services/salesApi';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -15,7 +16,8 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
     const printRef = useRef();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-
+            const fontSize = '10px';
+    const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     const [PaymentModeID, setPaymentModeID] = useState('1');
     const [mobileError, setMobileError] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
@@ -31,32 +33,13 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
 
     // Called on blur or Enter
-    const handleMobileSearch = async () => {
-     
-
+    const handleMobileSearch = async (value) => {
         try {
-            const res = await axios.get(`/api/customers/by-mobile?mobile=${mobileNumber}`);
-            const customer = res.data;
-            setCustomerName(customer.name);
+            const customer = await SaleService.GetCustomerByNumber(value);
+            setCustomerName(customer.customerName);
             setCustomerId(customer.id);
         } catch (error) {
-            if (error.response?.status === 404) {
-                // Not found – optionally prompt to create
-                const name = prompt("Customer not found. Enter customer name to add:");
-                if (name) {
-                    const [firstName, ...rest] = name.split(' ');
-                    const lastName = rest.join(' ');
-                    const response = await axios.post(`/api/customers`, {
-                        firstName,
-                        lastName,
-                        mobile: mobileNumber
-                    });
-                    setCustomerName(response.data.name);
-                    setCustomerId(response.data.id);
-                }
-            } else {
-                console.error("Lookup failed", error);
-            }
+            
         }
     };
 
@@ -89,18 +72,29 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                     tax: i.tax
                 }))
             };
+         
             const data = await createSale(sale).unwrap();
-            setSaleId(data);
-           
+            setSaleId(data?.billNo);
             dispatch(setReceiptInfo({ receiptInfo: null }));
             setOpenSnackbar(true);
            // handlePrint();
         }
     }
 
+    useEffect(() => {
+       
+        if (receiptInfo && receiptInfo.billNo) {
+            setSaleId(receiptInfo.billNo);
+            setMobileNumber(receiptInfo.mobileNumber || '');
+            setCustomerName(receiptInfo.customerName || '');
+            setPaymentModeID(receiptInfo.paymentModeID || '1');
+        }
+
+    }, [receiptInfo.billNo]);
+
     return (
         <>
-            <Box sx={{ p: 3 }}>
+            <Box sx={{ height: '100vh',  display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h5" mb={2}>Receipt Details</Typography>
 
                 <Grid container spacing={2} alignItems="flex-start">
@@ -114,8 +108,12 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                                 setMobileNumber(value);
 
                                 // Clear error when user starts typing
-                                if (mobileError && /^[6-9]\d{9}$/.test(value)) {
+                                if (!/^[6-9]\d{9}$/.test(value)) {
+                                    setMobileError('Invalid mobile number');
+                                    setCustomerName('');
+                                } else {
                                     setMobileError('');
+                                    handleMobileSearch(value);
                                 }
                             }}
                             onBlur={() => {
@@ -123,7 +121,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                                     setMobileError('Invalid mobile number');
                                 } else {
                                     setMobileError('');
-                                    handleMobileSearch();
+                                    handleMobileSearch(mobileNumber);
                                 }
                             }}
                             error={mobileError}
@@ -139,7 +137,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                             label="Customer Name"
                             value={customerName}
                             onChange={(e) => setCustomerName(e.target.value)}
-                            disabled={!!customerId && !!saleId}
+                            disabled={!!customerId}
 
                         />
                     </Grid>
@@ -170,11 +168,90 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 </Grid>
 
                 <Box id="printSection" ref={printRef} mt={4}>
-                    <SalesReceipt
-                        receiptInfo={receiptInfo}
-                        Bill={saleId}
-                    />
-                </Box>
+            <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
+                {receiptInfo?.companyName}
+            </Typography>
+            <Typography align="center" sx={{ fontSize }}>DEHRADUN-2</Typography>
+            <Divider sx={{ my: 0.5 }} />
+
+            <Typography sx={{ fontSize }}>Bill No: {saleId}</Typography>
+            <Typography sx={{ fontSize }}>Date: {receiptInfo?.saleTime}</Typography>
+            <Typography sx={{ fontSize }}>Cashier: {receiptInfo?.userName}</Typography>
+            <Divider sx={{ my: 0.5 }} />
+
+            <TableContainer
+                component={Paper}
+                        sx={{
+                            maxHeight: 'none',
+                            overflow: 'visible',
+                            boxShadow: 'none'
+                        }}
+            >
+                <Table size="small" sx={{ fontSize, width: '100%' }}>
+                    <TableHead>
+                        <TableRow>
+                            <TableCell sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
+                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Qty</TableCell>
+                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Rate</TableCell>
+                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Discount</TableCell>
+                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Amount</TableCell>
+                        </TableRow>
+                    </TableHead>
+                    <TableBody>
+                        {receiptInfo?.cart?.map((item, index) => (
+                            <React.Fragment key={index}>
+                                <TableRow>
+                                    <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                        {item.name}
+                                    </TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode || '-'}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.quantity}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.discount.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>
+                                        {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
+                                    </TableCell>
+                                </TableRow>
+                            </React.Fragment>
+                        ))}
+                    </TableBody>
+                </Table>
+            </TableContainer>
+
+            <Divider sx={{ my: 1 }} />
+
+            {/* Rest of the code remains the same */}
+            <Table size="small" sx={{ fontSize }}>
+                <TableBody>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Subtotal</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.totalAmount?.toFixed(2)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Discount</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.discountAmount?.toFixed(2)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Tax</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.taxAmount?.toFixed(2)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{receiptInfo?.net?.toFixed(2)}</TableCell>
+                    </TableRow>
+                    <TableRow>
+                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Items</TableCell>
+                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>{totalItems}</TableCell>
+                    </TableRow>
+
+                </TableBody>
+            </Table>
+
+            <Divider sx={{ my: 0.5 }} />
+            <Typography align="center" sx={{ fontSize, mt: 1 }}>Thank you! Visit again.</Typography>
+        </Box>
 
                 <Box mt={4} display="flex" gap={2}>
                     {!saleId && <Button variant="contained" onClick={handleCheckout}>

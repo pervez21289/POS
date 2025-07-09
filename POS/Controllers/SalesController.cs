@@ -38,10 +38,10 @@ public class SalesController : ControllerBase
         return sale == null ? NotFound() : Ok(sale);
     }
 
-    //[HttpPost("UpdateOnPrint")]
-    //public async Task<IActionResult> UpdateOnPrint([FromBody] UpdatePrintDto dto)
-    //{
-    //    await _saleRepository.UpdateSaleOnPrintAsync(dto.SaleId, dto.CustomerName, dto.Mobile, dto.PaymentMode);
-    //    return Ok();
-    //}
+    [HttpGet("GetCustomerByNumber/{mobilenumber}")]
+    public async Task<IActionResult> GetCustomerByNumber(long mobilenumber)
+    {
+        var sale = await _saleRepository.GetCustomerByNumber(mobilenumber);
+        return sale == null ? NotFound() : Ok(sale);
+    }
 }
