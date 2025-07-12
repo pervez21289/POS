@@ -15,7 +15,7 @@ const CategoryPage = Loadable(lazy(() => import('pages/categories/CategoryPage')
 import ProductPage from './../pages/product/ProductPage';
 import Sales from './../pages/sales/SalesPOSPage';
 import SalesGrid from './../pages/sales/SalesGrid';
-
+import BasicSettings from '../pages/settings/BasicSettings';
 
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
@@ -56,8 +56,8 @@ const MainRoutes = {
         element: <SalesGrid />
     },
     {
-      path: 'shadow',
-      element: <Shadow />
+      path: 'settings',
+        element: <BasicSettings />
     },
     {
       path: 'sample-page',

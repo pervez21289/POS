@@ -39,7 +39,7 @@ export default function SettingTab() {
           <ListItemText primary="Support" />
         </ListItemButton>
       </Link>
-      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1)}>
+      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1,'settings')}>
         <ListItemIcon>
           <UserOutlined />
         </ListItemIcon>

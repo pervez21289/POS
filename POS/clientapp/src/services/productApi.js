@@ -1,4 +1,8 @@
-﻿import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+﻿
+
+
+
+import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Config from "./config";
 
 export const productApi = createApi({
@@ -7,7 +11,7 @@ export const productApi = createApi({
     tagTypes: ['Products'],
     endpoints: (builder) => ({
         getProducts: builder.query({
-            query: (search) => `products?search=${search}`, 
+            query: (search) => `products?search=${search}`,
             providesTags: ['Products'],
         }),
         getProduct: builder.query({
