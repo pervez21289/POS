@@ -4,27 +4,48 @@ import {
     Table, TableBody, TableCell, TableRow, TableHead,
     TableContainer, Paper
 } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
 
-const SalesReceipt = ({ receiptInfo, Bill }) => {
+import {
+    useGetBasicSettingsQuery
+} from './../../services/basicSettingAPI';
+
+const SalesReceipt = React.forwardRef(({ receiptInfo, saleId, mobileNumber, customerName }, ref) => {
+    const { data, isLoading } = useGetBasicSettingsQuery();
     const fontSize = '10px';
     const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+
+    if (isLoading) return <Typography>Loading...</Typography>;
+
     return (
-        <Box>
+        <Box  ref={ref} mt={4}>
             <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
-                {receiptInfo?.companyName}
+                {data?.[0].storeName}
             </Typography>
-            <Typography align="center" sx={{ fontSize }}>DEHRADUN-2</Typography>
+            <Typography align="center" sx={{ fontSize }}>{data?.[0].address}</Typography>
+            <Typography align="center" sx={{ fontSize }}>GST: {data?.[0].gstin}</Typography>
             <Divider sx={{ my: 0.5 }} />
 
-            <Typography sx={{ fontSize }}>Bill No: {Bill ? Bill?.billNo : receiptInfo.billNo}</Typography>
-            <Typography sx={{ fontSize }}>Date: {receiptInfo?.saleTime}</Typography>
-            <Typography sx={{ fontSize }}>Cashier: {receiptInfo?.userName}</Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <Box>
+                    <Typography align="left" sx={{ fontSize }}>Bill No: {saleId}</Typography>
+                    <Typography align="left" sx={{ fontSize }}>Date: {receiptInfo?.saleTime}</Typography>
+                    <Typography align="left" sx={{ fontSize }}>Cashier: {receiptInfo?.userName}</Typography>
+                </Box>
+                <Box textAlign="right">
+                    <Typography sx={{ fontSize }}>CustName: {customerName}</Typography>
+                    <Typography sx={{ fontSize }}>Mobile No: {mobileNumber}</Typography>
+                </Box>
+            </Box>
+
             <Divider sx={{ my: 0.5 }} />
 
             <TableContainer
                 component={Paper}
-              
+                sx={{
+                    maxHeight: 'none',
+                    overflow: 'visible',
+                    boxShadow: 'none'
+                }}
             >
                 <Table size="small" sx={{ fontSize, width: '100%' }}>
                     <TableHead>
@@ -92,6 +113,6 @@ const SalesReceipt = ({ receiptInfo, Bill }) => {
             <Typography align="center" sx={{ fontSize, mt: 1 }}>Thank you! Visit again.</Typography>
         </Box>
     );
-};
+});
 
 export default SalesReceipt;
