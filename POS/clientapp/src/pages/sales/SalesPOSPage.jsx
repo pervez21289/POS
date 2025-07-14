@@ -224,6 +224,21 @@ const SalesPOSPage = () => {
                             loading={loading}
                             onBlur={() => setIsSearching(false)}
                             onFocus={() => setIsSearching(true)}
+                            renderOption={(props, option) => (
+                                <Box
+                                    component="li"
+                                    {...props}
+                                    sx={{
+                                        '&.Mui-focusVisible': { // Add this
+                                            backgroundColor: 'red',
+                                            color: '#1976d2',
+                                        },
+                                    }}
+                                >
+                                    {option.name}
+                                </Box>
+                            )}
+
                             renderInput={(params) => (
                                 <TextField
                                     {...params}

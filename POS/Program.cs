@@ -35,6 +35,7 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
 builder.Services.AddScoped<ISaleRepository,SaleRepository>();
 builder.Services.AddScoped<IUser, UserRepo>();
+builder.Services.AddScoped<IBasicSettingRepository, BasicSettingRepository>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

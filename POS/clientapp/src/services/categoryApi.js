@@ -1,7 +1,7 @@
 ﻿// api/categoryApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import Config from "./config";
-console.log("configdata", Config);
+
 export const categoryApi = createApi({
     reducerPath: 'categoryApi',
     baseQuery: fetchBaseQuery({ baseUrl: Config.baseurl }),

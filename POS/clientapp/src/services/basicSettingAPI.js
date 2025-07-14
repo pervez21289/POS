@@ -1,9 +1,10 @@
 ﻿// src/api/basicSettingApi.js
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import Config from "./config";
 
 export const basicSettingApi = createApi({
     reducerPath: 'basicSettingApi',
-    baseQuery: fetchBaseQuery({ baseUrl: 'https://localhost:5001/api/' }),
+    baseQuery: fetchBaseQuery({ baseUrl: Config.baseurl }),
     tagTypes: ['BasicSetting'],
     endpoints: (builder) => ({
         getBasicSettings: builder.query({

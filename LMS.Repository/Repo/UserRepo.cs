@@ -30,7 +30,7 @@ namespace LMS.Repo.Repository
                 {
                     CompanyName = request.Company,
                     FirstName = request.FirstName,
-                    LastName = request.LastName,
+                    Mobile = request.Mobile,
                     Email = request.Email,
                     PasswordHash = passwordHash // Example
                 },

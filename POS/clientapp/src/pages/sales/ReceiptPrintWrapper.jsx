@@ -11,12 +11,16 @@ import { setReceiptInfo } from "./../../store/reducers/sales";
 import { openDrawer } from "./../../store/reducers/drawer";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import {
+    useGetBasicSettingsQuery
+} from './../../services/basicSettingAPI';
 
 const ReceiptPrintWrapper = ({ receiptInfo }) => {
+    const { data, isLoading } = useGetBasicSettingsQuery();
     const printRef = useRef();
     const navigate = useNavigate();
     const dispatch = useDispatch();
-            const fontSize = '10px';
+    const fontSize = '10px';
     const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     const [PaymentModeID, setPaymentModeID] = useState('1');
     const [mobileError, setMobileError] = useState('');
@@ -39,7 +43,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             setCustomerName(customer.customerName);
             setCustomerId(customer.id);
         } catch (error) {
-            
+
         }
     };
 
@@ -52,7 +56,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             setMobileError('Invalid mobile number');
             return;
         }
-      
+
         if (receiptInfo) {
             const sale = {
                 userID: 3, // Replace with actual user
@@ -72,17 +76,17 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                     tax: i.tax
                 }))
             };
-         
+
             const data = await createSale(sale).unwrap();
             setSaleId(data?.billNo);
             dispatch(setReceiptInfo({ receiptInfo: null }));
             setOpenSnackbar(true);
-           // handlePrint();
+            // handlePrint();
         }
     }
 
     useEffect(() => {
-       
+
         if (receiptInfo && receiptInfo.billNo) {
             setSaleId(receiptInfo.billNo);
             setMobileNumber(receiptInfo.mobileNumber || '');
@@ -92,12 +96,14 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
     }, [receiptInfo.billNo]);
 
+    if (isLoading) return <Typography>Loading...</Typography>;
+
     return (
         <>
-            <Box sx={{ height: '100vh',  display: 'flex', flexDirection: 'column' }}>
+            <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h5" mb={2}>Receipt Details</Typography>
 
-                <Grid container spacing={2} alignItems="flex-start">
+                {!saleId &&<Grid container spacing={2} alignItems="flex-start">
                     <Grid item xs={12} sm={2} lg={4}>
                         <TextField
                             fullWidth
@@ -166,92 +172,103 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
 
                 </Grid>
+                }
 
                 <Box id="printSection" ref={printRef} mt={4}>
-            <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
-                {receiptInfo?.companyName}
-            </Typography>
-            <Typography align="center" sx={{ fontSize }}>DEHRADUN-2</Typography>
-            <Divider sx={{ my: 0.5 }} />
+                    <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
+                        {data[0]?.storeName}
+                    </Typography>
+                    <Typography align="center" sx={{ fontSize }}>{data[0]?.address}</Typography>
+                    <Typography align="center" sx={{ fontSize }}>GST: {data[0]?.gstin}</Typography>
+                    <Divider sx={{ my: 0.5 }} />
 
-            <Typography sx={{ fontSize }}>Bill No: {saleId}</Typography>
-            <Typography sx={{ fontSize }}>Date: {receiptInfo?.saleTime}</Typography>
-            <Typography sx={{ fontSize }}>Cashier: {receiptInfo?.userName}</Typography>
-            <Divider sx={{ my: 0.5 }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Box>
+                            <Typography align="left" sx={{ fontSize }}>Bill No: {saleId}</Typography>
+                            <Typography align="left" sx={{ fontSize }}>Date: {receiptInfo?.saleTime}</Typography>
+                            <Typography align="left" sx={{ fontSize }}>Cashier: {receiptInfo?.userName}</Typography>
+                        </Box>
+                        <Box textAlign="right">
+                            <Typography sx={{ fontSize }}>CustName: {customerName}</Typography>
+                            <Typography sx={{ fontSize }}>Mobile No: {mobileNumber}</Typography>
+                        </Box>
+                    </Box>
 
-            <TableContainer
-                component={Paper}
+                    <Divider sx={{ my: 0.5 }} />
+
+                    <TableContainer
+                        component={Paper}
                         sx={{
                             maxHeight: 'none',
                             overflow: 'visible',
                             boxShadow: 'none'
                         }}
-            >
-                <Table size="small" sx={{ fontSize, width: '100%' }}>
-                    <TableHead>
-                        <TableRow>
-                            <TableCell sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Qty</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Rate</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Discount</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Amount</TableCell>
-                        </TableRow>
-                    </TableHead>
-                    <TableBody>
-                        {receiptInfo?.cart?.map((item, index) => (
-                            <React.Fragment key={index}>
+                    >
+                        <Table size="small" sx={{ fontSize, width: '100%' }}>
+                            <TableHead>
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
-                                        {item.name}
-                                    </TableCell>
+                                    <TableCell sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Qty</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Rate</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Discount</TableCell>
+                                    <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Amount</TableCell>
                                 </TableRow>
-                                <TableRow>
-                                    <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode || '-'}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.quantity}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.discount.toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                        {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
-                                    </TableCell>
-                                </TableRow>
-                            </React.Fragment>
-                        ))}
-                    </TableBody>
-                </Table>
-            </TableContainer>
+                            </TableHead>
+                            <TableBody>
+                                {receiptInfo?.cart?.map((item, index) => (
+                                    <React.Fragment key={index}>
+                                        <TableRow>
+                                            <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                                {item.name}
+                                            </TableCell>
+                                        </TableRow>
+                                        <TableRow>
+                                            <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode || '-'}</TableCell>
+                                            <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.quantity}</TableCell>
+                                            <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
+                                            <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.discount.toFixed(2)}</TableCell>
+                                            <TableCell align="right" sx={{ p: 0.5, fontSize }}>
+                                                {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
+                                            </TableCell>
+                                        </TableRow>
+                                    </React.Fragment>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
 
-            <Divider sx={{ my: 1 }} />
+                    <Divider sx={{ my: 1 }} />
 
-            {/* Rest of the code remains the same */}
-            <Table size="small" sx={{ fontSize }}>
-                <TableBody>
-                    <TableRow>
-                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Subtotal</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.totalAmount?.toFixed(2)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Discount</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.discountAmount?.toFixed(2)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Tax</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.taxAmount?.toFixed(2)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{receiptInfo?.net?.toFixed(2)}</TableCell>
-                    </TableRow>
-                    <TableRow>
-                        <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Items</TableCell>
-                        <TableCell align="right" sx={{ p: 0.5, fontSize }}>{totalItems}</TableCell>
-                    </TableRow>
+                    {/* Rest of the code remains the same */}
+                    <Table size="small" sx={{ fontSize }}>
+                        <TableBody>
+                            <TableRow>
+                                <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Subtotal</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.totalAmount?.toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Discount</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.discountAmount?.toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Tax</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>₹{receiptInfo?.taxAmount?.toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={3} sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>Total Payable</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontWeight: 'bold', fontSize }}>₹{receiptInfo?.net?.toFixed(2)}</TableCell>
+                            </TableRow>
+                            <TableRow>
+                                <TableCell colSpan={3} sx={{ p: 0.5, fontSize }}>Items</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>{totalItems}</TableCell>
+                            </TableRow>
 
-                </TableBody>
-            </Table>
+                        </TableBody>
+                    </Table>
 
-            <Divider sx={{ my: 0.5 }} />
-            <Typography align="center" sx={{ fontSize, mt: 1 }}>Thank you! Visit again.</Typography>
-        </Box>
+                    <Divider sx={{ my: 0.5 }} />
+                    <Typography align="center" sx={{ fontSize, mt: 1 }}>Thank you! Visit again.</Typography>
+                </Box>
 
                 <Box mt={4} display="flex" gap={2}>
                     {!saleId && <Button variant="contained" onClick={handleCheckout}>
@@ -278,6 +295,6 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             </Snackbar>
         </>
     );
-};
+}
 
 export default ReceiptPrintWrapper;

@@ -21,7 +21,7 @@ namespace LMS.Core.Entities
     {
         public string Company { get; set; }
         public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Mobile { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
     }
@@ -36,7 +36,7 @@ namespace LMS.Core.Entities
     {
         public int UserID { get; set; }
         public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string Mobile { get; set; }
         public string Email { get; set; }
         public int CompanyID { get; set; }
         public string CompanyName { get; set; }

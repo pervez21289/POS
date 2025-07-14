@@ -17,9 +17,9 @@ namespace LMS.Controllers
     [ApiController]
     public class BasicSettingsController : ControllerBase
     {
-        private readonly BasicSettingRepository _repo;
+        private readonly IBasicSettingRepository _repo;
 
-        public BasicSettingsController(BasicSettingRepository repo)
+        public BasicSettingsController(IBasicSettingRepository repo)
         {
             _repo = repo;
         }
