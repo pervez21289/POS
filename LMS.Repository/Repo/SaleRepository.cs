@@ -113,4 +113,12 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
         await ExecuteAsync("UpdateSaleOnPrint", parameters, commandType: CommandType.StoredProcedure);
     }
+
+
+    public async Task<string> GetMonthlySalesSummary(int CompanyID)
+    {
+      
+        return await QueryFirstOrDefaultAsync<string>(
+            "GetMonthlySalesSummaryJson",new { CompanyID = CompanyID }, commandType: CommandType.StoredProcedure);
+    }
 }

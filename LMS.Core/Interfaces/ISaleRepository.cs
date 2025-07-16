@@ -14,5 +14,6 @@ namespace LMS.Core.Interfaces
         Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode);
         Task<SaleListDto?> GetSaleWithItems(int saleId);
         Task<Customer> GetCustomerByNumber(long mobileNumber);
+        Task<string> GetMonthlySalesSummary(int CompanyID);
     }               
 }

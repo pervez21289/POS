@@ -85,4 +85,12 @@ namespace LMS.Core.Entities
     }
 
 
+    public class MonthlySalesDto
+    {
+        public string Month { get; set; }
+        public int MonthNumber { get; set; }
+        public decimal IncomeInThousands { get; set; }
+        public decimal CostOfSalesInThousands { get; set; }
+    }
+
 }

@@ -23,11 +23,9 @@ class SaleService {
         return res.data;
     };
 
-    SaveLocation = async (contact) => {
-        const res = await axios.post(`${url}SaveLocation`, contact,{
-            headers: Auth.getHeader()
-        });
-        return res.data;
+    getMonthlySales = async (CompanyID) => {
+        const response = await axios.get(`${url}Sales/GetMonthlySalesSummary?CompanyID=${CompanyID}`);
+        return response.data;
     };
 
     SaveProperty = async (property) => {

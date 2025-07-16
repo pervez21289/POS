@@ -2,6 +2,7 @@
 using LMS.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Data;
+using System.Data.SqlClient;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -44,4 +45,17 @@ public class SalesController : ControllerBase
         var sale = await _saleRepository.GetCustomerByNumber(mobilenumber);
         return sale == null ? NotFound() : Ok(sale);
     }
+
+
+    [HttpGet("GetMonthlySalesSummary")]
+    public async Task<IActionResult> GetMonthlySalesSummary(int CompanyID)
+    {
+       
+        var data = await _saleRepository.GetMonthlySalesSummary(CompanyID);
+
+        
+
+        return Ok(data);
+    }
+
 }
