@@ -14,6 +14,7 @@ import LockOutlined from '@ant-design/icons/LockOutlined';
 import QuestionCircleOutlined from '@ant-design/icons/QuestionCircleOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import UnorderedListOutlined from '@ant-design/icons/UnorderedListOutlined';
+import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
 
 // ==============================|| HEADER PROFILE - SETTING TAB ||============================== //
 
@@ -31,14 +32,14 @@ export default function SettingTab() {
 
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
-      <Link underline="none" sx={{ color: 'inherit' }} target="_blank" href="https://codedthemes.support-hub.io/">
-        <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0)}>
+      
+        <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0,'usermanagement')}>
           <ListItemIcon>
-            <QuestionCircleOutlined />
+                      <ManageAccountsOutlinedIcon />
           </ListItemIcon>
-          <ListItemText primary="Support" />
+          <ListItemText primary="User Management" />
         </ListItemButton>
-      </Link>
+     
       <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1,'settings')}>
         <ListItemIcon>
           <UserOutlined />

@@ -13,6 +13,9 @@ namespace LMS.Core.Interfaces
     {
         Task<CreateUserResult> RegisterCompanyWithAdminAsync(RegisterRequest request);
         Task<UserLoginDto?> LoginAsync(string email, string password);
+        Task<int> CreateUserAsync(User user);
+        Task DeleteUserAsync(int userId);
+        Task<IEnumerable<User>> GetUsersAsync();
 
     }
 }

@@ -12,6 +12,7 @@ using System.Drawing.Imaging;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -20,6 +21,49 @@ namespace LMS.Repo.Repository
 {
     public class UserRepo : BaseRepository, IUser
     {
+
+        public async Task<int> CreateUserAsync(User user)
+        {
+            if(!string.IsNullOrEmpty(user.PasswordHash))
+            {
+                       user.PasswordHash = ComputeSha256Hash(user.PasswordHash);    
+            }
+            else
+            {
+                user.PasswordHash = null;
+            }
+
+            var p = new DynamicParameters();
+            p.Add("@FirstName", user.FirstName);
+            p.Add("@Mobile", user.Mobile);
+            p.Add("@Email", user.Email);
+            p.Add("@PasswordHash", user.PasswordHash);
+            p.Add("@CompanyID", user.CompanyID);
+            p.Add("@UserId", user.UserId);
+            // RoleIDs as Table-Valued Parameter
+            var table = new DataTable();
+            table.Columns.Add("RoleID", typeof(int));
+            foreach (var id in user.RoleIDs)
+            {
+                table.Rows.Add(id);
+            }
+            p.Add("@Roles", table.AsTableValuedParameter("dbo.RoleIDTableType"));
+
+            return await ExecuteScalarAsync<int>("CreateUserWithRole", p, commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task DeleteUserAsync(int userId)
+        {
+            await ExecuteAsync("DeleteUser", new { UserID = userId }, commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<IEnumerable<User>> GetUsersAsync()
+        {
+            return await QueryAsync<User>("GetUsersWithRoles", commandType: CommandType.StoredProcedure);
+        }
+
+
+
         public async Task<CreateUserResult> RegisterCompanyWithAdminAsync(RegisterRequest request)
         {
             var passwordHash = ComputeSha256Hash(request.Password);

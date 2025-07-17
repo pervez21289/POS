@@ -9,13 +9,16 @@ namespace LMS.Core.Entities
     public class  User
     {
         public long? UserId { get; set; }
-        public string? Name { get; set; }
+        public string? FirstName { get; set; }
         public string? Password { get; set; } = "";
-        public int?   RoleId { get; set; }
+        public List<int>? RoleIDs { get; set; } = new();
         public string? Email { get; set; } = "";
         public string? Mobile { get; set; }
-        public string? OTP{get; set; } = "";
-        public int? CityId { get; set; }
+        public string? OTP{get; set; } = ""; 
+        public string? PasswordHash {  get; set; }
+        public int? CompanyID { get; set; }
+        public string? RoleNames { get; set; }
+        public string? RoleId { get; set; }
     }
     public class RegisterRequest
     {

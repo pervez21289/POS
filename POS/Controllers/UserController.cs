@@ -13,6 +13,7 @@ namespace LMS.Controllers
 {
 
     [ApiController]
+    [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
         public IUser _user;
@@ -28,6 +29,28 @@ namespace LMS.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-       
+        [HttpGet]
+        public async Task<IActionResult> GetUsers()
+        {
+            var users = await _user.GetUsersAsync();
+            return Ok(users);
+        }
+
+        [HttpPost("CreateOrUpdateUser")]
+        public async Task<IActionResult> CreateOrUpdateUser([FromBody] User user)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            var userId = await _user.CreateUserAsync(user);
+            return Ok(new { userId });
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(int id)
+        {
+            await _user.DeleteUserAsync(id);
+            return NoContent();
+        }
+
+
     }
 }
