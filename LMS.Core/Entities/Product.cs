@@ -21,6 +21,7 @@ namespace LMS.Core.Entities
         public int? CategoryID { get; set; }
         public bool IsActive { get; set; }
         public decimal? GstRate { get; set; }
+        public int? CompanyID { get; set; }
     }
 
     public class ProductInventoryLog

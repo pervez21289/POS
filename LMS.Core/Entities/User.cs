@@ -43,6 +43,19 @@ namespace LMS.Core.Entities
         public string Email { get; set; }
         public int CompanyID { get; set; }
         public string CompanyName { get; set; }
-        public string RoleName { get; set; }
+        public string RoleNames { get; set; }
+        public string menuItemDtos { get; set; }
+    }
+
+
+    public class MenuItemDto
+    {
+        public int MenuID { get; set; }
+        public int? ParentMenuID { get; set; }
+        public string Title { get; set; }
+        public string Url { get; set; }
+        public string Type { get; set; }
+        public string Icon { get; set; }
+        public int SortOrder { get; set; }
     }
 }

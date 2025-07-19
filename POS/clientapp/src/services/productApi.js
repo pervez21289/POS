@@ -7,7 +7,16 @@ import Config from "./config";
 
 export const productApi = createApi({
     reducerPath: 'productApi',
-    baseQuery: fetchBaseQuery({ baseUrl: Config.baseurl }),
+    baseQuery: fetchBaseQuery({
+        baseUrl: Config.baseurl ,
+         prepareHeaders: (headers, { getState }) => {
+            const token = getState()?.users?.userDetails?.token;
+            if (token) {
+                headers.set('Authorization', `Bearer ${token}`);
+            }
+            return headers;
+        }
+    }),
     tagTypes: ['Products'],
     endpoints: (builder) => ({
         getProducts: builder.query({

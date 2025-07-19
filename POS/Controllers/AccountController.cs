@@ -21,7 +21,7 @@ public class AccountController : ControllerBase
         _accountService = accountService;
         _appSettings = appSettings;
     }
-    
+
 
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
@@ -46,32 +46,43 @@ public class AccountController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var userData = await _accountService.LoginAsync(request.Email, request.Password);
-        if (userData != null)
+        try
         {
-            var authClaims = new List<Claim>
+            var userData = await _accountService.LoginAsync(request.Email, request.Password);
+            if (userData != null)
+            {
+                var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, Convert.ToString(request.Email)),
+                    new Claim(ClaimTypes.Role, Convert.ToString(userData.RoleNames)),
+                    new Claim(ClaimTypes.NameIdentifier, Convert.ToString(userData.CompanyID)),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
 
-            authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleName));
-            var token = GetToken(authClaims);
+                authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleNames));
+                var token = GetToken(authClaims);
 
-            return Ok(new
-            {
-                token = new JwtSecurityTokenHandler().WriteToken(token),
-                expiration = token.ValidTo,
-                email = request.Email,
-                success=true
-            });
+                return Ok(new
+                {
+                    token = new JwtSecurityTokenHandler().WriteToken(token),
+                    expiration = token.ValidTo,
+                    email = request.Email,
+                    menus = userData.menuItemDtos,
+                    success = true
+                });
+            }
+            return Unauthorized(new { Success = false, Message = "Invalid email or password" });
+        }
+        catch (Exception ex)
+        {
+            // Log the exception (you can use a logging framework here)
+            // For example: _logger.Log(ex);
+            return StatusCode(500, new { Message = "Error occurred", Error = ex.Message });
         }
 
-        
-            return Unauthorized(new { Success = false, Message = "Invalid email or password" });
 
-     
-    }
+
+    } 
 
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {

@@ -1,10 +1,13 @@
 ﻿using LMS.Core.Entities;
 using LMS.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LMS.Controllers
 {
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class ProductsController : ControllerBase
@@ -52,6 +55,8 @@ namespace LMS.Controllers
         {
             try
             {
+                product.CompanyID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
                 var id = await _repo.CreateAsync(product);
                 return CreatedAtAction(nameof(Get), new { id }, product);
             }

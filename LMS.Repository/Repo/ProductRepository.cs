@@ -37,7 +37,8 @@ namespace LMS.Repository.Repo
                     product.IsActive,
                     product.DiscountAmount,
                     product.DiscountPercent,
-                    product.GstRate
+                    product.GstRate,
+                    product.CompanyID
                 }, commandType: CommandType.StoredProcedure);
 
         public async Task<bool> UpdateAsync(Product product)

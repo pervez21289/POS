@@ -17,6 +17,7 @@ const dashboard = {
       id: 'dashboard',
       title: 'Dashboard',
       type: 'item',
+      role: ['Admin'],
       url: '/dashboard/default',
       icon: icons.DashboardOutlined,
       breadcrumbs: false

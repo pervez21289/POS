@@ -17,14 +17,12 @@ namespace LMS.Repository.Repo
         {
             try
             {
-                Execute(@"
-                INSERT INTO ErrorLogs (Message, StackTrace)
-                VALUES (@Message, @StackTrace)",
+                Execute("LogError",
                     new
                     {
                         Message = ex.Message,
                         StackTrace = ex.StackTrace
-                    });
+                    },CommandType.StoredProcedure);
             }
             catch
             {

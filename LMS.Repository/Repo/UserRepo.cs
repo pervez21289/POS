@@ -88,12 +88,16 @@ namespace LMS.Repo.Repository
         {
             var passwordHash = ComputeSha256Hash(password);
 
-            var result = await QueryFirstOrDefaultAsync<UserLoginDto>(
-                "UserLogin",
-                new { Email = email, Password = passwordHash },
-                commandType: CommandType.StoredProcedure
-            );
-            return result;
+            var (userDto, menuItems) = await QueryMultipleStringAsync<UserLoginDto, string>(
+                   "UserLogin",
+                  new { Email = email, Password = passwordHash },
+                   commandType: CommandType.StoredProcedure
+               );
+
+            userDto.menuItemDtos = menuItems;
+           
+            return userDto;
+
         }
 
         private string ComputeSha256Hash(string rawData)

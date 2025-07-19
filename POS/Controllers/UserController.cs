@@ -8,10 +8,11 @@ using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Amazon.Runtime.Internal;
 using System.Drawing;
+using System.Security.Claims;
 
 namespace LMS.Controllers
 {
-
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class UserController : ControllerBase
@@ -20,12 +21,13 @@ namespace LMS.Controllers
        
         public readonly AppSettings _appSettings;
         private readonly IWebHostEnvironment _hostingEnvironment;
+        private readonly IErrorLogger _logger;
 
-        public UserController(IUser user,  AppSettings appSettings, IWebHostEnvironment hostingEnvironment)
+        public UserController(IUser user,  AppSettings appSettings, IWebHostEnvironment hostingEnvironment, IErrorLogger logger)
         {
             _user = user;
             _appSettings = appSettings;
-        
+            _logger = logger;
             _hostingEnvironment = hostingEnvironment;
         }
 
@@ -39,9 +41,22 @@ namespace LMS.Controllers
         [HttpPost("CreateOrUpdateUser")]
         public async Task<IActionResult> CreateOrUpdateUser([FromBody] User user)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            var userId = await _user.CreateUserAsync(user);
-            return Ok(new { userId });
+            try
+            {
+                if (!ModelState.IsValid) return BadRequest(ModelState);
+
+                if(user.UserId==0)
+                    user.CompanyID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+                var userId = await _user.CreateUserAsync(user);
+                return Ok(new { userId });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (you can use a logging framework here)
+                _logger.Log(ex);
+                return StatusCode(500, ex.Message);
+            }   
         }
 
         [HttpDelete("{id}")]

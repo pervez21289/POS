@@ -19,6 +19,7 @@ const pages = {
             id: 'inventory-category',
             title: 'Category',
             type: 'item',
+            role: ['Admin'],
             url: '/category',
             icon: icons.CategoryOutlined
         },
@@ -26,6 +27,7 @@ const pages = {
             id: 'inventory-product',
             title: 'Product',
             type: 'item',
+            role: ['Admin'],
             url: '/product',
             icon: icons.InventoryOutlined
         },
