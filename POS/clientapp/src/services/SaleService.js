@@ -9,22 +9,28 @@ class SaleService {
    
 
     GetSales = async (params) => {
-        const res = await axios.get(`${url}Sales`, { params: params });
+        const res = await axios.get(`${url}Sales`, { params: params, headers: Auth.getHeader() });
         return res.data;
     };
 
     GetSalesById = async (query) => {
-        const res = await axios.get(`${url}Sales/GetSalesById/${query}`);
+        const res = await axios.get(`${url}Sales/GetSalesById/${query}`, {
+            headers: Auth.getHeader()
+        });
         return res.data;
     };
 
     GetCustomerByNumber = async (query) => {
-        const res = await axios.get(`${url}Sales/GetCustomerByNumber/${query}`);
+        const res = await axios.get(`${url}Sales/GetCustomerByNumber/${query}`, {
+            headers: Auth.getHeader()
+        });
         return res.data;
     };
 
-    getMonthlySales = async (CompanyID) => {
-        const response = await axios.get(`${url}Sales/GetMonthlySalesSummary?CompanyID=${CompanyID}`);
+    getMonthlySales = async () => {
+        const response = await axios.get(`${url}Sales/GetMonthlySalesSummary`, {
+            headers: Auth.getHeader()
+        });
         return response.data;
     };
 

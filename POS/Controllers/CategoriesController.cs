@@ -1,24 +1,31 @@
 ﻿using LMS.Core.Entities;
 using LMS.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryRepository _repo;
     private readonly IErrorLogger _logger;
+    protected readonly IUserContext _userContext;
 
-    public CategoriesController(ICategoryRepository repo, IErrorLogger logger)
+    public CategoriesController(ICategoryRepository repo, IErrorLogger logger, IUserContext userContext)
     {
         _repo = repo;
         _logger = logger;
+        _userContext = userContext;
     }
 
     [HttpGet]
     public async Task<IActionResult> Get()
     {
-        try { return Ok(await _repo.GetAllAsync()); }
+        try {
+           
+         return Ok(await _repo.GetAllAsync(_userContext.CompanyID)); }
         catch (Exception ex) { _logger.Log(ex); return StatusCode(500); }
     }
 

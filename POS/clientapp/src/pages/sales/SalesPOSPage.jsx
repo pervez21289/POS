@@ -13,6 +13,7 @@ import { setReceiptInfo } from "./../../store/reducers/sales";
 import ProductService from './../../services/ProductService';
 import CartPage from './CartPage';
 import { useGetProductsQuery } from './../../services/productApi';
+import ProductCard from './ProductCard';
 
 const SalesPOSPage = () => {
     const { data: allProducts = [], isLoading } = useGetProductsQuery('');
@@ -82,6 +83,24 @@ const SalesPOSPage = () => {
         dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
     };
 
+
+    const updateQty = (productID, qty) => {
+        debugger;
+
+       
+
+        const currentCart = receiptInfo?.cart ?? [];
+        const updatedCart = currentCart.map((i) => i.productID === productID ? { ...i, quantity: Math.max(0, Number(qty)) } : i);
+        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+    
+
+        //setCart((prev) =>
+        //    prev.map((i) =>
+        //        i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
+        //    )
+        //);
+    };
+
     const removeFromCart = (productID) => {
         const currentCart = receiptInfo?.cart ?? [];
         const updatedCart = currentCart.filter((i) => i.productID !== productID);
@@ -117,20 +136,23 @@ const SalesPOSPage = () => {
         return () => clearInterval(interval);
     }, [isSearching]);
 
-    useEffect(() => {
+    useMemo(() => {
         if (isSearch) {
             setIsSearching(isSearch);
         }
     }, [isSearch]);
+
+    const cartProductIds = useMemo(() => new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
+
 
     return (
         <Container>
             <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
                 Point of Sale
             </Typography>
-            <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
+            <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
                 {/* Product Search & Barcode */}
-                <Card sx={{ flex: 1, p: 2, boxShadow: 3 }}>
+                <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
                     <CardContent>
                         <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                             <SearchIcon color="action" />
@@ -213,40 +235,14 @@ const SalesPOSPage = () => {
                                     overflowY: 'auto',
                                 }}
                             >
-                                {allProducts.map((product) => {
-                                    const isInCart = receiptInfo?.cart?.some((item) => item.productID === product.productID);
-
-                                    return (
-                                        <Card
-                                            key={product.productID}
-                                            sx={{
-                                                p: 1,
-                                                textAlign: 'center',
-                                                cursor: 'pointer',
-                                                backgroundColor: isInCart ? '#e0f7fa' : 'white',
-                                                border: isInCart ? '2px solid #0288d1' : '1px solid #e0e0e0',
-                                                transition: 'transform 0.2s, box-shadow 0.2s',
-                                                '&:hover': {
-                                                    boxShadow: 6,
-                                                    transform: 'scale(1.02)',
-                                                },
-                                            }}
-                                            onClick={() => addToCart(product)}
-                                        >
-                                            <Typography variant="body2" fontWeight={600}>
-                                                {product.name}
-                                            </Typography>
-                                            <Typography variant="caption" color="text.secondary">
-                                                ₹{product.price.toFixed(2)}
-                                            </Typography>
-                                            {product.discountPercent > 0 && (
-                                                <Typography variant="caption" color="green">
-                                                    {product.discountPercent}% OFF
-                                                </Typography>
-                                            )}
-                                        </Card>
-                                    );
-                                })}
+                                {allProducts.map(product => (
+                                    <ProductCard
+                                        key={product.productID}
+                                        product={product}
+                                        isInCart={cartProductIds.has(product.productID)}
+                                        onClick={addToCart}
+                                    />
+                                ))}
                             </Box>
 
                         </Box>
@@ -254,7 +250,7 @@ const SalesPOSPage = () => {
                 </Card>
 
                 {/* Cart Section */}
-                <CartPage removeFromCart={removeFromCart} />
+                <CartPage removeFromCart={removeFromCart} updateQty={updateQty } />
             </Stack>
         </Container>
     );

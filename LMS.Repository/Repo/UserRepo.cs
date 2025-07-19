@@ -57,9 +57,9 @@ namespace LMS.Repo.Repository
             await ExecuteAsync("DeleteUser", new { UserID = userId }, commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<IEnumerable<User>> GetUsersAsync()
+        public async Task<IEnumerable<User>> GetUsersAsync(int CompanyID)
         {
-            return await QueryAsync<User>("GetUsersWithRoles", commandType: CommandType.StoredProcedure);
+            return await QueryAsync<User>("GetUsersWithRoles", new { CompanyID=CompanyID},commandType: CommandType.StoredProcedure);
         }
 
 

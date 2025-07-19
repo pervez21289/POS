@@ -46,10 +46,11 @@ public class SaleRepository : BaseRepository,ISaleRepository
         return dto;
     }
 
-    public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, DateTime? date, int page, int pageSize)
+    public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search,int CompanyID, DateTime? date, int page, int pageSize)
     {
         var parameters = new DynamicParameters();
         parameters.Add("@Search", string.IsNullOrWhiteSpace(search) ? null : search);
+        parameters.Add("@CompanyID", CompanyID);
         parameters.Add("@Date", date);
         parameters.Add("@Page", page);
         parameters.Add("@PageSize", pageSize);

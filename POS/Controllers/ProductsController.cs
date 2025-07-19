@@ -14,11 +14,13 @@ namespace LMS.Controllers
     {
         private readonly IProductRepository _repo;
         private readonly IErrorLogger _logger;
+        protected readonly IUserContext _userContext;
 
-        public ProductsController(IProductRepository repo, IErrorLogger logger)
+        public ProductsController(IProductRepository repo, IErrorLogger logger, IUserContext userContext)
         {
             _repo = repo;
             _logger = logger;
+            _userContext = userContext;
         }
 
         [HttpGet]
@@ -26,7 +28,8 @@ namespace LMS.Controllers
         {
             try
             {
-                return Ok(await _repo.GetAllAsync(search));
+   
+                return Ok(await _repo.GetAllAsync(search, _userContext.CompanyID));
             }
             catch (Exception ex)
             {
@@ -55,8 +58,7 @@ namespace LMS.Controllers
         {
             try
             {
-                product.CompanyID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
-
+                product.CompanyID = _userContext.CompanyID;
                 var id = await _repo.CreateAsync(product);
                 return CreatedAtAction(nameof(Get), new { id }, product);
             }
@@ -102,7 +104,8 @@ namespace LMS.Controllers
         [HttpGet("search")]
         public async Task<IActionResult> Search(string q)
         {
-            var result = await _repo.SearchProductsAsync(q ?? "");
+    
+            IEnumerable<Product> result = await _repo.SearchProductsAsync(q ?? "", _userContext.CompanyID);
             return Ok(result);
         }
 

@@ -28,7 +28,8 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
-
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IUser, UserRepo>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();

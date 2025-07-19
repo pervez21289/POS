@@ -15,7 +15,7 @@ namespace LMS.Core.Interfaces
         Task<UserLoginDto?> LoginAsync(string email, string password);
         Task<int> CreateUserAsync(User user);
         Task DeleteUserAsync(int userId);
-        Task<IEnumerable<User>> GetUsersAsync();
+        Task<IEnumerable<User>> GetUsersAsync(int CompanyID);
 
     }
 }

@@ -8,9 +8,9 @@ public class CategoryRepository :BaseRepository, ICategoryRepository
 {
 
 
-    public async Task<IEnumerable<Category>> GetAllAsync()
+    public async Task<IEnumerable<Category>> GetAllAsync(int CompanyID)
     {
-        return await   QueryAsync<Category>("SELECT * FROM Categories",null, CommandType.Text);
+        return await   QueryAsync<Category>("GetAllCategories", new {CompanyID=CompanyID}, CommandType.StoredProcedure);
     }
 
     public async Task<Category?> GetByIdAsync(int id)

@@ -57,7 +57,7 @@ export default function DashboardDefault() {
 
     useEffect(() => {
 
-        SaleService.getMonthlySales(29).then(resdata => {
+        SaleService.getMonthlySales().then(resdata => {
             console.log(resdata);
             setRes(resdata);
         })

@@ -15,8 +15,8 @@ namespace LMS.Repository.Repo
     {
        
 
-        public async Task<IEnumerable<Product>> GetAllAsync(string search) =>
-     await  QueryAsync<Product>("GetAllProducts",new {search=search}, commandType: CommandType.StoredProcedure);
+        public async Task<IEnumerable<Product>> GetAllAsync(string search,int CompanyID) =>
+     await  QueryAsync<Product>("GetAllProducts",new {search=search,CompanyID=CompanyID}, commandType: CommandType.StoredProcedure);
 
         public async Task<Product?> GetByIdAsync(int id) =>
             await  QueryFirstOrDefaultAsync<Product>(
@@ -69,14 +69,11 @@ namespace LMS.Repository.Repo
                 "DeleteProduct", new { ProductID = id }, commandType: CommandType.StoredProcedure)) > 0;
 
 
-        public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm)
+        public async Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm ,int CompanyID)
         {
-            var parameters = new DynamicParameters();
-            parameters.Add("@SearchTerm", searchTerm);
-
             return await QueryAsync<Product>(
                 "SearchProducts",
-                parameters,
+                new { SearchTerm = searchTerm , CompanyID = CompanyID },
                 commandType: CommandType.StoredProcedure
             );
         }

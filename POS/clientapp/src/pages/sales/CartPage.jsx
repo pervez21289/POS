@@ -11,7 +11,10 @@ import ReceiptPrintWrapper from './ReceiptPrintWrapper'
 import { useDispatch, useSelector } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
 import { setReceiptInfo, setIsSearch } from "./../../store/reducers/sales";
-const CartPage = ({ removeFromCart }) => {
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+
+const CartPage = ({ removeFromCart, updateQty }) => {
     const fontSize = '12px';
     const [notes, setNotes] = useState('');
     const [cart, setCart] = useState([]);
@@ -58,7 +61,7 @@ const CartPage = ({ removeFromCart }) => {
                                 <TableCell sx={{ fontSize }}>Barcode</TableCell>
                                 <TableCell sx={{ fontSize }} align="right">Price</TableCell>
                                 <TableCell sx={{ fontSize }} align="right">Discount</TableCell>
-                                <TableCell sx={{ fontSize }} align="right">Qty</TableCell>
+                                <TableCell sx={{ fontSize }} align="center">Qty</TableCell>
                                 <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
                                 <TableCell sx={{ fontSize }} align="right">Action</TableCell>
                             </TableRow>
@@ -78,10 +81,30 @@ const CartPage = ({ removeFromCart }) => {
                                             {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
                                         </TableCell>
                                         <TableCell sx={{ fontSize }} align="right">
-                                            {item.quantity}
+                                            <Stack direction="row" alignItems="center" spacing={0.5} justifyContent="flex-end">
+                                                <TextField
+                                                    value={item.quantity}
+                                                    onChange={(e) => {
+                                                        const newQty = parseInt(e.target.value);
+                                                        updateQty(item.productID, newQty);
+                                                    }}
+                                                    type="number"
+                                                    size="small"
+                                                    inputProps={{
+                                                        min: 1,
+                                                        style: { textAlign: 'center' },
+                                                    }}
+                                                    sx={{ width: 80 }} // Set input width
+                                                    onFocus={() => dispatch(setIsSearch(true))}
+                                                    onBlur={() => dispatch(setIsSearch(false))}
+                                                />
+                                            </Stack>
                                         </TableCell>
+
+
+
                                         <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                            {(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
+                                            {isNaN(item.quantity)?0: (item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
                                         </TableCell>
                                         <TableCell align="right" sx={{ p: 0, fontSize }}>
                                             <IconButton color="error" onClick={() => removeFromCart(item.productID)}>

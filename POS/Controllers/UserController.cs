@@ -1,14 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Amazon.Runtime.Internal;
+using LMS.ChatHub;
 using LMS.Core.Entities;
 using LMS.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
-using Microsoft.IdentityModel.Tokens;
-using System.Text;
-using Microsoft.AspNetCore.Authorization;
-using Amazon.Runtime.Internal;
-using System.Drawing;
 using System.Security.Claims;
+using System.Text;
 
 namespace LMS.Controllers
 {
@@ -22,19 +23,22 @@ namespace LMS.Controllers
         public readonly AppSettings _appSettings;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly IErrorLogger _logger;
+        private readonly IUserContext _userContext;
 
-        public UserController(IUser user,  AppSettings appSettings, IWebHostEnvironment hostingEnvironment, IErrorLogger logger)
+        public UserController(IUser user,  AppSettings appSettings, IWebHostEnvironment hostingEnvironment, IErrorLogger logger, IUserContext userContext)
         {
             _user = user;
             _appSettings = appSettings;
             _logger = logger;
             _hostingEnvironment = hostingEnvironment;
+            _userContext = userContext;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetUsers()
         {
-            var users = await _user.GetUsersAsync();
+          
+            var users = await _user.GetUsersAsync(_userContext.CompanyID);
             return Ok(users);
         }
 
@@ -46,7 +50,7 @@ namespace LMS.Controllers
                 if (!ModelState.IsValid) return BadRequest(ModelState);
 
                 if(user.UserId==0)
-                    user.CompanyID = Convert.ToInt32(User.FindFirstValue(ClaimTypes.NameIdentifier));
+                    user.CompanyID = _userContext.CompanyID;
 
                 var userId = await _user.CreateUserAsync(user);
                 return Ok(new { userId });
