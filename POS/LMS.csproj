@@ -37,9 +37,6 @@
     <ProjectReference Include="..\LMS.Core\LMS.Core.csproj" />
     <ProjectReference Include="..\LMS.Repository\LMS.Repository.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="clientapp\src\pages\menu\" />
-  </ItemGroup>
 
   <Target Name="DebugEnsureNodeEnv" BeforeTargets="Build" Condition=" '$(Configuration)' == 'Debug' And !Exists('$(SpaRoot)node_modules') ">
     <!-- Ensure Node.js is installed -->

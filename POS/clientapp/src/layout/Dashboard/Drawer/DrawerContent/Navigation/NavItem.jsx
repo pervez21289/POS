@@ -56,11 +56,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   const textColor = 'text.primary';
     const iconSelectedColor = 'primary.main';
 
-    useEffect(() => {
-        debugger;
-        var data = item;
-        console.log('NavItem data:', data);
-    }, [item]);
+  
 
   return (
     <>

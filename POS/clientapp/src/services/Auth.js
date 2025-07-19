@@ -2,7 +2,7 @@ export default new (class Auth {
     getUser() {
         try {
            
-            const value = window.localStorage.getItem("user");
+            const value = window.localStorage.getItem("userDetails");
             if (value) {
                 return JSON.parse(value);
             }

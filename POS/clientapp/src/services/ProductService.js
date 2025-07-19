@@ -9,7 +9,9 @@ class ProductService {
    
 
     GetProduct = async (query) => {
-        const res = await axios.get(`${url}products/search?q=${encodeURIComponent(query) }`);
+        const res = await axios.get(`${url}products/search?q=${encodeURIComponent(query)}`, {
+            headers: Auth.getHeader()
+        });
         return res.data;
     };
 

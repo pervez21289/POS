@@ -1,66 +1,52 @@
-﻿import React, { useState, useEffect, useMemo,useRef } from 'react';
+﻿import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-    Container, Typography, Button, TextField,
-    Box, Autocomplete, CircularProgress, Table, TableHead, TableRow, TableCell,
-    TableBody, IconButton, Card, CardContent, Paper, Divider, Stack, TableContainer
+    Container, Typography, TextField,
+    Box, Autocomplete, CircularProgress,
+    Card, CardContent, Stack
 } from '@mui/material';
-import ClearIcon from '@mui/icons-material/Clear';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+
 import SearchIcon from '@mui/icons-material/Search';
-import CurrencyRupeeRoundedIcon from '@mui/icons-material/CurrencyRupeeRounded';
 import debounce from 'lodash.debounce';
-import { format } from 'date-fns';
-
-import ProductService from './../../services/ProductService'; // Assuming you have a ProductService for API calls
-import ReceiptPrintWrapper from './ReceiptPrintWrapper'
-
 import { useDispatch, useSelector } from 'react-redux';
-import {  setDrawerComponent } from "./../../store/reducers/drawer";
 import { setReceiptInfo } from "./../../store/reducers/sales";
 
+import ProductService from './../../services/ProductService';
+import CartPage from './CartPage';
+import { useGetProductsQuery } from './../../services/productApi';
 
 const SalesPOSPage = () => {
-    const fontSize = '12px';
+    const { data: allProducts = [], isLoading } = useGetProductsQuery('');
+    const dispatch = useDispatch();
+
     const [isSearching, setIsSearching] = useState(false);
     const [barcodeInput, setBarcodeInput] = useState('');
     const barcodeInputRef = useRef(null);
-    const [cart, setCart] = useState([]);
     const [searchValue, setSearchValue] = useState(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [notes, setNotes] = useState('');
-    const [status, setStatus] = useState('');
- 
-    const [saleId, setSaleId] = useState(null);
-   
-    const [billNo, setBillNo] = useState(null);
-    const [userId, setUserId] = useState(1);
-    const [saleTime, setSaleTime] = useState(format(new Date(), 'dd-MM-yyyy hh:mm a'));
 
-    /*const { drawerOpen } = useSelector((state) => state.drawer);*/
-    const { receiptInfo } = useSelector((state) => state.sales);
-    const dispatch = useDispatch();
+    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
 
-    // 🔁 Debounced API call to search products
-    const fetchProducts = useMemo(() => debounce(async (query) => {
-        if (!query) {
-            setSearchResults([]);
-            return;
-        }
-        setLoading(true);
-        try {
-            const data = await ProductService.GetProduct(query);
-            setSearchResults(Array.isArray(data) ? data : []);
-        } catch (err) {
-            console.error('Error fetching products:', err);
-            setSearchResults([]);
-        } finally {
-            setLoading(false);
-        }
-    }, 300), []);
+    // Debounced product search
+    const fetchProducts = useMemo(() =>
+        debounce(async (query) => {
+            if (!query) {
+                setSearchResults([]);
+                return;
+            }
+            setLoading(true);
+            try {
+                const data = await ProductService.GetProduct(query);
+                setSearchResults(Array.isArray(data) ? data : []);
+            } catch (err) {
+                console.error('Error fetching products:', err);
+                setSearchResults([]);
+            } finally {
+                setLoading(false);
+            }
+        }, 300), []);
 
-    // Trigger search on input change
     useEffect(() => {
         fetchProducts(searchInput);
         return () => fetchProducts.cancel();
@@ -68,125 +54,81 @@ const SalesPOSPage = () => {
 
     const addToCart = (product) => {
         let discount = 0;
-      
         if (product.discountPercent > 0) {
             discount = (product.price * product.discountPercent) / 100;
         } else if (product.discountAmount > 0) {
             discount = product.discountAmount;
         }
 
-        setCart((prev) => {
-            const found = prev.find((i) => i.productID === product.productID);
-            if (found) {
-                return prev.map((i) =>
-                    i.productID === product.productID ? { ...i, quantity: i.quantity + 1 } : i
-                );
-            }
-            return [...prev, {
+        const currentCart = receiptInfo?.cart ?? [];
+        const found = currentCart.find((i) => i.productID === product.productID);
+        let updatedCart;
+
+        if (found) {
+            updatedCart = currentCart.map((i) =>
+                i.productID === product.productID
+                    ? { ...i, quantity: i.quantity + 1 }
+                    : i
+            );
+        } else {
+            updatedCart = [...currentCart, {
                 ...product,
                 quantity: 1,
                 discount,
                 tax: 0
             }];
-        });
+        }
+
+        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+    };
+
+    const removeFromCart = (productID) => {
+        const currentCart = receiptInfo?.cart ?? [];
+        const updatedCart = currentCart.filter((i) => i.productID !== productID);
+        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
     };
 
     const handleBarcodeScan = async (e) => {
         if (e.key === 'Enter' && barcodeInput.trim()) {
             try {
                 const results = await ProductService.GetProduct(barcodeInput.trim());
-                const product = Array.isArray(results) ? results.find(p => p.barcode === barcodeInput.trim()) : null;
+                const product = Array.isArray(results)
+                    ? results.find(p => p.barcode === barcodeInput.trim())
+                    : null;
 
                 if (product) {
                     addToCart(product);
                 } else {
-                    setStatus('Product not found');
+                    console.warn('Product not found');
                 }
             } catch (error) {
                 console.error('Error scanning barcode:', error);
-                setStatus('Error fetching product');
             }
             setBarcodeInput('');
         }
     };
-  
-
-    const updateQty = (productID, qty) => {
-        debugger;
-        setCart((prev) =>
-            prev.map((i) =>
-                i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
-            )
-        );
-    };
-
-    const removeFromCart = (productID) => {
-        setCart((prev) => prev.filter((i) => i.productID !== productID));
-    };
-
-    const totalAmount = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const discountAmount = cart.reduce((sum, i) => sum + (i.discount || 0) * i.quantity, 0);
-    const taxAmount = cart.reduce((sum, i) => sum + (i.tax || 0), 0);
-    const net = totalAmount - discountAmount + taxAmount;
-    const totalItems = useMemo(() => cart.reduce((sum, i) => sum + i.quantity, 0), [cart]);
-
-    const handleCheckout = async () => {
-        try {
-
-            const receiptInfo = { cart, totalAmount, discountAmount, taxAmount, net, billNo, saleTime, userId };
-                dispatch(setReceiptInfo({ receiptInfo: receiptInfo }));
-            
-           // setShowReceipt(true);
-            setStatus('Sale saved!');
-           // setCart([]);
-            setNotes('');
-
-            setIsSearching(true);
-
-            dispatch(
-                setDrawerComponent({
-                    DrawerComponentChild: ReceiptPrintWrapper,
-                    drawerProps: {
-                        receiptInfo: { ...receiptInfo }
-                    },
-                    drawerOpen: true
-                })
-            );
-
-            //dispatch(openDrawer({ drawerOpen: true }));
-        } catch (error) {
-            console.error('Error saving sale:', error);
-            setStatus('Error saving sale.');
-        }
-    };
-
-
-
 
     useEffect(() => {
-       
         const interval = setInterval(() => {
             if (!isSearching) {
                 barcodeInputRef.current?.focus();
             }
         }, 1000);
-
         return () => clearInterval(interval);
     }, [isSearching]);
 
     useEffect(() => {
-
-        if (receiptInfo == null)
-            setCart([]);
-
-    }, [receiptInfo]);
+        if (isSearch) {
+            setIsSearching(isSearch);
+        }
+    }, [isSearch]);
 
     return (
-        <Container >
+        <Container>
             <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
                 Point of Sale
             </Typography>
-            <Stack direction={{ xs: 'column', md: 'row' }} spacing={3}>
+            <Stack direction={{ sm: 'column', md: 'row' }} spacing={3}>
                 {/* Product Search & Barcode */}
                 <Card sx={{ flex: 1, p: 2, boxShadow: 3 }}>
                     <CardContent>
@@ -229,7 +171,7 @@ const SalesPOSPage = () => {
                                     component="li"
                                     {...props}
                                     sx={{
-                                        '&.Mui-focusVisible': { // Add this
+                                        '&.Mui-focusVisible': {
                                             backgroundColor: 'red',
                                             color: '#1976d2',
                                         },
@@ -238,7 +180,6 @@ const SalesPOSPage = () => {
                                     {option.name}
                                 </Box>
                             )}
-
                             renderInput={(params) => (
                                 <TextField
                                     {...params}
@@ -259,104 +200,61 @@ const SalesPOSPage = () => {
                         <Typography variant="caption" color="text.secondary" mt={1} display="block">
                             Scan barcode or search by product name.
                         </Typography>
+                        <Box sx={{ mt: 3 }}>
+                            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
+                                Quick Select
+                            </Typography>
+                            <Box
+                                sx={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
+                                    gap: 2,
+                                    maxHeight: 300,
+                                    overflowY: 'auto',
+                                }}
+                            >
+                                {allProducts.map((product) => {
+                                    const isInCart = receiptInfo?.cart?.some((item) => item.productID === product.productID);
+
+                                    return (
+                                        <Card
+                                            key={product.productID}
+                                            sx={{
+                                                p: 1,
+                                                textAlign: 'center',
+                                                cursor: 'pointer',
+                                                backgroundColor: isInCart ? '#e0f7fa' : 'white',
+                                                border: isInCart ? '2px solid #0288d1' : '1px solid #e0e0e0',
+                                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                                '&:hover': {
+                                                    boxShadow: 6,
+                                                    transform: 'scale(1.02)',
+                                                },
+                                            }}
+                                            onClick={() => addToCart(product)}
+                                        >
+                                            <Typography variant="body2" fontWeight={600}>
+                                                {product.name}
+                                            </Typography>
+                                            <Typography variant="caption" color="text.secondary">
+                                                ₹{product.price.toFixed(2)}
+                                            </Typography>
+                                            {product.discountPercent > 0 && (
+                                                <Typography variant="caption" color="green">
+                                                    {product.discountPercent}% OFF
+                                                </Typography>
+                                            )}
+                                        </Card>
+                                    );
+                                })}
+                            </Box>
+
+                        </Box>
                     </CardContent>
                 </Card>
 
                 {/* Cart Section */}
-                <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
-                    <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                        <ShoppingCartIcon color="warning" />
-                        <Typography variant="h6" fontWeight={600}>
-                            Cart
-                        </Typography>
-                    </Stack>
-                    {cart.length === 0 ? (
-                        <Typography variant="body1" color="text.secondary">
-                            Cart is empty
-                        </Typography>
-                    ) : (
-                            <TableContainer sx={{ maxHeight: 260 }}>
-                                <Table size="small" stickyHeader>
-                                    <TableHead>
-                                        <TableRow>
-                                            <TableCell sx={{ fontSize }}>Barcode</TableCell>
-                                            <TableCell sx={{ fontSize }} align="right">Price</TableCell>
-                                            <TableCell sx={{ fontSize }} align="right">Discount</TableCell>
-                                            <TableCell sx={{ fontSize }} align="right">Qty</TableCell>
-                                            <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
-                                            <TableCell sx={{ fontSize }} align="right">Action</TableCell>
-                                        </TableRow>
-                                    </TableHead>
-                                    <TableBody>
-                                        {cart.map((item, index) => (
-                                            <React.Fragment key={index}>
-                                                <TableRow>
-                                                    <TableCell colSpan={6} sx={{ p: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
-                                                        {item.name}
-                                                    </TableCell>
-                                                </TableRow>
-                                                <TableRow key={item.productID}>
-                                                    <TableCell sx={{ p: 0, fontSize }}>{item.barcode}</TableCell>
-                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>{item.price.toFixed(2)}</TableCell>
-                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                        {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
-                                                    </TableCell>
-                                                    <TableCell sx={{ fontSize }} align="right">
-                                                        {item.quantity}
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                        {(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
-                                                    </TableCell>
-                                                    <TableCell align="right" sx={{ p: 0, fontSize }}>
-                                                        <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
-                                                            <ClearIcon />
-                                                        </IconButton>
-                                                    </TableCell>
-                                                </TableRow>
-                                            </React.Fragment>
-                                        ))}
-                                    </TableBody>
-                                </Table>
-                            </TableContainer>
-                    )}
-
-
-                    <TextField
-                        label="Notes"
-                        value={notes}
-                        onChange={e => setNotes(e.target.value)}
-                        fullWidth
-                        multiline
-                        minRows={1}
-                        sx={{ mt: 2 }}
-                    />
-
-                    <Divider sx={{ my: 2 }} />
-
-                    <Stack direction="row" justifyContent="space-between" alignItems="center">
-                        <Box>
-                            <Typography variant="subtitle2" color="text.secondary">
-                                Total: <Typography component="span" variant="h6" color="primary.main">&#8377;{net.toFixed(2)}</Typography><br />
-                                Items: <Typography component="span" fontWeight={600}>{totalItems}</Typography>
-                            </Typography>
-                           
-                            <Typography variant="caption" color="text.secondary">
-                                Discount: {discountAmount.toFixed(2)} | Tax: {taxAmount.toFixed(2)}
-                            </Typography>
-                        </Box>
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            size="large"
-                            disabled={cart.length === 0}
-                            onClick={handleCheckout}
-                            sx={{ minWidth: 140, fontWeight: 600 }}
-                        >
-                            Checkout
-                        </Button>
-                    </Stack>
-                    
-                </Card>
+                <CartPage removeFromCart={removeFromCart} />
             </Stack>
         </Container>
     );

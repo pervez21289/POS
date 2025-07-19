@@ -7,7 +7,7 @@ let menuItems = { items: [] };
 
 try {
     const storedMenus = localStorage.getItem('userDetails');
-    debugger;
+
     if (storedMenus) {
         const menuItemsData = JSON.parse(storedMenus)?.menus;
         menuItems.items = JSON.parse(menuItemsData).items;

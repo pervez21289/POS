@@ -112,7 +112,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
             const data = await createSale(sale).unwrap();
             setSaleId(data?.billNo);
-            dispatch(setReceiptInfo({ receiptInfo: null }));
+            dispatch(setReceiptInfo({ receiptInfo: { cart: [] } }));
             setOpenSnackbar(true);
             // handlePrint();
         }
