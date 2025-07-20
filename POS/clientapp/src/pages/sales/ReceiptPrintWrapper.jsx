@@ -48,8 +48,14 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
         contentRef: printRef,
         documentTitle: "Restaurant Bill",
         pageStyle: `
+        @page {
+        size: 58mm auto;
+        margin: 0mm;
+      }
+
       @media print {
         body {
+             font-family: 'Courier New', monospace;
           font-size: 12px;
         }
         table {

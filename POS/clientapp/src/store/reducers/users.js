@@ -18,8 +18,8 @@ const initialState = {
   alertBox: null,
   showContactBox: false,
   PropertyUserId: null,
-    showLoginModal: false,
-    userProperty: {}
+  showLoginModal: false,
+  userProperty: {}
 };
 
 export const fetchWishList = createAsyncThunk('wishListData/fetchWishList', async (userId, { getState }) => {

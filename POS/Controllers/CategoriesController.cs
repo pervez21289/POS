@@ -45,7 +45,8 @@ public class CategoriesController : ControllerBase
     {
         try
         {
-            var id = await _repo.CreateAsync(category);
+            category.CompanyID = _userContext.CompanyID;
+            int id = await _repo.CreateAsync(category);
             return CreatedAtAction(nameof(Get), new { id }, category);
         }
         catch (Exception ex) { _logger.Log(ex); return StatusCode(500); }

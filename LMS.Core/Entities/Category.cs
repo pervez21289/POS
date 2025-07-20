@@ -10,6 +10,7 @@ namespace LMS.Core.Entities
     {
         public int CategoryID { get; set; }
         public string CategoryName { get; set; }
+        public int? CompanyID { get; set; }
     }
 
 }

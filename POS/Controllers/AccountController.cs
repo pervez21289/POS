@@ -53,7 +53,7 @@ public class AccountController : ControllerBase
             {
                 var authClaims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, Convert.ToString(request.Email)),
+                    new Claim(ClaimTypes.Name, Convert.ToString(userData.UserID)),
                     new Claim(ClaimTypes.Role, Convert.ToString(userData.RoleNames)),
                     new Claim(ClaimTypes.NameIdentifier, Convert.ToString(userData.CompanyID)),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

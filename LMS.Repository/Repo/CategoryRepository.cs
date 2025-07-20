@@ -22,7 +22,7 @@ public class CategoryRepository :BaseRepository, ICategoryRepository
     public async Task<int> CreateAsync(Category category)
     {
         return await   ExecuteScalarAsync<int>(
-            "CreateCategory", new { category.CategoryName }, commandType: CommandType.StoredProcedure);
+            "CreateCategory", new { category.CategoryName, category.CompanyID }, commandType: CommandType.StoredProcedure);
     }
 
     public async Task<bool> UpdateAsync(Category category)

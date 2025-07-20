@@ -6,7 +6,7 @@ namespace LMS.ChatHub
     public class UserContext : IUserContext
     {
         public int CompanyID { get; }
-      
+        public int UserId { get; }
 
         public UserContext(IHttpContextAccessor accessor)
         {
@@ -15,7 +15,10 @@ namespace LMS.ChatHub
             if (user != null)
             {
                 int.TryParse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value, out int companyId);
+                int.TryParse(user.FindFirst(ClaimTypes.Name)?.Value, out int userId);
+
                 CompanyID = companyId;
+                UserId = userId;
             }
         }
     }

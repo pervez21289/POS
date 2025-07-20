@@ -10,5 +10,6 @@ namespace LMS.Core.Interfaces
     public interface IUserContext
     {
         int CompanyID { get; }
+        int UserId { get; }
     }
 }

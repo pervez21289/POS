@@ -85,7 +85,7 @@ const CartPage = ({ removeFromCart, updateQty }) => {
                                                 <TextField
                                                     value={item.quantity}
                                                     onChange={(e) => {
-                                                        const newQty = parseInt(e.target.value);
+                                                        const newQty = parseInt(e.target.value)||1;
                                                         updateQty(item.productID, newQty);
                                                     }}
                                                     type="number"

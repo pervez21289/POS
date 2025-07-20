@@ -11,13 +11,13 @@ import {
 
 const SalesReceipt = React.forwardRef(({ receiptInfo, saleId, mobileNumber, customerName }, ref) => {
     const { data, isLoading } = useGetBasicSettingsQuery();
-    const fontSize = '10px';
+    const fontSize = '12px';
     const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
 
     if (isLoading) return <Typography>Loading...</Typography>;
 
     return (
-        <Box  ref={ref} mt={4}>
+        <Box ref={ref} mt={4} sx={{ fontFamily: 'Courier New, monospace' }}>
             <Typography align="center" sx={{ fontSize: '12px', fontWeight: 'bold' }}>
                 {data?.[0].storeName}
             </Typography>
@@ -50,27 +50,27 @@ const SalesReceipt = React.forwardRef(({ receiptInfo, saleId, mobileNumber, cust
                 <Table size="small" sx={{ fontSize, width: '100%' }}>
                     <TableHead>
                         <TableRow>
-                            <TableCell sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Qty</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Rate</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Discount</TableCell>
-                            <TableCell align="right" sx={{ p: 0.5, fontSize, backgroundColor: '#fff' }}>Amount</TableCell>
+                            <TableCell sx={{  fontSize, backgroundColor: '#fff' }}>Barcode</TableCell>
+                            <TableCell align="right" sx={{  fontSize, backgroundColor: '#fff' }}>Qty</TableCell>
+                            <TableCell align="right" sx={{  fontSize, backgroundColor: '#fff' }}>Rate</TableCell>
+                            <TableCell align="right" sx={{ fontSize, backgroundColor: '#fff' }}>Discount</TableCell>
+                            <TableCell align="right" sx={{  fontSize, backgroundColor: '#fff' }}>Amount</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {receiptInfo?.cart?.map((item, index) => (
                             <React.Fragment key={index}>
                                 <TableRow>
-                                    <TableCell colSpan={5} sx={{ p: 0.5, pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                    <TableCell colSpan={5} sx={{  pb: 0, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
                                         {item.name}
                                     </TableCell>
                                 </TableRow>
                                 <TableRow>
-                                    <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode || '-'}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.quantity}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.discount.toFixed(2)}</TableCell>
-                                    <TableCell align="right" sx={{ p: 0.5, fontSize }}>
+                                    <TableCell sx={{  fontSize }}>{item.barcode || '-'}</TableCell>
+                                    <TableCell align="right" sx={{ fontSize }}>{item.quantity}</TableCell>
+                                    <TableCell align="right" sx={{  fontSize }}>{item.price.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{  fontSize }}>{item.discount.toFixed(2)}</TableCell>
+                                    <TableCell align="right" sx={{  fontSize }}>
                                         {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
                                     </TableCell>
                                 </TableRow>

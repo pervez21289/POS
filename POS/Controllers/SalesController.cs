@@ -35,6 +35,8 @@ public class SalesController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        saleDto.UserID = _userContext.UserId;
+
         BillNoDto bill = await _saleRepository.SaveSaleAsync(saleDto);
         return Ok(bill);
     }
