@@ -37,49 +37,106 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
     //};
 
 
-    const handlePrint = useReactToPrint({
-        content: () => {
+//    const handlePrint = useReactToPrint({
+//        content: () => {
 
-            if (!printRef.current) {
-                alert("Receipt not ready for printing yet!");
-            }
-            return printRef.current;
-        },
-        contentRef: printRef,
-        documentTitle: "Restaurant Bill",
-        pageStyle: `
-      @media print {
-  body {
-    margin: 0;
-    padding: 0;
-  }
+//            if (!printRef.current) {
+//                alert("Receipt not ready for printing yet!");
+//            }
+//            return printRef.current;
+//        },
+//        contentRef: printRef,
+//        documentTitle: "Restaurant Bill",
+//        pageStyle: `
+//      @media print {
+//  body {
+//    margin: 0;
+//    padding: 0;
+//  }
 
-  .receipt {
-    width: 48mm;
-    margin: 0 auto;
-    padding: 0;
-    font-family: 'Courier New', monospace;
-    font-size: 10px;
-  }
+//  .receipt {
+//    width: 48mm;
+//    margin: 0 auto;
+//    padding: 0;
+//    font-family: 'Courier New', monospace;
+//    font-size: 10px;
+//  }
 
-  table {
-    width: 100%;
-    border-collapse: collapse;
-  }
+//  table {
+//    width: 100%;
+//    border-collapse: collapse;
+//  }
 
-  td, th,tr {
-    padding: 0;
-    margin: 0;
-  }
+//  td, th,tr {
+//    padding: 0;
+//    margin: 0;
+//  }
 
-  @page {
-    size: 48mm auto; /* 2-inch width */
-    margin: 0;
-  }
-}
+//  @page {
+//    size: 48mm auto; /* 2-inch width */
+//    margin: 0;
+//  }
+//}
 
-    `
-    });
+//    `
+    //    });
+
+
+  //  const handlePrint = () => {
+  //      const printWindow = window.open('', '_blank');
+  //      const receiptHTML = printRef.current?.innerHTML;
+
+  //      printWindow.document.write(`
+  //  <html>
+  //    <head>
+  //      <style>
+  //        @media print {
+  //          @page { size: 58mm auto; margin: 0; }
+  //          body { margin: 0; padding: 0; font-family: 'Courier New', monospace; font-size: 10px; }
+  //          .receipt { width: 58mm; }
+  //        }
+  //      </style>
+  //    </head>
+  //    <body onload="window.print(); window.close();">
+  //      <div class="receipt">
+  //        ${receiptHTML}
+  //      </div>
+  //    </body>
+  //  </html>
+  //`);
+
+  //      printWindow.document.close();
+    //  };
+
+    //const handlePrint = useReactToPrint({
+    //    content: () => printRef.current,
+    //    contentRef: printRef,
+    //    documentTitle: `Receipt_${saleId}`,
+    //    pageStyle: `
+    //  @page { size: 58mm auto; margin: 0; }
+    //  @media print {
+    //    body {
+    //      margin: 0;
+    //      padding: 0;
+    //      font-family: 'Courier New', monospace;
+    //      font-size: 10px;
+    //    }
+    //    .receipt {
+    //      width: 58mm;
+    //    }
+    //    table {
+    //      width: 100%;
+    //      border-collapse: collapse;
+    //    }
+    //    td, th {
+    //      padding: 0;
+    //      margin: 0;
+    //    }
+    //  }
+    //`
+    //});
+
+
 
     // Called on blur or Enter
     const handleMobileSearch = async (value) => {
@@ -231,7 +288,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 </Grid>
                 }
                
-                <SalesReceipt ref={printRef} receiptInfo={receiptInfo}  saleId={saleId} customerName={customerName} mobileNumber={mobileNumber }></SalesReceipt>
+                <SalesReceipt ref={printRef} receiptInfo={receiptInfo} className="receipt" saleId={saleId} customerName={customerName} mobileNumber={mobileNumber }></SalesReceipt>
                 
                 <Box mt={4} display="flex" gap={2}>
                     {!saleId && <Button variant="contained" onClick={handleCheckout}>
