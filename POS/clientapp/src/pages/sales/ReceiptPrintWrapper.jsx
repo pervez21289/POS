@@ -48,30 +48,36 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
         contentRef: printRef,
         documentTitle: "Restaurant Bill",
         pageStyle: `
-        @page {
-        size: 58mm auto;
-        margin: 0mm;
-      }
-
       @media print {
-        body {
-             font-family: 'Courier New', monospace;
-          font-size: 12px;
-        }
-        table {
-          page-break-inside: auto;
-        }
-        tr {
-          page-break-inside: avoid;
-          page-break-after: auto;
-        }
-        thead {
-          display: table-header-group;
-        }
-        tfoot {
-          display: table-footer-group;
-        }
-      }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  .receipt {
+    width: 48mm;
+    margin: 0 auto;
+    padding: 0;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  td, th,tr {
+    padding: 0;
+    margin: 0;
+  }
+
+  @page {
+    size: 48mm auto; /* 2-inch width */
+    margin: 0;
+  }
+}
+
     `
     });
 
