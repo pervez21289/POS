@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import {
     Box, TextField, Button, MenuItem, Typography, Grid, Paper, Select, InputLabel, FormControl,
-    OutlinedInput, Checkbox, ListItemText, Divider
+    OutlinedInput, Checkbox, ListItemText, Divider,Stack
 } from '@mui/material';
 import { useUpdateOrCreateUserMutation } from './../../services/userAPI';
 import { showAlert } from "./../../store/reducers/alert";
@@ -148,18 +148,23 @@ export default function UserForm({ editUser }) {
                 </Grid>
 
                 {/* Submit Button */}
+              
+                    
                 <Grid item>
-                    <Box textAlign="right">
+                    <Stack direction="row" spacing={2} justifyContent="flex-end">
+                        <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
+                            Cancel
+                        </Button>
                         <Button
-                            variant="contained"
+                            variant="outlined"
                             onClick={handleSubmit}
                             disabled={isLoading}
-                            sx={{ px: 4, py: 1.5 }}
                         >
                             {formData.userID ? 'Update User' : 'Create User'}
                         </Button>
-                    </Box>
+                    </Stack>
                 </Grid>
+                
             </Grid>
         </Paper>
     );

@@ -330,10 +330,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                             sm: 'fixed',  // optionally on tablets too
                             md: 'sticky', // desktop and up
                         },
-                        bottom: {
-                            xs: 70,    // apply bottom: 10px only on mobile (xs & sm)
-                            md: 'auto',
-                        },
+                        bottom: 0,
                         left: 0,
                         right: 0,
                         width: '100%',

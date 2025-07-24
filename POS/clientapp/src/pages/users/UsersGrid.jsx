@@ -1,7 +1,9 @@
 ﻿import React, { useState } from 'react';
 import {
-    Typography, Button, Box, Paper, Stack, Chip
+    Typography, Button, Box, Paper, Stack, Chip, Card, CardContent, CardActions, IconButton, useMediaQuery
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
+import { Edit, Delete } from '@mui/icons-material';
 import {
     DataGrid,
     GridActionsCellItem
@@ -14,33 +16,30 @@ import UserForm from './UserForm';
 import { useDispatch } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
 
-
 export default function UserManagement() {
     const { data: users = [], refetch } = useGetUsersQuery();
     const [deleteUser] = useDeleteUserMutation();
-    const [selectedUser, setSelectedUser] = useState(null);
     const dispatch = useDispatch();
-    //const handleEdit = (user) => setSelectedUser(user);
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
     const handleDelete = async (id) => {
         await deleteUser(id);
         refetch();
     };
 
-
-    const handleEdit = async (row) => {
+    const handleEdit = (user) => {
         dispatch(
             setDrawerComponent({
                 DrawerComponentChild: UserForm,
-                drawerProps: {
-                    editUser: row
-                },
+                drawerProps: { editUser: user },
                 drawerOpen: true
             })
         );
     };
 
     const columns = [
-       /* { field: 'userId', headerName: 'ID', width: 70 },*/
         { field: 'firstName', headerName: 'Name', width: 150 },
         { field: 'mobile', headerName: 'Mobile', width: 150 },
         { field: 'email', headerName: 'Email', width: 200 },
@@ -93,15 +92,45 @@ export default function UserManagement() {
                 </Button>
             </Stack>
 
-            <Paper elevation={1} sx={{ height: 500 }}>
-                <DataGrid
-                    rows={users}
-                    columns={columns}
-                    getRowId={(row) => row.userId}
-                    pageSize={10}
-                    rowsPerPageOptions={[10]}
-                />
-            </Paper>
+            {isMobile ? (
+                <Stack spacing={2}>
+                    {users.map((user) => (
+                        <Card key={user.userId} variant="outlined">
+                            <CardContent>
+                                <Typography variant="subtitle1"><strong>{user.firstName}</strong></Typography>
+                                <Typography variant="body2">📞 {user.mobile}</Typography>
+                                <Typography variant="body2">📧 {user.email}</Typography>
+                                <Typography variant="body2">🏢 Company ID: {user.companyID}</Typography>
+                                <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+                                    {(typeof user.roleNames === 'string'
+                                        ? user.roleNames.split(',').map(r => r.trim())
+                                        : user.roleNames || []).map((role, idx) => (
+                                            <Chip key={idx} label={role} size="small" color="primary" />
+                                        ))}
+                                </Stack>
+                            </CardContent>
+                            <CardActions>
+                                <IconButton onClick={() => handleEdit(user)} aria-label="edit">
+                                    <Edit />
+                                </IconButton>
+                                <IconButton onClick={() => handleDelete(user.userId)} aria-label="delete">
+                                    <Delete />
+                                </IconButton>
+                            </CardActions>
+                        </Card>
+                    ))}
+                </Stack>
+            ) : (
+                <Paper elevation={1} sx={{ height: 500 }}>
+                    <DataGrid
+                        rows={users}
+                        columns={columns}
+                        getRowId={(row) => row.userId}
+                        pageSize={10}
+                        rowsPerPageOptions={[10]}
+                    />
+                </Paper>
+            )}
         </Box>
     );
 }

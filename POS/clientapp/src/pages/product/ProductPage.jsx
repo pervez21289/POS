@@ -20,13 +20,15 @@ import {
 } from './../../services/productApi';
 import { showConfirmDialog } from './../../store/reducers/confirm';
 import { showAlert } from "./../../store/reducers/alert";
+import { useTheme, useMediaQuery } from '@mui/material';
 
 
 const ProductManager = () => {
     const [searchText, setSearchText] = useState('');
     const { data: products = [], isLoading } = useGetProductsQuery(searchText);
     const [deleteProduct] = useDeleteProductMutation();
-   
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const dispatch = useDispatch();
 
     const handleAddInventory = async (row) => {
@@ -46,7 +48,7 @@ const ProductManager = () => {
             setDrawerComponent({
                 DrawerComponentChild: ProductForm,
                 drawerProps: {
-                    initialData: row, 
+                    initialData: row,
                 },
                 drawerOpen: true
             })
@@ -66,7 +68,7 @@ const ProductManager = () => {
         );
     };
 
-    
+
 
     const handleDelete = async (id) => {
         try {
@@ -77,7 +79,7 @@ const ProductManager = () => {
         }
     };
 
-  
+
     const debouncedSearch = useCallback(
         debounce((value) => {
             setSearchText(value.toLowerCase());
@@ -89,7 +91,7 @@ const ProductManager = () => {
         debouncedSearch(e.target.value);
     };
 
- 
+
 
     const columns = [
         {
@@ -120,7 +122,7 @@ const ProductManager = () => {
             minWidth: 100,
             align: 'right',
             headerAlign: 'right'
-            
+
         },
         {
             field: 'actions',
@@ -174,68 +176,89 @@ const ProductManager = () => {
 
 
     return (
-        <Container maxWidth="xl" sx={{ py: 1 }}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography
-                        variant="h4"
-                        component="h1"
-                        sx={{
-                            fontWeight: 600,
-                            color: 'primary.main'
-                        }}
-                    >
-                        Product Management
-                    </Typography>
-                    <Button
-                        variant="contained"
-                        onClick={() => handleAddProduct(null)}
-                        color="primary"
-                        sx={{
-                            minWidth: 120,
-                            height: 40,
-                            textTransform: 'none',
-                            fontWeight: 600
-                        }}
-                    >
-                        Add Product
-                    </Button>
-                </Box>
+    
+        <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
 
-                <Paper
-                    elevation={2}
+            {/* ✅ Shared header for both desktop and mobile */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
+                <Typography
+                    variant="h4"
+                    component="h1"
                     sx={{
-                        p: 3,
-                        borderRadius: 2,
-                        backgroundColor: 'background.paper'
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        textAlign: { xs: 'center', sm: 'left' }
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
-                        <TextField
-                            label="Search by name or SKU"
-                            variant="outlined"
-                            fullWidth
-                            size="small"
-                            onChange={handleSearchChange}
-                            sx={{
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: 1
-                                }
-                            }}
-                        />
-                    </Box>
-                    <DataGrid
-                        rows={products}
-                        columns={columns}
-                        loading={isLoading}
-                        disableRowSelectionOnClick
-                        getRowId={(row) => row.productID}
-                        pageSize={10}
-                    />
-                </Paper>
+                    Product Management
+                </Typography>
+                <Button
+                    variant="contained"
+                    onClick={() => handleAddProduct(null)}
+                    color="primary"
+                    sx={{
+                        minWidth: 120,
+                        height: 40,
+                        textTransform: 'none',
+                        fontWeight: 600
+                    }}
+                >
+                    Add Product
+                </Button>
             </Box>
-        </Container>
+
+            {/* 🔍 Search input (shared) */}
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
+                <TextField
+                    label="Search by name or SKU"
+                    variant="outlined"
+                    fullWidth
+                    size="small"
+                    onChange={handleSearchChange}
+                    sx={{
+                        '& .MuiOutlinedInput-root': {
+                            borderRadius: 1
+                        }
+                    }}
+                />
+            </Box>
+
+            {/* 📱 Conditional content: card for mobile, grid for desktop */}
+            {isMobile ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {products.map(product => (
+                        <Paper key={product.productID} sx={{ p: 2 }}>
+                            <Typography variant="h6">{product.name}</Typography>
+                            <Typography variant="body2">SKU: {product.sku}</Typography>
+                            <Typography variant="body2">Stock: {product.stock}</Typography>
+                            <Typography variant="body2">Price: ${product.price}</Typography>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1 }}>
+                                <IconButton onClick={() => handleAddProduct(product)} color="primary">
+                                    <EditIcon />
+                                </IconButton>
+                                <IconButton onClick={() => requestDelete(product)} color="error">
+                                    <DeleteIcon />
+                                </IconButton>
+                                <IconButton onClick={() => handleAddInventory(product)} color="success">
+                                    <InventoryIcon />
+                                </IconButton>
+                            </Box>
+                        </Paper>
+                    ))}
+                </Box>
+            ) : (
+                <DataGrid
+                    rows={products}
+                    columns={columns}
+                    loading={isLoading}
+                    disableRowSelectionOnClick
+                    getRowId={(row) => row.productID}
+                    pageSize={10}
+                />
+            )}
+        </Paper>
+
     );
 };
 

@@ -2,28 +2,30 @@
 import {
     TextField, Button, Grid, MenuItem, Checkbox, FormControlLabel,
     Typography, Box, Select, FormControl, InputLabel, Stack,
-    InputAdornment, Divider
+    InputAdornment, Divider, useMediaQuery
 } from '@mui/material';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import PercentIcon from '@mui/icons-material/Percent';
-import InventoryIcon from '@mui/icons-material/Inventory';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import { useTheme } from '@mui/material/styles';
 import { useDispatch } from 'react-redux';
 import {
     useCreateProductMutation,
     useUpdateProductMutation
-    
 } from './../../services/productApi';
 import { openDrawer } from "./../../store/reducers/drawer";
 import { showAlert } from "./../../store/reducers/alert";
 import { useGetCategoriesQuery } from './../../services/categoryApi';
 
-const ProductForm = ({ initialData = {}}) => {
+const ProductForm = ({ initialData = {} }) => {
     const [product, setProduct] = useState(null);
     const [createProduct] = useCreateProductMutation();
     const [updateProduct] = useUpdateProductMutation();
     const { data: categories = [] } = useGetCategoriesQuery();
     const dispatch = useDispatch();
+
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -39,22 +41,18 @@ const ProductForm = ({ initialData = {}}) => {
         handleFormSubmit(product);
     };
 
-    const onCancel = async (row) => {
-        dispatch(
-            openDrawer({
-                drawerOpen: true
-            })
-        );
+    const onCancel = () => {
+        dispatch(openDrawer({ drawerOpen: true }));
     };
 
     const handleFormSubmit = async (product) => {
         try {
             if (product.productID) {
                 await updateProduct(product).unwrap();
-                dispatch(showAlert({ open: true, message: 'Updated saved succefully!', severity: 'success' }));
+                dispatch(showAlert({ open: true, message: 'Updated saved successfully!', severity: 'success' }));
             } else {
                 await createProduct(product).unwrap();
-                dispatch(showAlert({ open: true, message: 'Product saved succefully!', severity: 'success' }));
+                dispatch(showAlert({ open: true, message: 'Product saved successfully!', severity: 'success' }));
             }
             dispatch(openDrawer({ drawerOpen: false }));
             setProduct(null);
@@ -63,34 +61,34 @@ const ProductForm = ({ initialData = {}}) => {
         }
     };
 
-
     useEffect(() => {
         setProduct(initialData);
     }, [initialData]);
 
     return (
-      
+        <Box
+            sx={{
+                height: { xs: '100vh', md: 'auto' },
+                overflowY: { xs: 'auto', md: 'visible' },
+            }}
+        >
         <Box
             component="form"
             onSubmit={handleSubmit}
             sx={{
+                px: { xs: 2, md: 5 },
+                pb: isMobile ? 10 : 4,
                 '& .MuiTextField-root, & .MuiFormControl-root': {
-                    my: 1
-                },
-                m:5
+                    my: 1,
+                    width: '100%'
+                }
             }}
         >
-            <Typography
-                variant="h6"
-                gutterBottom
-                color="primary"
-                sx={{ mb: 2 }}
-            >
+            <Typography variant="h6" gutterBottom color="primary" sx={{ mb: 2 }}>
                 {initialData?.productID ? 'Edit Product' : 'Add New Product'}
             </Typography>
             <Divider sx={{ mb: 3 }} />
 
-            {/* Basic Information */}
             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
                 Basic Information
             </Typography>
@@ -141,7 +139,6 @@ const ProductForm = ({ initialData = {}}) => {
                 </Grid>
             </Grid>
 
-            {/* Pricing */}
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
                 Pricing
             </Typography>
@@ -178,10 +175,8 @@ const ProductForm = ({ initialData = {}}) => {
                         }}
                     />
                 </Grid>
-                
             </Grid>
 
-            {/* Discounts & Tax */}
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
                 Discounts & Tax
             </Typography>
@@ -232,7 +227,6 @@ const ProductForm = ({ initialData = {}}) => {
                 </Grid>
             </Grid>
 
-            {/* Description & Status */}
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
                 Other Details
             </Typography>
@@ -261,36 +255,33 @@ const ProductForm = ({ initialData = {}}) => {
                 </Grid>
             </Grid>
 
-            {/* Actions */}
-            <Grid container spacing={2} sx={{ mt: 3 }}>
-                <Grid item xs={12}>
-                    <Stack
-                        direction="row"
-                        spacing={2}
-                        justifyContent="flex-end"
-                    >
-                        {initialData && (
-                            <Button
-                                variant="outlined"
-                                color="secondary"
-                                onClick={onCancel}
-                            >
-                                Cancel
-                            </Button>
-                        )}
-                        <Button
-                            variant="contained"
-                            type="submit"
-                            color="primary"
-                            sx={{ minWidth: 120 }}
-                        >
-                            {initialData ? 'Update' : 'Add'} Product
+            {/* Action Buttons */}
+            <Box
+                sx={{
+                    position: { xs: 'fixed', sm: 'fixed', md: 'static' },
+                    bottom: { xs: 0, sm: 0, md: 'auto' },
+                    left: 0,
+                    right: 0,
+                    backgroundColor: { xs: '#fff', md: 'transparent' },
+                    px: { xs: 2, md: 0 },
+                    py: { xs: 2, md: 0 },
+                    zIndex: 1300,
+                    borderTop: { xs: '1px solid #ccc', md: 'none' }
+                }}
+            >
+                <Stack direction="row" spacing={2} justifyContent="flex-end">
+                   
+                        <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
+                            Cancel
                         </Button>
-                    </Stack>
-                </Grid>
-            </Grid>
+              
+                    <Button variant="contained" type="submit" color="primary" sx={{ minWidth: 120 }}>
+                        {initialData ? 'Update' : 'Add'} Product
+                    </Button>
+                </Stack>
+            </Box>
+            </Box>
         </Box>
-        
     );
 };
 
