@@ -73,7 +73,7 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <AnalyticEcommerce title="Total Products" count={res?.SalesStats[0].TotalProducts} percentage={59.3} extra="35,000" />
+              <AnalyticEcommerce title="Today Sale" count={res?.SalesStats[0].TodayTotalNet} percentage={res?.SalesStats[0].SaleChange} extra={res?.SalesStats[0].NetAmount} />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <AnalyticEcommerce title="Total Users" count={res?.SalesStats[0].UniqueCustomerCount} percentage={70.5} extra="8,900" />

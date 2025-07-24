@@ -7,7 +7,7 @@ import Link from '@mui/material/Link';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
-
+import LogoutOutlined from '@ant-design/icons/LogoutOutlined';
 // assets
 import CommentOutlined from '@ant-design/icons/CommentOutlined';
 import LockOutlined from '@ant-design/icons/LockOutlined';
@@ -15,13 +15,14 @@ import QuestionCircleOutlined from '@ant-design/icons/QuestionCircleOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import UnorderedListOutlined from '@ant-design/icons/UnorderedListOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
-
+import { useDispatch, useSelector } from "react-redux";
+import { setUserDetails } from "./../../../../../store/reducers/users";
 // ==============================|| HEADER PROFILE - SETTING TAB ||============================== //
 
 export default function SettingTab() {
   const navigate = useNavigate();
   const [selectedIndex, setSelectedIndex] = useState(0);
-
+    const dispatch = useDispatch();
   const handleListItemClick = (event, index, route = '') => {
     setSelectedIndex(index);
 
@@ -29,6 +30,12 @@ export default function SettingTab() {
       navigate(route);
     }
   };
+
+    const handleLogout = async () => {
+
+        window.localStorage.removeItem('userDetails',);
+        dispatch(setUserDetails({ userDetails: null }));
+    };
 
   return (
     <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
@@ -65,7 +72,13 @@ export default function SettingTab() {
           <UnorderedListOutlined />
         </ListItemIcon>
         <ListItemText primary="History" />
-      </ListItemButton>
+          </ListItemButton>
+          <ListItemButton onClick={handleLogout}>
+              <ListItemIcon>
+                  <LogoutOutlined />
+              </ListItemIcon>
+              <ListItemText primary="Logout" />
+          </ListItemButton>
     </List>
   );
 }

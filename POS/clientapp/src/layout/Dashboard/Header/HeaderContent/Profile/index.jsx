@@ -74,7 +74,7 @@ export default function Profile() {
     setOpen(false);
   };
 
-  const [value, setValue] = useState(0);
+  const [value, setValue] = useState(1);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
@@ -152,22 +152,22 @@ export default function Profile() {
 
                   <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
                     <Tabs variant="fullWidth" value={value} onChange={handleChange} aria-label="profile tabs">
-                      <Tab
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          textTransform: 'capitalize',
-                          gap: 1.25,
-                          '& .MuiTab-icon': {
-                            marginBottom: 0
-                          }
-                        }}
-                        icon={<UserOutlined />}
-                        label="Profile"
-                        {...a11yProps(0)}
-                      />
+                      {/*<Tab*/}
+                      {/*  sx={{*/}
+                      {/*    display: 'flex',*/}
+                      {/*    flexDirection: 'row',*/}
+                      {/*    justifyContent: 'center',*/}
+                      {/*    alignItems: 'center',*/}
+                      {/*    textTransform: 'capitalize',*/}
+                      {/*    gap: 1.25,*/}
+                      {/*    '& .MuiTab-icon': {*/}
+                      {/*      marginBottom: 0*/}
+                      {/*    }*/}
+                      {/*  }}*/}
+                      {/*  icon={<UserOutlined />}*/}
+                      {/*  label="Profile"*/}
+                      {/*  {...a11yProps(0)}*/}
+                      {/*/>*/}
                       <Tab
                         sx={{
                           display: 'flex',
