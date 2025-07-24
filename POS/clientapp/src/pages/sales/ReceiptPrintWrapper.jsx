@@ -14,10 +14,13 @@ import { openDrawer } from "./../../store/reducers/drawer";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import { useGetBasicSettingsQuery } from './../../services/basicSettingAPI';
+import { useMediaQuery, useTheme } from '@mui/material';
 
 import SalesReceipt from './SalesReceipt';
 
 const ReceiptPrintWrapper = ({ receiptInfo }) => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // or 'md'
     const { data, isLoading } = useGetBasicSettingsQuery();
     const printRef = useRef();
     const navigate = useNavigate();
@@ -245,92 +248,126 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="h5" mb={2}>Receipt Details</Typography>
 
-                {!saleId &&<Grid container spacing={2} alignItems="flex-start">
-                    <Grid item xs={12} sm={2} lg={4}>
-                        <TextField
-                            fullWidth
-                            label="Mobile Number"
-                            value={mobileNumber}
-                            onChange={(e) => {
-                                const value = e.target.value;
-                                setMobileNumber(value);
+                {/* Scrollable content area */}
+                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
+                    {!saleId &&
+                        <Grid container spacing={2} alignItems="flex-start">
+                            <Grid item xs={12} sm={2} lg={4}>
+                                <TextField
+                                    fullWidth
+                                    label="Mobile Number"
+                                    value={mobileNumber}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        setMobileNumber(value);
 
-                                // Clear error when user starts typing
-                                if (!/^[6-9]\d{9}$/.test(value)) {
-                                    setMobileError('Invalid mobile number');
-                                    setCustomerName('');
-                                } else {
-                                    setMobileError('');
-                                    handleMobileSearch(value);
-                                }
-                            }}
-                            onBlur={() => {
-                                if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
-                                    setMobileError('Invalid mobile number');
-                                } else {
-                                    setMobileError('');
-                                    handleMobileSearch(mobileNumber);
-                                }
-                            }}
-                            error={mobileError}
-                            helperText={mobileError || ' '}
-                            disabled={!!saleId}
-                        />
+                                        if (!/^[6-9]\d{9}$/.test(value)) {
+                                            setMobileError('Invalid mobile number');
+                                            setCustomerName('');
+                                        } else {
+                                            setMobileError('');
+                                            handleMobileSearch(value);
+                                        }
+                                    }}
+                                    onBlur={() => {
+                                        if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
+                                            setMobileError('Invalid mobile number');
+                                        } else {
+                                            setMobileError('');
+                                            handleMobileSearch(mobileNumber);
+                                        }
+                                    }}
+                                    error={mobileError}
+                                    helperText={mobileError || ' '}
+                                    disabled={!!saleId}
+                                />
+                            </Grid>
 
-                    </Grid>
+                            <Grid item xs={12} sm={6} lg={4}>
+                                <TextField
+                                    fullWidth
+                                    label="Customer Name"
+                                    value={customerName}
+                                    onChange={(e) => setCustomerName(e.target.value)}
+                                    disabled={!!customerId}
+                                />
+                            </Grid>
 
-                    <Grid item xs={12} sm={6} lg={4}>
-                        <TextField
-                            fullWidth
-                            label="Customer Name"
-                            value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
-                            disabled={!!customerId}
-
-                        />
-                    </Grid>
-
-                    <Grid item xs={12} lg={4}>
-                        <ToggleButtonGroup
-                            color="primary"
-                            value={PaymentModeID}
-                            exclusive
-                            onChange={(e) => setPaymentModeID(e.target.value)}
-                            aria-label="Platform"
-                            name="Parking"
-                        >
-                            <ToggleButton size="small" name="Parking" color="info" value="1">
-                                Cash
-                            </ToggleButton>
-                            <ToggleButton size="small" name="Parking" color="success" value="2">
-                                UPI
-                            </ToggleButton>
-                            <ToggleButton size="small" name="Parking" color="success" value="3">
-                                Card
-                            </ToggleButton>
-                        </ToggleButtonGroup>
-
-                    </Grid>
-
-
-                </Grid>
-                }
-               
-                <SalesReceipt ref={printRef} receiptInfo={receiptInfo} className="receipt" saleId={saleId} customerName={customerName} mobileNumber={mobileNumber }></SalesReceipt>
-                
-                <Box mt={4} display="flex" gap={2}>
-                    {!saleId && <Button variant="contained" onClick={handleCheckout}>
-                        🖨 Submit
-                    </Button>
+                            <Grid item xs={12} lg={4}>
+                                <ToggleButtonGroup
+                                    color="primary"
+                                    value={PaymentModeID}
+                                    exclusive
+                                    onChange={(e) => setPaymentModeID(e.target.value)}
+                                    aria-label="Payment"
+                                    name="Payment"
+                                >
+                                    <ToggleButton size="small" value="1">Cash</ToggleButton>
+                                    <ToggleButton size="small" value="2">UPI</ToggleButton>
+                                    <ToggleButton size="small" value="3">Card</ToggleButton>
+                                </ToggleButtonGroup>
+                            </Grid>
+                        </Grid>
                     }
-                    {saleId && <Button variant="contained" onClick={handlePrint}>
-                        🖨 Print Receipt
-                    </Button>}
+
+                    <Box mt={2}>
+                        <SalesReceipt
+                            ref={printRef}
+                            receiptInfo={receiptInfo}
+                            className="receipt"
+                            saleId={saleId}
+                            customerName={customerName}
+                            mobileNumber={mobileNumber}
+                        />
+                    </Box>
+                </Box>
+
+                {/* Fixed bottom button section */}
+                <Box
+                    sx={{
+                        position: {
+                            xs: 'fixed',  // on mobile (xs = 0px and up)
+                            sm: 'fixed',  // optionally on tablets too
+                            md: 'sticky', // desktop and up
+                        },
+                        bottom: {
+                            xs: 70,    // apply bottom: 10px only on mobile (xs & sm)
+                            md: 'auto',
+                        },
+                        left: 0,
+                        right: 0,
+                        width: '100%',
+                        zIndex: 10,
+                        py: 2,
+                        px: 2,
+                        backgroundColor: '#fff',
+                        borderTop: '1px solid #ccc',
+                        boxShadow: '0 -2px 8px rgba(0,0,0,0.05)',
+                        paddingBottom: { xs: 'env(safe-area-inset-bottom, 60px)', sm: 2 },
+                        display: { xs: 'flex'}, // Show only on mobile
+                        gap: 2,
+                    }}
+                
+                  
+                    gap={2}
+                >
+                    {!saleId && (
+                        <Button variant="contained" onClick={handleCheckout}>
+                            🖨 Submit
+                        </Button>
+                    )}
+                    {saleId && (
+                        <Button variant="contained" onClick={handlePrint}>
+                            🖨 Print Receipt
+                        </Button>
+                    )}
                     <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
                         ⬅ Back to Sale Page
                     </Button>
                 </Box>
+
             </Box>
+
             <Snackbar
                 open={openSnackbar}
                 autoHideDuration={3000}
