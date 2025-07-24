@@ -13,11 +13,12 @@ import { setReceiptInfo } from "./../../store/reducers/sales";
 import { openDrawer } from "./../../store/reducers/drawer";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
+import { useGetBasicSettingsQuery } from './../../services/basicSettingAPI';
 
 import SalesReceipt from './SalesReceipt';
 
 const ReceiptPrintWrapper = ({ receiptInfo }) => {
-   
+    const { data, isLoading } = useGetBasicSettingsQuery();
     const printRef = useRef();
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -32,109 +33,78 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
     const [saleId, setSaleId] = useState(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
 
-    //const handlePrint = () => {
-    //    window.print();
-    //};
+    const handlePrint = () => {
+        if (window.ReactNativeWebView) {
+            handlePrintMobile();
+        } else {
+            handlePrintWeb();
+        }
+    };
 
 
-//    const handlePrint = useReactToPrint({
-//        content: () => {
-
-//            if (!printRef.current) {
-//                alert("Receipt not ready for printing yet!");
-//            }
-//            return printRef.current;
-//        },
-//        contentRef: printRef,
-//        documentTitle: "Restaurant Bill",
-//        pageStyle: `
-//      @media print {
-//  body {
-//    margin: 0;
-//    padding: 0;
-//  }
-
-//  .receipt {
-//    width: 48mm;
-//    margin: 0 auto;
-//    padding: 0;
-//    font-family: 'Courier New', monospace;
-//    font-size: 10px;
-//  }
-
-//  table {
-//    width: 100%;
-//    border-collapse: collapse;
-//  }
-
-//  td, th,tr {
-//    padding: 0;
-//    margin: 0;
-//  }
-
-//  @page {
-//    size: 48mm auto; /* 2-inch width */
-//    margin: 0;
-//  }
-//}
-
-//    `
-    //    });
 
 
-  //  const handlePrint = () => {
-  //      const printWindow = window.open('', '_blank');
-  //      const receiptHTML = printRef.current?.innerHTML;
+    const handlePrintMobile = () => {
+      
+        const receiptHTML = generateTextReceipt();
+        window.ReactNativeWebView?.postMessage(receiptHTML);
+      };
 
-  //      printWindow.document.write(`
-  //  <html>
-  //    <head>
-  //      <style>
-  //        @media print {
-  //          @page { size: 58mm auto; margin: 0; }
-  //          body { margin: 0; padding: 0; font-family: 'Courier New', monospace; font-size: 10px; }
-  //          .receipt { width: 58mm; }
-  //        }
-  //      </style>
-  //    </head>
-  //    <body onload="window.print(); window.close();">
-  //      <div class="receipt">
-  //        ${receiptHTML}
-  //      </div>
-  //    </body>
-  //  </html>
-  //`);
+  
+    const handlePrintWeb = () => {
+        const textToPrint = generateTextReceipt(); // Make sure it's 32 characters per line for 58mm
 
-  //      printWindow.document.close();
-    //  };
+        const printWindow = window.open('', '', 'width=320,height=600'); // 58mm ~ 320px
 
-    //const handlePrint = useReactToPrint({
-    //    content: () => printRef.current,
-    //    contentRef: printRef,
-    //    documentTitle: `Receipt_${saleId}`,
-    //    pageStyle: `
-    //  @page { size: 58mm auto; margin: 0; }
-    //  @media print {
-    //    body {
-    //      margin: 0;
-    //      padding: 0;
-    //      font-family: 'Courier New', monospace;
-    //      font-size: 10px;
-    //    }
-    //    .receipt {
-    //      width: 58mm;
-    //    }
-    //    table {
-    //      width: 100%;
-    //      border-collapse: collapse;
-    //    }
-    //    td, th {
-    //      padding: 0;
-    //      margin: 0;
-    //    }
-    //  }
-    //`
-    //});
+        const html = `
+        <html>
+            <head>
+                <title>Print Receipt</title>
+                <style>
+                    @media print {
+                        @page {
+                            margin: 0;
+                        }
+                        body {
+                            margin: 0;
+                            padding: 0;
+                            font-family: 'Courier New', monospace;
+                            font-size: 14px;
+                        }
+                        pre {
+                            margin: 0;
+                            padding: 0;
+                        }
+                    }
+
+                    body {
+                        font-family: 'Courier New', monospace;
+                        margin: 0;
+                        padding: 0;
+                         font-size: 12px;
+                    }
+
+                    
+                </style>
+            </head>
+            <body>
+                <pre>${textToPrint}</pre>
+            </body>
+        </html>
+    `;
+
+        printWindow.document.open();
+        printWindow.document.write(html);
+        printWindow.document.close();
+
+        // Give time for styles to load before printing
+        printWindow.onload = () => {
+            printWindow.focus();
+            printWindow.print();
+            printWindow.close();
+        };
+    };
+
 
 
 
@@ -179,8 +149,8 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 }))
             };
 
-            const data = await createSale(sale).unwrap();
-            setSaleId(data?.billNo);
+            const saleD = await createSale(sale).unwrap();
+            setSaleId(saleD?.billNo);
             dispatch(setReceiptInfo({ receiptInfo: { cart: [] } }));
             setOpenSnackbar(true);
             // handlePrint();
@@ -195,7 +165,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             setCustomerName(receiptInfo.customerName || '');
             setPaymentModeID(receiptInfo.paymentModeID || '1');
         }
-
+        console.log("store", data);
     }, [receiptInfo.billNo]);
 
     useEffect(() => {
@@ -211,6 +181,64 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [handlePrint]);
+
+
+  
+
+    const generateTextReceipt = () => {
+        const LINE_WIDTH = 42;
+
+        const padRight = (text, length) => (text + ' '.repeat(length)).slice(0, length);
+        const padLeft = (text, length) => (' '.repeat(length) + text).slice(-length);
+        const center = (text) => {
+            const space = Math.floor((LINE_WIDTH - text.length) / 2);
+            return ' '.repeat(space) + text;
+        };
+
+        const lines = [];
+
+        // Header
+        lines.push(center(data?.[0].storeName || 'Store Name'));
+        lines.push(center(data?.[0].address || 'Store Address'));
+        lines.push(center(`GST: ${data?.[0].gstin || '-'}`));
+        lines.push('-'.repeat(LINE_WIDTH));
+
+        // Info
+        lines.push(`Bill#: ${saleId}  Date: ${receiptInfo?.saleTime || ''}`);
+        lines.push(`Cashier: ${receiptInfo?.userName}`);
+        lines.push(`Name: ${customerName}`);
+        lines.push(`Mobile: ${mobileNumber}`);
+        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push('Barcode     Qty  Rate   Total');
+        // Items
+        receiptInfo?.cart?.forEach(item => {
+            lines.push(item.name.slice(0, LINE_WIDTH));
+            const qty = padLeft(item.quantity.toString(), 2);
+            const price = padLeft(item.price.toFixed(2), 6);
+            const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(2), 7);
+            lines.push(`${padRight(item.barcode || '-', 10)} ${qty} x ${price} ${total}`);
+        });
+
+        lines.push('-'.repeat(LINE_WIDTH));
+
+        // Summary
+        lines.push(`${padRight('Subtotal:', 24)}${padLeft(receiptInfo?.totalAmount?.toFixed(2), 8)}`);
+        lines.push(`${padRight('Discount:', 24)}${padLeft(receiptInfo?.discountAmount?.toFixed(2), 8)}`);
+        lines.push(`${padRight('Tax:', 24)}${padLeft(receiptInfo?.taxAmount?.toFixed(2), 8)}`);
+        lines.push(`${padRight('Total Payable:', 24)}${padLeft(`₹${receiptInfo?.net?.toFixed(2)}`, 8)}`);
+        lines.push(`${padRight('Total Items:', 24)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0), 8)}`);
+
+        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push(center('Thank you! Visit again.'));
+
+        return lines.join('\n');
+    };
+
+
+
+
+
+
 
     return (
         <>
