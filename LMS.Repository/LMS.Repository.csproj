@@ -13,6 +13,7 @@
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="3.7.205.9" />
     <PackageReference Include="Dapper" Version="2.0.123" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.7" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Data.SqlClient" Version="4.9.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.1" />
@@ -20,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LMS.Core\LMS.Core.csproj" />
-    <ProjectReference Include="..\Rent.BunnyNet\Rent.BunnyNet.csproj" />
   </ItemGroup>
 
 </Project>

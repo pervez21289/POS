@@ -20,7 +20,7 @@ builder.Services.AddCors(options =>
     options.AddDefaultPolicy(
         policy =>
         {
-            policy.WithOrigins("http://localhost:3000",
+            policy.WithOrigins("http://localhost:3000", "http://localhost:1302", "http://192.168.1.5:3000",
                                 "http://localhost").AllowAnyHeader()
                                                   .AllowAnyMethod().AllowCredentials();
         });
@@ -28,11 +28,19 @@ builder.Services.AddCors(options =>
 
 
 // Add services to the container.
-builder.Services.AddScoped<IMasters, MasterRepo>();
-builder.Services.AddScoped<IProperty, PropertyRepo>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<IUserContext, UserContext>();
 builder.Services.AddScoped<IUser, UserRepo>();
-builder.Services.AddScoped<IContact, ContactRepo>();
-builder.Services.AddScoped<IAccounts, AccountsRepo>();
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
+builder.Services.AddScoped<ISaleRepository,SaleRepository>();
+builder.Services.AddScoped<IUser, UserRepo>();
+builder.Services.AddScoped<IBasicSettingRepository, BasicSettingRepository>();
+builder.Services.AddSingleton<BaseRepository>();
+builder.Services.AddSingleton<IApiLogQueue, ApiLogQueue>();
+builder.Services.AddHostedService<ApiLogBackgroundService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -66,6 +74,7 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 BaseRepository.ConnectionString = app.Configuration.GetConnectionString("Value");
+app.UseMiddleware<ActivityLoggingMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

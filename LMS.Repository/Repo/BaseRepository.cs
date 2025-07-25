@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Dapper;
+using LMS.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Text;
 using System.Threading.Tasks;
-using Dapper;
-using LMS.Core.Entities;
+using static Dapper.SqlMapper;
 
 namespace LMS.Repo.Repository
 {
@@ -62,6 +63,39 @@ namespace LMS.Repo.Repository
             }
         }
 
+        public async Task<(T1 First, List<T2> Second)> QueryMultipleAsync<T1, T2>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var reader = await conn.QueryMultipleAsync(sql, param, commandType: commandType))
+                {
+                    var first = await reader.ReadFirstOrDefaultAsync<T1>();
+                    var second = (await reader.ReadAsync<T2>()).ToList();
+
+                    return (first, second);
+                }
+            }
+        }
+
+        public async Task<(T1 First, T2 Second)> QueryMultipleStringAsync<T1, T2>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                await conn.OpenAsync();
+
+                using (var reader = await conn.QueryMultipleAsync(sql, param, commandType: commandType))
+                {
+                    var first = await reader.ReadFirstOrDefaultAsync<T1>();
+                    var second = await reader.ReadFirstOrDefaultAsync<T2>();
+
+                    return (first, second);
+                }
+            }
+        }
+
+
         public async Task<T> QueryFirstOrDefaultAsync<T>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
         {
             using (var conn = new SqlConnection(ConnectionString))
@@ -80,23 +114,42 @@ namespace LMS.Repo.Repository
             }
         }
 
-        //public int Execute(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
-        //{
-        //    using (var conn = new SqlConnection(ConnectionString))
-        //    {
-        //        if (conn.State == ConnectionState.Closed)
-        //        {
-        //            conn.Open();
-        //        }
-        //        else if (conn.State == ConnectionState.Broken || conn.State == ConnectionState.Connecting || conn.State == ConnectionState.Executing || conn.State == ConnectionState.Fetching)
-        //        {
-        //            conn.Close();
-        //            conn.Open();
-        //        }
 
-        //        return conn.Execute(sql, param, commandType: commandType);
-        //    }
-        //}
+        public void Execute(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                if (conn.State == ConnectionState.Closed)
+                {
+                    conn.Open();
+                }
+                else if (conn.State == ConnectionState.Broken || conn.State == ConnectionState.Connecting || conn.State == ConnectionState.Executing || conn.State == ConnectionState.Fetching)
+                {
+                    conn.Close();
+                    conn.Open();
+                }
+
+                 conn.Execute(sql, param, commandType: commandType);
+            }
+        }
+
+        public async Task<int> ExecuteAsync(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                if (conn.State == ConnectionState.Closed)
+                {
+                    conn.Open();
+                }
+                else if (conn.State == ConnectionState.Broken || conn.State == ConnectionState.Connecting || conn.State == ConnectionState.Executing || conn.State == ConnectionState.Fetching)
+                {
+                    conn.Close();
+                    conn.Open();
+                }
+
+                return await conn.ExecuteAsync(sql, param, commandType: commandType);
+            }
+        }
 
         //public int ExecuteWithParameter(string sql, DynamicParameters param = null, CommandType commandType = CommandType.StoredProcedure)
         //{
@@ -116,23 +169,23 @@ namespace LMS.Repo.Repository
         //    }
         //}
 
-        //public object ExecuteScalar(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
-        //{
-        //    using (var conn = new SqlConnection(ConnectionString))
-        //    {
-        //        if (conn.State == ConnectionState.Closed)
-        //        {
-        //            conn.Open();
-        //        }
-        //        else if (conn.State == ConnectionState.Broken || conn.State == ConnectionState.Connecting || conn.State == ConnectionState.Executing || conn.State == ConnectionState.Fetching)
-        //        {
-        //            conn.Close();
-        //            conn.Open();
-        //        }
+        public async Task<T> ExecuteScalarAsync<T>(string sql, object param = null, CommandType commandType = CommandType.StoredProcedure)
+        {
+            using (var conn = new SqlConnection(ConnectionString))
+            {
+                if (conn.State == ConnectionState.Closed)
+                {
+                    conn.Open();
+                }
+                else if (conn.State == ConnectionState.Broken || conn.State == ConnectionState.Connecting || conn.State == ConnectionState.Executing || conn.State == ConnectionState.Fetching)
+                {
+                    conn.Close();
+                    conn.Open();
+                }
 
-        //        return conn.ExecuteScalar(sql, param, commandType: commandType);
-        //    }
-        //}
+                return await conn.ExecuteScalarAsync<T>(sql, param, commandType: commandType);
+            }
+        }
 
         //public T ExecuteWithReturnValue<T>(string sql, string returnParameter, DynamicParameters param = null, CommandType commandType = CommandType.StoredProcedure)
         //{

@@ -3,7 +3,6 @@
 export default function TableCell(theme) {
   const commonCell = {
     '&:not(:last-of-type)': {
-      position: 'relative',
       '&:after': {
         position: 'absolute',
         content: '""',
@@ -20,8 +19,7 @@ export default function TableCell(theme) {
     MuiTableCell: {
       styleOverrides: {
         root: {
-          fontSize: '0.875rem',
-          padding: 12,
+          padding: 0,
           borderColor: theme.palette.divider,
           '&.cell-right': {
             justifyContent: 'flex-end',
@@ -44,7 +42,7 @@ export default function TableCell(theme) {
           }
         },
         sizeSmall: {
-          padding: 8
+          padding: 1
         },
         head: {
           fontSize: '0.75rem',

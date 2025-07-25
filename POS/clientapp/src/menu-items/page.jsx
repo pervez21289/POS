@@ -1,36 +1,37 @@
 // assets
-import { LoginOutlined, ProfileOutlined } from '@ant-design/icons';
+import CategoryOutlinedIcon from '@mui/icons-material/CategoryOutlined';
+import InventoryOutlinedIcon from '@mui/icons-material/InventoryOutlined';
 
 // icons
 const icons = {
-  LoginOutlined,
-  ProfileOutlined
+    CategoryOutlined: CategoryOutlinedIcon,
+    InventoryOutlined: InventoryOutlinedIcon
 };
 
 // ==============================|| MENU ITEMS - EXTRA PAGES ||============================== //
 
 const pages = {
-  id: 'authentication',
-  title: 'Authentication',
-  type: 'group',
-  children: [
-    {
-      id: 'login1',
-      title: 'Login',
-      type: 'item',
-      url: '/login',
-      icon: icons.LoginOutlined,
-      target: true
-    },
-    {
-      id: 'register1',
-      title: 'Register',
-      type: 'item',
-      url: '/register',
-      icon: icons.ProfileOutlined,
-      target: true
-    }
-  ]
+    id: 'Inventory',
+    title: 'Inventory',
+    type: 'group',
+    children: [
+        {
+            id: 'inventory-category',
+            title: 'Category',
+            type: 'item',
+            role: ['Admin'],
+            url: '/category',
+            icon: icons.CategoryOutlined
+        },
+        {
+            id: 'inventory-product',
+            title: 'Product',
+            type: 'item',
+            role: ['Admin'],
+            url: '/product',
+            icon: icons.InventoryOutlined
+        },
+    ]
 };
 
 export default pages;

@@ -1,102 +1,125 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 // material-ui
 import { alpha, useTheme } from '@mui/material/styles';
-import Checkbox from '@mui/material/Checkbox';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormGroup from '@mui/material/FormGroup';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import {
+    Box, Checkbox, FormControlLabel, FormGroup, Stack, Typography
+} from '@mui/material';
 
+// charts
 import { BarChart } from '@mui/x-charts/BarChart';
 
 // project imports
 import MainCard from 'components/MainCard';
 
-// ==============================|| SALES COLUMN CHART ||============================== //
 
-export default function SalesChart() {
-  const theme = useTheme();
+export default function SalesChart({ MonthlySummary }) {
+    const theme = useTheme();
 
-  const [showIncome, setShowIncome] = useState(true);
-  const [showCostOfSales, setShowCostOfSales] = useState(true);
+    const [labels, setLabels] = useState([]);
+    const [data, setData] = useState([]);
+    const [showIncome, setShowIncome] = useState(true);
+    const [showCostOfSales, setShowCostOfSales] = useState(true);
 
-  const handleIncomeChange = () => {
-    setShowIncome(!showIncome);
-  };
+    const primaryColor = theme.palette.primary.main;
+    const warningColor = theme.palette.warning.main;
+    const axisFontStyle = { fontSize: 10, fill: theme.palette.text.secondary };
 
-  const handleCostOfSalesChange = () => {
-    setShowCostOfSales(!showCostOfSales);
-  };
+    // Fetch chart data from API
+    useEffect(() => {
 
-  const valueFormatter = (value) => `$ ${value} Thousands`;
-  const primaryColor = theme.palette.primary.main;
-  const warningColor = theme.palette.warning.main;
+        if (MonthlySummary) {
+            const labels = MonthlySummary?.map(d => d.Month);
+            const income = MonthlySummary?.map(d => d.IncomeInThousands);
+            const costOfSales = MonthlySummary?.map(d => d.CostOfSalesInThousands);
 
-  const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const data = [
-    { data: [180, 90, 135, 114, 120, 145, 170, 200, 170, 230, 210, 180], label: 'Income', color: warningColor, valueFormatter },
-    { data: [120, 45, 78, 150, 168, 99, 180, 220, 180, 210, 220, 200], label: 'Cost of Sales', color: primaryColor, valueFormatter }
-  ];
+            const result = {
+                series: [
+                    { label: "Income", data: income },
+                    { label: "Cost of Sales", data: costOfSales }
+                ]
+            };
 
-  const axisFonstyle = { fontSize: 10, fill: theme.palette.text.secondary };
+            setLabels(labels);
+            setData(
+                result.series.map(series => ({
+                    ...series,
+                    color: series.label === 'Income' ? warningColor : primaryColor,
+                    valueFormatter: (value) => `$ ${value} Thousands`
+                }))
+            );
 
-  return (
-    <MainCard sx={{ mt: 1 }} content={false}>
-      <Box sx={{ p: 2.5, pb: 0 }}>
-        <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box>
-            <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-              Net Profit
-            </Typography>
-            <Typography variant="h4">$1560</Typography>
-          </Box>
+        }
 
-          <FormGroup>
-            <Stack direction="row">
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showIncome}
-                    onChange={handleIncomeChange}
-                    sx={{ '&.Mui-checked': { color: warningColor }, '&:hover': { backgroundColor: alpha(warningColor, 0.08) } }}
-                  />
-                }
-                label="Income"
-              />
-              <FormControlLabel
-                control={
-                  <Checkbox
-                    checked={showCostOfSales}
-                    onChange={handleCostOfSalesChange}
-                    sx={{ '&.Mui-checked': { color: primaryColor } }}
-                  />
-                }
-                label="Cost of Sales"
-              />
-            </Stack>
-          </FormGroup>
-        </Stack>
+    }, [MonthlySummary]);
 
-        <BarChart
-          hideLegend
-          height={380}
-          grid={{ horizontal: true }}
-          xAxis={[{ id: 'sales-x-axis', data: labels, scaleType: 'band', tickLabelStyle: { ...axisFonstyle, fontSize: 12 } }]}
-          yAxis={[{ disableLine: true, disableTicks: true, tickMaxStep: 20, tickLabelStyle: axisFonstyle }]}
-          series={data
-            .filter((series) => (series.label === 'Income' && showIncome) || (series.label === 'Cost of Sales' && showCostOfSales))
-            .map((series) => ({ ...series, type: 'bar' }))}
-          slotProps={{ bar: { rx: 5, ry: 5 }, tooltip: { trigger: 'item' } }}
-          axisHighlight={{ x: 'none' }}
-          margin={{ top: 30, left: -5, bottom: 25, right: 10 }}
-          sx={{
-            '& .MuiBarElement-root:hover': { opacity: 0.6 },
-            '& .MuiChartsAxis-directionX .MuiChartsAxis-tick, & .MuiChartsAxis-root line': { stroke: theme.palette.divider }
-          }}
-        />
-      </Box>
-    </MainCard>
-  );
+    return data&& (
+        <MainCard sx={{ mt: 1 }} content={false}>
+            <Box sx={{ p: 2.5, pb: 0 }}>
+                <Stack direction="row" sx={{ alignItems: 'center', justifyContent: 'space-between' }}>
+                    <Box>
+                        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
+                            Net Profit
+                        </Typography>
+                        <Typography variant="h4">$1560</Typography>
+                    </Box>
+
+                    <FormGroup>
+                        <Stack direction="row">
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={showIncome}
+                                        onChange={() => setShowIncome(!showIncome)}
+                                        sx={{ '&.Mui-checked': { color: warningColor }, '&:hover': { backgroundColor: alpha(warningColor, 0.08) } }}
+                                    />
+                                }
+                                label="Income"
+                            />
+                            <FormControlLabel
+                                control={
+                                    <Checkbox
+                                        checked={showCostOfSales}
+                                        onChange={() => setShowCostOfSales(!showCostOfSales)}
+                                        sx={{ '&.Mui-checked': { color: primaryColor } }}
+                                    />
+                                }
+                                label="Cost of Sales"
+                            />
+                        </Stack>
+                    </FormGroup>
+                </Stack>
+
+                <BarChart
+                    hideLegend
+                    height={380}
+                    grid={{ horizontal: true }}
+                    xAxis={[{
+                        id: 'sales-x-axis',
+                        data: labels,
+                        scaleType: 'band',
+                        tickLabelStyle: { ...axisFontStyle, fontSize: 12 }
+                    }]}
+                    yAxis={[{
+                        disableLine: true,
+                        disableTicks: true,
+                        tickLabelStyle: axisFontStyle
+                    }]}
+                    series={data
+                        .filter(s => (s.label === 'Income' && showIncome) || (s.label === 'Cost of Sales' && showCostOfSales))
+                        .map(s => ({ ...s, type: 'bar' }))}
+                    slotProps={{ bar: { rx: 5, ry: 5 }, tooltip: { trigger: 'item' } }}
+                    axisHighlight={{ x: 'none' }}
+                    margin={{ top: 30, left: -5, bottom: 25, right: 10 }}
+                    sx={{
+                        '& .MuiBarElement-root:hover': { opacity: 0.6 },
+                        '& .MuiChartsAxis-directionX .MuiChartsAxis-tick, & .MuiChartsAxis-root line': {
+                            stroke: theme.palette.divider
+                        }
+                    }}
+                />
+            </Box>
+        </MainCard>
+    );
 }

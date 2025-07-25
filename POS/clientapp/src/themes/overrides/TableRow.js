@@ -12,10 +12,10 @@ export default function TableRow() {
           },
           '& .MuiTableCell-root': {
             '&:last-of-type': {
-              paddingRight: 24
+              paddingRight: 1
             },
             '&:first-of-type': {
-              paddingLeft: 24
+              paddingLeft: 0
             }
           }
         }

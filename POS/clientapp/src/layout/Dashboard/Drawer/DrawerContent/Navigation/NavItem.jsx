@@ -1,4 +1,5 @@
 import PropTypes from 'prop-types';
+import { useEffect } from 'react';
 import { Link, useLocation, matchPath } from 'react-router-dom';
 
 // material-ui
@@ -53,7 +54,9 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
   const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: false }, pathname);
 
   const textColor = 'text.primary';
-  const iconSelectedColor = 'primary.main';
+    const iconSelectedColor = 'primary.main';
+
+  
 
   return (
     <>

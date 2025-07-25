@@ -21,13 +21,13 @@ import MainCard from 'components/MainCard';
 import IconButton from 'components/@extended/IconButton';
 import Transitions from 'components/@extended/Transitions';
 
-// assets
-import BellOutlined from '@ant-design/icons/BellOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
-
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import {  useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 // sx styles
 const avatarSX = {
   width: 36,
@@ -53,8 +53,12 @@ export default function Notification() {
   const anchorRef = useRef(null);
   const [read, setRead] = useState(2);
   const [open, setOpen] = useState(false);
+    const navigate = useNavigate();
+    const { receiptInfo } = useSelector((state) => state.sales);
+
+
   const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
+      navigate('/sales');
   };
 
   const handleClose = (event) => {
@@ -79,9 +83,9 @@ export default function Notification() {
         aria-controls={open ? 'profile-grow' : undefined}
         aria-haspopup="true"
         onClick={handleToggle}
-      >
-        <Badge badgeContent={read} color="primary">
-          <BellOutlined />
+          >
+              <Badge badgeContent={receiptInfo?.totalItems} color="primary">
+                  <ShoppingCartIcon color="warning" />
         </Badge>
       </IconButton>
       <Popper
