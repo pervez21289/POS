@@ -16,6 +16,7 @@ import {
 import { openDrawer } from "./../../store/reducers/drawer";
 import { showAlert } from "./../../store/reducers/alert";
 import { useGetCategoriesQuery } from './../../services/categoryApi';
+import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 
 const ProductForm = ({ initialData = {} }) => {
     const [product, setProduct] = useState(null);
@@ -257,17 +258,7 @@ const ProductForm = ({ initialData = {} }) => {
 
             {/* Action Buttons */}
             <Box
-                sx={{
-                    position: { xs: 'fixed', sm: 'fixed', md: 'static' },
-                    bottom: { xs: 0, sm: 0, md: 'auto' },
-                    left: 0,
-                    right: 0,
-                    backgroundColor: { xs: '#fff', md: 'transparent' },
-                    px: { xs: 2, md: 0 },
-                    py: { xs: 2, md: 0 },
-                    zIndex: 1300,
-                    borderTop: { xs: '1px solid #ccc', md: 'none' }
-                }}
+                    sx={mobileStickyBottomBarStyles}
             >
                 <Stack direction="row" spacing={2} justifyContent="flex-end">
                    

@@ -37,6 +37,9 @@ builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
 builder.Services.AddScoped<ISaleRepository,SaleRepository>();
 builder.Services.AddScoped<IUser, UserRepo>();
 builder.Services.AddScoped<IBasicSettingRepository, BasicSettingRepository>();
+builder.Services.AddSingleton<BaseRepository>();
+builder.Services.AddSingleton<IApiLogQueue, ApiLogQueue>();
+builder.Services.AddHostedService<ApiLogBackgroundService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -71,6 +74,7 @@ builder.Services.AddSignalR();
 var app = builder.Build();
 
 BaseRepository.ConnectionString = app.Configuration.GetConnectionString("Value");
+app.UseMiddleware<ActivityLoggingMiddleware>();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {

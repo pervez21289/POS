@@ -15,7 +15,7 @@ import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
 import { useGetBasicSettingsQuery } from './../../services/basicSettingAPI';
 import { useMediaQuery, useTheme } from '@mui/material';
-
+import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
 
 const ReceiptPrintWrapper = ({ receiptInfo }) => {
@@ -324,28 +324,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
                 {/* Fixed bottom button section */}
                 <Box
-                    sx={{
-                        position: {
-                            xs: 'fixed',  // on mobile (xs = 0px and up)
-                            sm: 'fixed',  // optionally on tablets too
-                            md: 'sticky', // desktop and up
-                        },
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        width: '100%',
-                        zIndex: 10,
-                        py: 2,
-                        px: 2,
-                        backgroundColor: '#fff',
-                        borderTop: '1px solid #ccc',
-                        boxShadow: '0 -2px 8px rgba(0,0,0,0.05)',
-                        paddingBottom: { xs: 'env(safe-area-inset-bottom, 60px)', sm: 2 },
-                        display: { xs: 'flex'}, // Show only on mobile
-                        gap: 2,
-                    }}
-                
-                  
+                    sx={mobileStickyBottomBarStyles}
                     gap={2}
                 >
                     {!saleId && (
