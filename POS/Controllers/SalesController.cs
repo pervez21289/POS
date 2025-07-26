@@ -6,61 +6,64 @@ using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Data.SqlClient;
 using System.Security.Claims;
-
-[Authorize]
-[ApiController]
-[Route("api/[controller]")]
-public class SalesController : ControllerBase
+namespace LMS.Controllers
 {
-    private readonly ISaleRepository _saleRepository;
-    private readonly IUserContext _userContext;
-
-    public SalesController(ISaleRepository saleRepository, IUserContext userContext)
+    [Authorize]
+    [ApiController]
+    [Route("api/[controller]")]
+    public class SalesController : ControllerBase
     {
-        _saleRepository = saleRepository;
-        _userContext = userContext;
-    }
+        private readonly ISaleRepository _saleRepository;
+        private readonly IUserContext _userContext;
 
-    [HttpGet]
-    public async Task<IActionResult> GetSales([FromQuery] string? search, [FromQuery] DateTime? date, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-    {
-       
-        (IEnumerable<Sale> rows, long total) data = await _saleRepository.GetSalesAsync(search, _userContext.CompanyID, date, page, pageSize);
-        return Ok(new { data.rows, data.total });
-    }
+        public SalesController(ISaleRepository saleRepository, IUserContext userContext)
+        {
+            _saleRepository = saleRepository;
+            _userContext = userContext;
+        }
 
-    [HttpPost]
-    public async Task<IActionResult> SaveSale([FromBody] SaleDto saleDto)
-    {
-        if (!ModelState.IsValid)
-            return BadRequest(ModelState);
+        [HttpGet]
+        public async Task<IActionResult> GetSales([FromQuery] string? search, [FromQuery] DateTime? date, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
 
-        saleDto.UserID = _userContext.UserId;
+            (IEnumerable<Sale> rows, long total) data = await _saleRepository.GetSalesAsync(search, _userContext.CompanyID, date, page, pageSize);
+            return Ok(new { data.rows, data.total });
+        }
 
-        BillNoDto bill = await _saleRepository.SaveSaleAsync(saleDto);
-        return Ok(bill);
-    }
+        [HttpPost]
+        public async Task<IActionResult> SaveSale([FromBody] SaleDto saleDto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-    [HttpGet("GetSalesById/{saleId}")]
-    public async Task<IActionResult> GetSalesById(int saleId)
-    {
-        var sale = await _saleRepository.GetSaleWithItems(saleId);
-        return sale == null ? NotFound() : Ok(sale);
-    }
+            saleDto.UserID = _userContext.UserId;
 
-    [HttpGet("GetCustomerByNumber/{mobilenumber}")]
-    public async Task<IActionResult> GetCustomerByNumber(long mobilenumber)
-    {
-        var sale = await _saleRepository.GetCustomerByNumber(mobilenumber);
-        return sale == null ? NotFound() : Ok(sale);
-    }
+            BillNoDto bill = await _saleRepository.SaveSaleAsync(saleDto);
+            return Ok(bill);
+        }
+
+        [HttpGet("GetSalesById/{saleId}")]
+        public async Task<IActionResult> GetSalesById(int saleId)
+        {
+            var sale = await _saleRepository.GetSaleWithItems(saleId);
+            return sale == null ? NotFound() : Ok(sale);
+        }
+
+        [HttpGet("GetCustomerByNumber/{mobilenumber}")]
+        public async Task<IActionResult> GetCustomerByNumber(long mobilenumber)
+        {
+            var sale = await _saleRepository.GetCustomerByNumber(mobilenumber);
+            return sale == null ? NotFound() : Ok(sale);
+        }
 
 
-    [HttpGet("GetMonthlySalesSummary")]
-    public async Task<IActionResult> GetMonthlySalesSummary()
-    {
-        string data = await _saleRepository.GetMonthlySalesSummary(_userContext.CompanyID);
-        return Ok(data);
+        [HttpGet("GetMonthlySalesSummary")]
+        public async Task<IActionResult> GetMonthlySalesSummary()
+        {
+            string data = await _saleRepository.GetMonthlySalesSummary(_userContext.CompanyID);
+            return Ok(data);
+        }
+
     }
 
 }

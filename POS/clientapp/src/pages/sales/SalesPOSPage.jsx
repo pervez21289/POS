@@ -151,8 +151,10 @@ const SalesPOSPage = () => {
                 Point of Sale
             </Typography>
             <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
+                {/* Cart Section */}
+                <CartPage removeFromCart={removeFromCart} updateQty={updateQty} />
                 {/* Product Search & Barcode */}
-                <Card sx={{ flex: 2, p: 2, boxShadow: 3 }}>
+                <Card sx={{ flex: 3, p: 2, boxShadow: 3 }}>
                     <CardContent>
                         <Stack direction="row" alignItems="center" spacing={2} mb={2}>
                             <SearchIcon color="action" />
@@ -249,8 +251,7 @@ const SalesPOSPage = () => {
                     </CardContent>
                 </Card>
 
-                {/* Cart Section */}
-                <CartPage removeFromCart={removeFromCart} updateQty={updateQty } />
+            
             </Stack>
         </Container>
     );

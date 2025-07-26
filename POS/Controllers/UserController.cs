@@ -5,6 +5,7 @@ using LMS.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using System.Data;
 using System.Drawing;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -70,6 +71,11 @@ namespace LMS.Controllers
             return NoContent();
         }
 
-
+        [HttpGet("ApiLogs")]
+        public async Task<IActionResult> ApiLogs([FromQuery] string? search, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
+        {
+            var logs = await _user.GetApiLogsAsync(search, startDate, endDate);
+            return Ok(logs);
+        }
     }
 }

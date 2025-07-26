@@ -17,6 +17,8 @@ import Sales from './../pages/sales/SalesPOSPage';
 import SalesGrid from './../pages/sales/SalesGrid';
 import BasicSettings from '../pages/settings/BasicSettings';
 import UsersGrid from '../pages/users/UsersGrid';
+import Support from '../pages/support';
+import History from '../pages/history';
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 
@@ -62,7 +64,17 @@ const MainRoutes = {
     {
         path: 'usermanagement',
         element: <UsersGrid />
-    }
+      }
+      ,
+      {
+          path: 'support',
+          element: <Support />
+      }
+      ,
+      {
+          path: 'history',
+          element: <History />
+      }
   ]
 };
 

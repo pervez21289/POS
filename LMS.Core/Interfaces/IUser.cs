@@ -16,6 +16,7 @@ namespace LMS.Core.Interfaces
         Task<int> CreateUserAsync(User user);
         Task DeleteUserAsync(int userId);
         Task<IEnumerable<User>> GetUsersAsync(int CompanyID);
+        Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate);
 
     }
 }

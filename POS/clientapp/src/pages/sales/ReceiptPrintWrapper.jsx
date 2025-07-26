@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, InputLabel, Stack,Divider, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
+import {
+    Box, Button, Dialog, DialogTitle, DialogContent, DialogActions ,Divider, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
     TableContainer, Paper
 } from '@mui/material';
 import { useReactToPrint } from "react-to-print";
@@ -35,6 +36,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
     const [createSale] = useCreateSaleMutation();
     const [saleId, setSaleId] = useState(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
+    const [openDialog, setOpenDialog] = useState(false);
 
     const handlePrint = () => {
         if (window.ReactNativeWebView) {
@@ -155,7 +157,9 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             const saleD = await createSale(sale).unwrap();
             setSaleId(saleD?.billNo);
             dispatch(setReceiptInfo({ receiptInfo: { cart: [] } }));
+            setOpenDialog(false);
             setOpenSnackbar(true);
+            handlePrint();
             // handlePrint();
         }
     }
@@ -250,65 +254,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
 
                 {/* Scrollable content area */}
                 <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
-                    {!saleId &&
-                        <Grid container spacing={2} alignItems="flex-start">
-                            <Grid item xs={12} sm={2} lg={4}>
-                                <TextField
-                                    fullWidth
-                                    label="Mobile Number"
-                                    value={mobileNumber}
-                                    onChange={(e) => {
-                                        const value = e.target.value;
-                                        setMobileNumber(value);
-
-                                        if (!/^[6-9]\d{9}$/.test(value)) {
-                                            setMobileError('Invalid mobile number');
-                                            setCustomerName('');
-                                        } else {
-                                            setMobileError('');
-                                            handleMobileSearch(value);
-                                        }
-                                    }}
-                                    onBlur={() => {
-                                        if (!/^[6-9]\d{9}$/.test(mobileNumber)) {
-                                            setMobileError('Invalid mobile number');
-                                        } else {
-                                            setMobileError('');
-                                            handleMobileSearch(mobileNumber);
-                                        }
-                                    }}
-                                    error={mobileError}
-                                    helperText={mobileError || ' '}
-                                    disabled={!!saleId}
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} sm={6} lg={4}>
-                                <TextField
-                                    fullWidth
-                                    label="Customer Name"
-                                    value={customerName}
-                                    onChange={(e) => setCustomerName(e.target.value)}
-                                    disabled={!!customerId}
-                                />
-                            </Grid>
-
-                            <Grid item xs={12} lg={4}>
-                                <ToggleButtonGroup
-                                    color="primary"
-                                    value={PaymentModeID}
-                                    exclusive
-                                    onChange={(e) => setPaymentModeID(e.target.value)}
-                                    aria-label="Payment"
-                                    name="Payment"
-                                >
-                                    <ToggleButton size="small" value="1">Cash</ToggleButton>
-                                    <ToggleButton size="small" value="2">UPI</ToggleButton>
-                                    <ToggleButton size="small" value="3">Card</ToggleButton>
-                                </ToggleButtonGroup>
-                            </Grid>
-                        </Grid>
-                    }
+                   
 
                     <Box mt={2}>
                         <SalesReceipt
@@ -328,7 +274,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                     gap={2}
                 >
                     {!saleId && (
-                        <Button variant="contained" onClick={handleCheckout}>
+                        <Button variant="contained" onClick={() => setOpenDialog(true)}>
                             🖨 Submit
                         </Button>
                     )}
@@ -343,6 +289,49 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 </Box>
 
             </Box>
+
+
+            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
+                <DialogTitle>Customer Details</DialogTitle>
+                <DialogContent>
+                    <TextField
+                        fullWidth
+                        label="Mobile Number"
+                        value={mobileNumber}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setMobileNumber(value);
+                            if (!/^[6-9]\d{9}$/.test(value)) {
+                                setMobileError('Invalid mobile number');
+                                setCustomerName('');
+                            } else {
+                                setMobileError('');
+                                handleMobileSearch(value);
+                            }
+                        }}
+                        error={!!mobileError}
+                        helperText={mobileError || ' '}
+                        sx={{ mb: 2 }}
+                    />
+                    <TextField
+                        fullWidth
+                        label="Customer Name"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        disabled={!!customerId}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+                    <Button variant="contained" onClick={() => {
+                        
+                        handleCheckout();
+                    }}>
+                        Proceed
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
 
             <Snackbar
                 open={openSnackbar}

@@ -100,6 +100,17 @@ namespace LMS.Repo.Repository
 
         }
 
+        public async Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate)
+        {
+            IEnumerable<ApiLog> logs = await QueryAsync<ApiLog>(
+                "sp_GetApiLogs",
+                new { Search = search, StartDate = startDate, EndDate = endDate },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return logs;
+        }
+
         private string ComputeSha256Hash(string rawData)
         {
             using var sha256 = SHA256.Create();

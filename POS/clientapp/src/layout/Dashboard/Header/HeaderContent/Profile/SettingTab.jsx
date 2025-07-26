@@ -20,16 +20,16 @@ import { setUserDetails } from "./../../../../../store/reducers/users";
 // ==============================|| HEADER PROFILE - SETTING TAB ||============================== //
 
 export default function SettingTab() {
-  const navigate = useNavigate();
-  const [selectedIndex, setSelectedIndex] = useState(0);
+    const navigate = useNavigate();
+    const [selectedIndex, setSelectedIndex] = useState(0);
     const dispatch = useDispatch();
-  const handleListItemClick = (event, index, route = '') => {
-    setSelectedIndex(index);
+    const handleListItemClick = (event, index, route = '') => {
+        setSelectedIndex(index);
 
-    if (route && route !== '') {
-      navigate(route);
-    }
-  };
+        if (route && route !== '') {
+            navigate(route);
+        }
+    };
 
     const handleLogout = async () => {
 
@@ -37,48 +37,41 @@ export default function SettingTab() {
         dispatch(setUserDetails({ userDetails: null }));
     };
 
-  return (
-    <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
-      
-        <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0,'usermanagement')}>
-          <ListItemIcon>
-                      <ManageAccountsOutlinedIcon />
-          </ListItemIcon>
-          <ListItemText primary="User Management" />
-        </ListItemButton>
-     
-      <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1,'settings')}>
-        <ListItemIcon>
-          <UserOutlined />
-        </ListItemIcon>
-        <ListItemText primary="Account Settings" />
-      </ListItemButton>
-      <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2)}>
-        <ListItemIcon>
-          <LockOutlined />
-        </ListItemIcon>
-        <ListItemText primary="Privacy Center" />
-      </ListItemButton>
-      <Link underline="none" style={{ color: 'inherit' }} target="_blank" href="https://codedthemes.support-hub.io/">
-        <ListItemButton selected={selectedIndex === 3} onClick={(event) => handleListItemClick(event, 3)}>
-          <ListItemIcon>
-            <CommentOutlined />
-          </ListItemIcon>
-          <ListItemText primary="Feedback" />
-        </ListItemButton>
-      </Link>
-      <ListItemButton selected={selectedIndex === 4} onClick={(event) => handleListItemClick(event, 4)}>
-        <ListItemIcon>
-          <UnorderedListOutlined />
-        </ListItemIcon>
-        <ListItemText primary="History" />
-          </ListItemButton>
-          <ListItemButton onClick={handleLogout}>
-              <ListItemIcon>
-                  <LogoutOutlined />
-              </ListItemIcon>
-              <ListItemText primary="Logout" />
-          </ListItemButton>
-    </List>
-  );
+    return (
+        <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
+
+            <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0, 'usermanagement')}>
+                <ListItemIcon>
+                    <ManageAccountsOutlinedIcon />
+                </ListItemIcon>
+                <ListItemText primary="User Management" />
+            </ListItemButton>
+
+            <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1, 'settings')}>
+                <ListItemIcon>
+                    <UserOutlined />
+                </ListItemIcon>
+                <ListItemText primary="Account Settings" />
+            </ListItemButton>
+            <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2, 'support')}>
+                <ListItemIcon>
+                    <LockOutlined />
+                </ListItemIcon>
+                <ListItemText primary="Support" />
+            </ListItemButton>
+
+            <ListItemButton selected={selectedIndex === 3} onClick={(event) => handleListItemClick(event, 3, 'history')}>
+                <ListItemIcon>
+                    <UnorderedListOutlined />
+                </ListItemIcon>
+                <ListItemText primary="History" />
+            </ListItemButton>
+            <ListItemButton onClick={handleLogout}>
+                <ListItemIcon>
+                    <LogoutOutlined />
+                </ListItemIcon>
+                <ListItemText primary="Logout" />
+            </ListItemButton>
+        </List>
+    );
 }
