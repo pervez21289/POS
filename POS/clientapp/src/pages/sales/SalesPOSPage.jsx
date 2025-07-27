@@ -2,25 +2,38 @@
 import {
     Container, Typography, TextField,
     Box, Autocomplete, CircularProgress,
-    Card, CardContent, Stack
+    Card, CardContent, Stack,
+    Button, Dialog, DialogTitle, DialogContent,
+    DialogActions, IconButton, List, ListItem, ListItemText
 } from '@mui/material';
 
+import { showConfirmDialog } from '../../store/reducers/confirm';
 import SearchIcon from '@mui/icons-material/Search';
+import DeleteIcon from '@mui/icons-material/Delete';
+import RestoreIcon from '@mui/icons-material/Restore';
+
 import debounce from 'lodash.debounce';
 import { useDispatch, useSelector } from 'react-redux';
-import { setReceiptInfo } from "./../../store/reducers/sales";
+import {
+    setReceiptInfo,
+    resetReceiptInfo,
+    saveDraftCart,
+    loadDraftCart,
+    deleteDraftCart
+} from './../../store/reducers/sales';
+
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
 import CartPage from './CartPage';
 import { useGetProductsQuery } from './../../services/productApi';
 import ProductCard from './ProductCard';
-import {  resetReceiptInfo } from "./../../store/reducers/sales"; // ✅ import reset
 
 
 const SalesPOSPage = () => {
-    const { data: allProducts = [], isLoading } = useGetProductsQuery('');
     const dispatch = useDispatch();
     const isMobile = useIsMobile();
+    const { data: allProducts = [], isLoading } = useGetProductsQuery('');
+
     const [isSearching, setIsSearching] = useState(false);
     const [barcodeInput, setBarcodeInput] = useState('');
     const barcodeInputRef = useRef(null);
@@ -28,10 +41,11 @@ const SalesPOSPage = () => {
     const [searchInput, setSearchInput] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [draftModalOpen, setDraftModalOpen] = useState(false);
 
-    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
+    const { receiptInfo, isSearch, draftCarts } = useSelector((state) => state.sales);
 
-    // Debounced product search
+    // Debounced search
     const fetchProducts = useMemo(() =>
         debounce(async (query) => {
             if (!query) {
@@ -85,7 +99,6 @@ const SalesPOSPage = () => {
         dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
     };
 
-
     const handleBarcodeScan = async (e) => {
         if (e.key === 'Enter' && barcodeInput.trim()) {
             try {
@@ -122,10 +135,41 @@ const SalesPOSPage = () => {
     }, [isSearch]);
 
     useEffect(() => {
-        dispatch(resetReceiptInfo()); 
-    }, []);
+        dispatch(resetReceiptInfo());
+    }, [dispatch]);
 
-    const cartProductIds = useMemo(() => new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
+    const cartProductIds = useMemo(() =>
+        new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
+
+    const handleSaveDraft = () => {
+        dispatch(saveDraftCart());
+    };
+
+    const handleLoadDraft = (id) => {
+        const hasCartItems = receiptInfo.cart && receiptInfo.cart.length > 0;
+
+        if (hasCartItems) {
+            dispatch(showConfirmDialog({
+                title: 'Replace Cart?',
+                message: 'Your current cart will be replaced. Do you want to continue?',
+                confirmText: 'Yes, Replace',
+                cancelText: 'Cancel',
+                confirmColor: 'warning',
+                onConfirm: () => {
+                    dispatch(loadDraftCart(id));
+                    setDraftModalOpen(false);
+                }
+            }));
+        } else {
+            dispatch(loadDraftCart(id));
+            setDraftModalOpen(false);
+        }
+    };
+
+
+    const handleDeleteDraft = (id) => {
+        dispatch(deleteDraftCart(id));
+    };
 
     if (isLoading) return <p>Loading...</p>;
 
@@ -135,17 +179,28 @@ const SalesPOSPage = () => {
                 Point of Sale
             </Typography>
             <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
-                {/* Cart Section */}
                 {!isMobile && <CartPage />}
-                {/* Product Search & Barcode */}
                 <Card sx={{ flex: 3, p: 2, boxShadow: 3 }}>
                     <CardContent>
-                        <Stack direction="row" alignItems="center" spacing={2} mb={2}>
-                            <SearchIcon color="action" />
-                            <Typography variant="h6" fontWeight={600}>
-                                Product Lookup
-                            </Typography>
-                        </Stack>
+                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
+                            <Stack direction="row" alignItems="center" spacing={1}>
+                                <SearchIcon color="action" />
+                                <Typography variant="h6" fontWeight={600}>
+                                    Product Lookup
+                                </Typography>
+                            </Stack>
+
+                            <Stack direction="row" spacing={1}>
+                                <Button variant="outlined" color="warning" size="small" onClick={handleSaveDraft}>
+                                    Save as Draft
+                                </Button>
+                                <Button variant="outlined" color="warning" size="small" onClick={() => setDraftModalOpen(true)}>
+                                    View Drafts
+                                </Button>
+                            </Stack>
+                        </Box>
+
+
                         <input
                             ref={barcodeInputRef}
                             value={barcodeInput}
@@ -154,6 +209,7 @@ const SalesPOSPage = () => {
                             style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
                             autoFocus
                         />
+
                         <Autocomplete
                             value={searchValue}
                             onChange={(event, newValue) => {
@@ -175,16 +231,7 @@ const SalesPOSPage = () => {
                             onBlur={() => setIsSearching(false)}
                             onFocus={() => setIsSearching(true)}
                             renderOption={(props, option) => (
-                                <Box
-                                    component="li"
-                                    {...props}
-                                    sx={{
-                                        '&.Mui-focusVisible': {
-                                            backgroundColor: 'red',
-                                            color: '#1976d2',
-                                        },
-                                    }}
-                                >
+                                <Box component="li" {...props}>
                                     {option.name}
                                 </Box>
                             )}
@@ -205,9 +252,12 @@ const SalesPOSPage = () => {
                                 />
                             )}
                         />
+
                         <Typography variant="caption" color="text.secondary" mt={1} display="block">
                             Scan barcode or search by product name.
                         </Typography>
+
+
                         <Box sx={{ mt: 3 }}>
                             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                                 Quick Select
@@ -230,13 +280,46 @@ const SalesPOSPage = () => {
                                     />
                                 ))}
                             </Box>
-
                         </Box>
                     </CardContent>
                 </Card>
-
-            
             </Stack>
+
+            {/* Draft Modal */}
+            <Dialog open={draftModalOpen} onClose={() => setDraftModalOpen(false)} maxWidth="sm" fullWidth>
+                <DialogTitle>Saved Draft Carts</DialogTitle>
+                <DialogContent dividers>
+                    {receiptInfo.cart.length > 0 && (
+                        <Typography variant="caption" color="text.secondary" mb={2}>
+                            Current cart will be replaced when loading a draft.
+                        </Typography>
+                    )}
+                    <List>
+                        {draftCarts?.map((draft) => (
+                            <ListItem
+                                key={draft.id}
+                                secondaryAction={
+                                    <IconButton edge="end" onClick={() => handleLoadDraft(draft.id)} >
+                                        <RestoreIcon />
+                                    </IconButton>
+                                }
+                            >
+                                <IconButton edge="start" onClick={() => handleDeleteDraft(draft.id)} color="error">
+                                    <DeleteIcon />
+                                </IconButton>
+                                <ListItemText
+                                    primary={`Draft #${draft.id}`}
+                                    secondary={`Saved: ${new Date(draft.savedAt).toLocaleString()}`}
+                                />
+                            </ListItem>
+
+                        ))}
+                    </List>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => setDraftModalOpen(false)}>Close</Button>
+                </DialogActions>
+            </Dialog>
         </Container>
     );
 };

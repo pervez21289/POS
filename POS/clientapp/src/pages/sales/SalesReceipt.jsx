@@ -135,9 +135,9 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                     <p style={{ fontSize: '12px', fontWeight: 'bolder', textAlign: 'center', margin: 0 }}>{data[0]?.storeName}</p>
                     <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>{data[0]?.address}</p>
                     <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>GST: {data[0]?.gstin}</p>
-                    <hr style={{ margin: '4px 0' }} />
+                    
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    {receiptInfo.billNo && (<><hr style={{ margin: '4px 0' }} /><div style={{ display: 'flex', justifyContent: 'space-between' }}>
                         <div>
                             <p style={{ fontSize, fontWeight: 'bold' }}>Bill#: {receiptInfo?.billNo}</p>
                             <p style={{ fontSize, fontWeight: 'bold' }}>Date: {receiptInfo?.saleTime}</p>
@@ -147,8 +147,8 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                             <p style={{ fontSize, fontWeight: 'bold' }}>Name: {receiptInfo?.customerName}</p>
                             <p style={{ fontSize, fontWeight: 'bold' }}>Mobile: {receiptInfo?.mobileNumber}</p>
                         </div>
-                    </div>
-
+                    </div></>)
+                    }
                     <hr style={{ margin: '4px 0' }} />
 
                     <table style={{ width: '100%', fontSize, borderCollapse: 'collapse' }}>
