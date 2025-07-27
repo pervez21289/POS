@@ -84,24 +84,26 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         lines.push(`Name: ${receiptInfo?.customerName}`);
         lines.push(`Mobile: ${receiptInfo?.mobileNumber}`);
         lines.push('-'.repeat(LINE_WIDTH));
-        lines.push('Barcode     Qty  Rate   Total');
+        lines.push('Barcode     Qty  Rate   Disc   Total');
         // Items
         receiptInfo?.cart?.forEach(item => {
+            debugger;
             lines.push(item.name.slice(0, LINE_WIDTH));
             const qty = padLeft(item.quantity.toString(), 2);
-            const price = padLeft(item.price.toFixed(2), 6);
+            const price = padLeft(item.price.toFixed(2), 7);
+            const discountAmount = padLeft((item.discountAmount * item.quantity)?.toFixed(2),7);
             const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(2), 7);
-            lines.push(`${padRight(item.barcode || '-', 10)} ${qty} x ${price} ${total}`);
+            lines.push(`${padRight(item.barcode || '-', 10)} ${qty} x ${price} ${discountAmount} ${total}`);
         });
 
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Summary
-        lines.push(`${padRight('Subtotal:', 24)}${padLeft(receiptInfo?.totalAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Discount:', 24)}${padLeft(receiptInfo?.discountAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Tax:', 24)}${padLeft(receiptInfo?.taxAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Total Payable:', 24)}${padLeft(`₹${receiptInfo?.net?.toFixed(2)}`, 8)}`);
-        lines.push(`${padRight('Total Items:', 24)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0), 8)}`);
+        lines.push(`${padRight('Subtotal:', 24)}${padLeft(receiptInfo?.totalAmount?.toFixed(2), 14)}`);
+        lines.push(`${padRight('Discount:', 24)}${padLeft(receiptInfo?.discountAmount?.toFixed(2), 14)}`);
+        lines.push(`${padRight('Tax:', 24)}${padLeft(receiptInfo?.taxAmount?.toFixed(2), 14)}`);
+        lines.push(`${padRight('Total Payable:', 24)}${padLeft(`₹${receiptInfo?.net?.toFixed(2)}`, 14)}`);
+        lines.push(`${padRight('Total Items:', 24)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0), 14)}`);
 
         lines.push('-'.repeat(LINE_WIDTH));
         lines.push(center('Thank you! Visit again.'));
@@ -157,6 +159,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                 <th style={{ fontSize, textAlign: 'left' }}>Barcode</th>
                                 <th style={{ fontSize, textAlign: 'center' }}>Qty</th>
                                 <th style={{ fontSize, textAlign: 'right' }}>Rate</th>
+                                <th style={{ fontSize, textAlign: 'right' }}>Discount</th>
                                 <th style={{ fontSize, textAlign: 'right' }}>Total</th>
                             </tr>
                         </thead>
@@ -171,9 +174,10 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                     <tr>
                                         <td style={{ fontSize, fontWeight: 'bold' }}>{item.barcode || '-'}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'center' }}>{item.quantity}</td>
-                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{item.price.toFixed(2)}</td>
+                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{item.costPrice.toFixed(2)}</td>
+                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{(item.quantity * item.discountAmount)?.toFixed(2)}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>
-                                            {(item.quantity * (item?.price - (item.discount || 0))).toFixed(2)}
+                                            {(item.quantity * item.price).toFixed(2)}
                                         </td>
                                     </tr>
                                 </React.Fragment>

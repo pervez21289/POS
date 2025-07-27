@@ -30,8 +30,51 @@ const ProductForm = ({ initialData = {} }) => {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setProduct({ ...product, [name]: value });
+        let updatedProduct = { ...product, [name]: value };
+
+        const costPrice = parseFloat(name === 'costPrice' ? value : updatedProduct.costPrice) || 0;
+        const discountAmount = parseFloat(name === 'discountAmount' ? value : updatedProduct.discountAmount) || 0;
+        const discountPercent = parseFloat(name === 'discountPercent' ? value : updatedProduct.discountPercent) || 0;
+        const price = parseFloat(name === 'price' ? value : updatedProduct.price) || 0;
+
+        // When discount amount changes
+        if (name === 'discountAmount' && costPrice > 0) {
+            const newDiscountAmount = parseFloat(value) || 0;
+            const newDiscountPercent = (newDiscountAmount / costPrice) * 100;
+            updatedProduct.discountPercent = newDiscountPercent.toFixed(2);
+            updatedProduct.price = (costPrice - newDiscountAmount).toFixed(2);
+        }
+
+        // When discount percent changes
+        if (name === 'discountPercent' && costPrice > 0) {
+            const newDiscountPercent = parseFloat(value) || 0;
+            const newDiscountAmount = (costPrice * newDiscountPercent) / 100;
+            updatedProduct.discountAmount = newDiscountAmount.toFixed(2);
+            updatedProduct.price = (costPrice - newDiscountAmount).toFixed(2);
+        }
+
+        // When cost price changes
+        if (name === 'costPrice') {
+            const newCost = parseFloat(value) || 0;
+            const newDiscountAmount = parseFloat(updatedProduct.discountAmount) || 0;
+            const newDiscountPercent = (newDiscountAmount / newCost) * 100;
+            updatedProduct.discountPercent = newDiscountPercent.toFixed(2);
+            updatedProduct.price = (newCost - newDiscountAmount).toFixed(2);
+        }
+
+        // When price is changed directly
+        if (name === 'price' && costPrice > 0) {
+            const newPrice = parseFloat(value) || 0;
+            const newDiscountAmount = costPrice - newPrice;
+            const newDiscountPercent = (newDiscountAmount / costPrice) * 100;
+            updatedProduct.discountAmount = newDiscountAmount.toFixed(2);
+            updatedProduct.discountPercent = newDiscountPercent.toFixed(2);
+        }
+
+        setProduct(updatedProduct);
     };
+
+
 
     const handleCheckbox = (e) => {
         setProduct({ ...product, isActive: e.target.checked });
@@ -143,7 +186,23 @@ const ProductForm = ({ initialData = {} }) => {
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>
                 Pricing
             </Typography>
-            <Grid container spacing={2}>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                        <TextField
+                            label="Cost Price"
+                            name="costPrice"
+                            type="number"
+                            value={product?.costPrice || ''}
+                            onChange={handleChange}
+                            InputProps={{
+                                startAdornment: (
+                                    <InputAdornment position="start">
+                                        <AttachMoneyIcon />
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                    </Grid>
                 <Grid item xs={12} sm={6}>
                     <TextField
                         label="Price"
@@ -160,22 +219,7 @@ const ProductForm = ({ initialData = {} }) => {
                         }}
                     />
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Cost Price"
-                        name="costPrice"
-                        type="number"
-                        value={product?.costPrice || ''}
-                        onChange={handleChange}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    <AttachMoneyIcon />
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
-                </Grid>
+                
             </Grid>
 
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>

@@ -13,6 +13,7 @@ namespace LMS.Core.Entities
         public string? Barcode { get; set; }
         public decimal Quantity { get; set; }
         public decimal Price { get; set; }
+        public decimal CostPrice { get; set; }
         public decimal Discount { get; set; }
         public decimal Tax { get; set; }
     }
@@ -79,8 +80,9 @@ namespace LMS.Core.Entities
         public string Name { get; set; }
         public string Barcode { get; set; }
         public decimal Quantity { get; set; }
+        public decimal CostPrice { get; set; }
         public decimal Price { get; set; }
-        public decimal Discount { get; set; }
+        public decimal DiscountAmount { get; set; }
         public decimal Tax { get; set; }
     }
 

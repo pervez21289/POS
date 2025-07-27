@@ -74,7 +74,8 @@ const ReceiptPrintWrapper = () => {
                     productID: i.productID,
                     quantity: i.quantity,
                     price: i.price,
-                    discount: i.discount,
+                    costPrice: i.costPrice,
+                    discount: i.discountAmount,
                     tax: i.tax
                 }))
             };

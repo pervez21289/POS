@@ -71,11 +71,11 @@ const SalesPOSPage = () => {
 
     const addToCart = (product) => {
         let discount = 0;
-        if (product.discountPercent > 0) {
-            discount = (product.price * product.discountPercent) / 100;
-        } else if (product.discountAmount > 0) {
-            discount = product.discountAmount;
-        }
+        //if (product.discountPercent > 0) {
+        //    discount = (product.price * product.discountPercent) / 100;
+        //} else if (product.discountAmount > 0) {
+        //    discount = product.discountAmount;
+        //}
 
         const currentCart = receiptInfo?.cart ?? [];
         const found = currentCart.find((i) => i.productID === product.productID);

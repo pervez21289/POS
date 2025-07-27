@@ -21,8 +21,8 @@ const saveDraftsToStorage = (draftCarts) => {
 };
 
 const computeReceiptInfo = (receiptInfo) => {
-    const totalAmount = receiptInfo?.cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-    const discountAmount = receiptInfo?.cart.reduce((sum, i) => sum + (i.discount || 0) * i.quantity, 0);
+    const totalAmount = receiptInfo?.cart.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
+    const discountAmount = receiptInfo?.cart.reduce((sum, i) => sum + (i.discountAmount || 0) * i.quantity, 0);
     const taxAmount = receiptInfo?.cart.reduce((sum, i) => sum + (i.tax || 0), 0);
     const net = totalAmount - discountAmount + taxAmount;
     const totalItems = receiptInfo?.cart.reduce((sum, i) => sum + i.quantity, 0);

@@ -53,8 +53,8 @@ const CartPage = () => {
                         <Box>
                             <Typography fontWeight="bold">{item.name}</Typography>
                             <Typography variant="body2" color="text.secondary">Barcode: {item.barcode}</Typography>
-                            <Typography variant="body2">Price: ₹{item.price.toFixed(2)}</Typography>
-                            <Typography variant="body2">Discount: ₹{item.discount?.toFixed(2)} {item.discountPercent ? `(${item.discountPercent}%)` : ''}</Typography>
+                            <Typography variant="body2">Price: ₹{item.costPrice.toFixed(2)}</Typography>
+                            <Typography variant="body2">Discount: ₹ {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}</Typography>
                             <Typography variant="body2">Subtotal: ₹{(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}</Typography>
                         </Box>
                         <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
@@ -105,9 +105,9 @@ const CartPage = () => {
                             </TableRow>
                             <TableRow>
                                 <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode}</TableCell>
-                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price.toFixed(2)}</TableCell>
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.costPrice?.toFixed(2)}</TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                    {item.discount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
+                                    {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
                                 </TableCell>
                                 <TableCell align="center" sx={{ fontSize }}>
                                     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
@@ -138,7 +138,7 @@ const CartPage = () => {
                                     </Stack>
                                 </TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                    {(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}
+                                    {(item.quantity *item.price ).toFixed(2)}
                                 </TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>
                                     <IconButton color="error" onClick={() => removeFromCart(item.productID)}>

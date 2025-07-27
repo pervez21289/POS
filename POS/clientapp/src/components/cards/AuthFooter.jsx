@@ -16,7 +16,7 @@ export default function AuthFooter() {
         <Typography variant="subtitle2" color="secondary">
           © Made with love by Team{' '}
           <Link href="https://codedthemes.com/" target="_blank" underline="hover">
-            CodedThemes
+            NexBill
           </Link>
         </Typography>
 

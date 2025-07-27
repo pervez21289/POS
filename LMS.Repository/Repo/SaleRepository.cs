@@ -20,13 +20,14 @@ public class SaleRepository : BaseRepository,ISaleRepository
         var saleItemsTable = new DataTable();
         saleItemsTable.Columns.Add("ProductID", typeof(int));
         saleItemsTable.Columns.Add("Quantity", typeof(int));
-        saleItemsTable.Columns.Add("UnitPrice", typeof(decimal));
+        saleItemsTable.Columns.Add("CostPrice", typeof(decimal));
+        saleItemsTable.Columns.Add("Price", typeof(decimal));
         saleItemsTable.Columns.Add("Discount", typeof(decimal));
         saleItemsTable.Columns.Add("Tax", typeof(decimal));
 
         foreach (var item in saleDto.saleItems)
         {
-            saleItemsTable.Rows.Add(item.ProductID, item.Quantity, item.Price, item.Discount, item.Tax);
+            saleItemsTable.Rows.Add(item.ProductID, item.Quantity,item.CostPrice, item.Price, item.Discount, item.Tax);
         }
 
         var parameters = new DynamicParameters();
