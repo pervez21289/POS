@@ -9,16 +9,18 @@ import SearchIcon from '@mui/icons-material/Search';
 import debounce from 'lodash.debounce';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReceiptInfo } from "./../../store/reducers/sales";
-
+import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
 import CartPage from './CartPage';
 import { useGetProductsQuery } from './../../services/productApi';
 import ProductCard from './ProductCard';
+import {  resetReceiptInfo } from "./../../store/reducers/sales"; // ✅ import reset
+
 
 const SalesPOSPage = () => {
     const { data: allProducts = [], isLoading } = useGetProductsQuery('');
     const dispatch = useDispatch();
-
+    const isMobile = useIsMobile();
     const [isSearching, setIsSearching] = useState(false);
     const [barcodeInput, setBarcodeInput] = useState('');
     const barcodeInputRef = useRef(null);
@@ -84,29 +86,6 @@ const SalesPOSPage = () => {
     };
 
 
-    const updateQty = (productID, qty) => {
-        debugger;
-
-       
-
-        const currentCart = receiptInfo?.cart ?? [];
-        const updatedCart = currentCart.map((i) => i.productID === productID ? { ...i, quantity: Math.max(0, Number(qty)) } : i);
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
-    
-
-        //setCart((prev) =>
-        //    prev.map((i) =>
-        //        i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
-        //    )
-        //);
-    };
-
-    const removeFromCart = (productID) => {
-        const currentCart = receiptInfo?.cart ?? [];
-        const updatedCart = currentCart.filter((i) => i.productID !== productID);
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
-    };
-
     const handleBarcodeScan = async (e) => {
         if (e.key === 'Enter' && barcodeInput.trim()) {
             try {
@@ -142,8 +121,13 @@ const SalesPOSPage = () => {
         }
     }, [isSearch]);
 
+    useEffect(() => {
+        dispatch(resetReceiptInfo()); 
+    }, []);
+
     const cartProductIds = useMemo(() => new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
 
+    if (isLoading) return <p>Loading...</p>;
 
     return (
         <Container>
@@ -152,7 +136,7 @@ const SalesPOSPage = () => {
             </Typography>
             <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
                 {/* Cart Section */}
-                <CartPage removeFromCart={removeFromCart} updateQty={updateQty} />
+                {!isMobile && <CartPage />}
                 {/* Product Search & Barcode */}
                 <Card sx={{ flex: 3, p: 2, boxShadow: 3 }}>
                     <CardContent>

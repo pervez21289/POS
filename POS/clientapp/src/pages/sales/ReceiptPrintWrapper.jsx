@@ -19,15 +19,14 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
 
-const ReceiptPrintWrapper = ({ receiptInfo }) => {
+const ReceiptPrintWrapper = () => {
+    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
     const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('sm')); // or 'md'
-    const { data, isLoading } = useGetBasicSettingsQuery();
+   
     const printRef = useRef();
-    const navigate = useNavigate();
+    
     const dispatch = useDispatch();
-    const fontSize = '10px';
-    const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+
     const [PaymentModeID, setPaymentModeID] = useState('1');
     const [mobileError, setMobileError] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
@@ -37,81 +36,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
     const [saleId, setSaleId] = useState(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
-
-    const handlePrint = () => {
-        if (window.ReactNativeWebView) {
-            handlePrintMobile();
-        } else {
-            handlePrintWeb();
-        }
-    };
-
-
-
-
-    const handlePrintMobile = () => {
-      
-        const receiptHTML = generateTextReceipt();
-        window.ReactNativeWebView?.postMessage(receiptHTML);
-      };
-
-  
-    const handlePrintWeb = () => {
-        const textToPrint = generateTextReceipt(); // Make sure it's 32 characters per line for 58mm
-
-        const printWindow = window.open('', '', 'width=320,height=600'); // 58mm ~ 320px
-
-        const html = `
-        <html>
-            <head>
-                <title>Print Receipt</title>
-                <style>
-                    @media print {
-                        @page {
-                            margin: 0;
-                        }
-                        body {
-                            margin: 0;
-                            padding: 0;
-                            font-family: 'Courier New', monospace;
-                            font-size: 14px;
-                        }
-                        pre {
-                            margin: 0;
-                            padding: 0;
-                        }
-                    }
-
-                    body {
-                        font-family: 'Courier New', monospace;
-                        margin: 0;
-                        padding: 0;
-                         font-size: 12px;
-                    }
-
-                    
-                </style>
-            </head>
-            <body>
-                <pre>${textToPrint}</pre>
-            </body>
-        </html>
-    `;
-
-        printWindow.document.open();
-        printWindow.document.write(html);
-        printWindow.document.close();
-
-        // Give time for styles to load before printing
-        printWindow.onload = () => {
-            printWindow.focus();
-            printWindow.print();
-            printWindow.close();
-        };
-    };
-
-
-
+    
 
     // Called on blur or Enter
     const handleMobileSearch = async (value) => {
@@ -155,97 +80,15 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
             };
 
             const saleD = await createSale(sale).unwrap();
-            setSaleId(saleD?.billNo);
-            dispatch(setReceiptInfo({ receiptInfo: { cart: [] } }));
+            dispatch(setReceiptInfo({
+                receiptInfo: saleD
+            }));
             setOpenDialog(false);
             setOpenSnackbar(true);
-            handlePrint();
+            //handlePrint();
             // handlePrint();
         }
     }
-
-    useEffect(() => {
-
-        if (receiptInfo && receiptInfo.billNo) {
-            setSaleId(receiptInfo.billNo);
-            setMobileNumber(receiptInfo.mobileNumber || '');
-            setCustomerName(receiptInfo.customerName || '');
-            setPaymentModeID(receiptInfo.paymentModeID || '1');
-        }
-        console.log("store", data);
-    }, [receiptInfo.billNo]);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
-                e.preventDefault(); // Prevent default browser print
-                handlePrint();
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyDown);
-        return () => {
-            window.removeEventListener('keydown', handleKeyDown);
-        };
-    }, [handlePrint]);
-
-
-  
-
-    const generateTextReceipt = () => {
-        const LINE_WIDTH = 42;
-
-        const padRight = (text, length) => (text + ' '.repeat(length)).slice(0, length);
-        const padLeft = (text, length) => (' '.repeat(length) + text).slice(-length);
-        const center = (text) => {
-            const space = Math.floor((LINE_WIDTH - text.length) / 2);
-            return ' '.repeat(space) + text;
-        };
-
-        const lines = [];
-
-        // Header
-        lines.push(center(data?.[0].storeName || 'Store Name'));
-        lines.push(center(data?.[0].address || 'Store Address'));
-        lines.push(center(`GST: ${data?.[0].gstin || '-'}`));
-        lines.push('-'.repeat(LINE_WIDTH));
-
-        // Info
-        lines.push(`Bill#: ${saleId}  Date: ${receiptInfo?.saleTime || ''}`);
-        lines.push(`Cashier: ${receiptInfo?.userName}`);
-        lines.push(`Name: ${customerName}`);
-        lines.push(`Mobile: ${mobileNumber}`);
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push('Barcode     Qty  Rate   Total');
-        // Items
-        receiptInfo?.cart?.forEach(item => {
-            lines.push(item.name.slice(0, LINE_WIDTH));
-            const qty = padLeft(item.quantity.toString(), 2);
-            const price = padLeft(item.price.toFixed(2), 6);
-            const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(2), 7);
-            lines.push(`${padRight(item.barcode || '-', 10)} ${qty} x ${price} ${total}`);
-        });
-
-        lines.push('-'.repeat(LINE_WIDTH));
-
-        // Summary
-        lines.push(`${padRight('Subtotal:', 24)}${padLeft(receiptInfo?.totalAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Discount:', 24)}${padLeft(receiptInfo?.discountAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Tax:', 24)}${padLeft(receiptInfo?.taxAmount?.toFixed(2), 8)}`);
-        lines.push(`${padRight('Total Payable:', 24)}${padLeft(`₹${receiptInfo?.net?.toFixed(2)}`, 8)}`);
-        lines.push(`${padRight('Total Items:', 24)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0), 8)}`);
-
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push(center('Thank you! Visit again.'));
-
-        return lines.join('\n');
-    };
-
-
-
-
-
-
 
     return (
         <>
@@ -253,40 +96,27 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 <Typography variant="h5" mb={2}>Receipt Details</Typography>
 
                 {/* Scrollable content area */}
-                <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
-                   
-
-                    <Box mt={2}>
+               
                         <SalesReceipt
                             ref={printRef}
                             receiptInfo={receiptInfo}
                             className="receipt"
-                            saleId={saleId}
                             customerName={customerName}
                             mobileNumber={mobileNumber}
                         />
-                    </Box>
-                </Box>
+                    
 
                 {/* Fixed bottom button section */}
-                <Box
+                {!receiptInfo.billNo && (<Box
                     sx={mobileStickyBottomBarStyles}
                     gap={2}
                 >
-                    {!saleId && (
-                        <Button variant="contained" onClick={() => setOpenDialog(true)}>
+
+                    <Button variant="contained" onClick={() => { setMobileNumber(''); setCustomerName(''); setOpenDialog(true); }}>
                             🖨 Submit
                         </Button>
-                    )}
-                    {saleId && (
-                        <Button variant="contained" onClick={handlePrint}>
-                            🖨 Print Receipt
-                        </Button>
-                    )}
-                    <Button variant="outlined" color="secondary" onClick={() => dispatch(openDrawer({ drawerOpen: false }))}>
-                        ⬅ Back to Sale Page
-                    </Button>
-                </Box>
+                 
+                </Box>)}
 
             </Box>
 
@@ -337,7 +167,7 @@ const ReceiptPrintWrapper = ({ receiptInfo }) => {
                 open={openSnackbar}
                 autoHideDuration={3000}
                 onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'center', horizontal: 'center' }}
+                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
             >
                 <MuiAlert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
                     Sale saved successfully!

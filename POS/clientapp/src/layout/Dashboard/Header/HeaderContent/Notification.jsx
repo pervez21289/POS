@@ -26,8 +26,11 @@ import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
 import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import {  useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import { setDrawerComponent } from "./../../../../store/reducers/drawer";
+import CartPage from '../../../../pages/sales/CartPage';
+import { setIsSearch } from "./../../../../store/reducers/sales";
 // sx styles
 const avatarSX = {
   width: 36,
@@ -55,10 +58,17 @@ export default function Notification() {
   const [open, setOpen] = useState(false);
     const navigate = useNavigate();
     const { receiptInfo } = useSelector((state) => state.sales);
-
-
-  const handleToggle = () => {
-      navigate('/sales');
+    const dispatch = useDispatch();
+  
+    const handleToggle = () => {
+        
+        dispatch(
+                setDrawerComponent({
+                    DrawerComponentChild: CartPage,
+                    drawerOpen: true
+                })
+            );
+        dispatch(setIsSearch(true));
   };
 
   const handleClose = (event) => {

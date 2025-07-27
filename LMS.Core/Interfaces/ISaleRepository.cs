@@ -9,7 +9,7 @@ namespace LMS.Core.Interfaces
 {
     public interface ISaleRepository
     {
-        Task<BillNoDto> SaveSaleAsync(SaleDto saleDto);
+        Task<SaleListDto> SaveSaleAsync(SaleDto saleDto);
         Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search, int CompanyID, DateTime? date, int page, int pageSize);
         Task UpdateSaleOnPrintAsync(int saleId, string CustomerName, string mobile, string paymentMode);
         Task<SaleListDto?> GetSaleWithItems(int saleId);

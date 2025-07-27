@@ -37,6 +37,10 @@ export default function SettingTab() {
         dispatch(setUserDetails({ userDetails: null }));
     };
 
+    const handlePrinter = () => {
+        window.ReactNativeWebView?.postMessage('OPEN_SETTINGS');
+    }
+
     return (
         <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
 
@@ -65,6 +69,12 @@ export default function SettingTab() {
                     <UnorderedListOutlined />
                 </ListItemIcon>
                 <ListItemText primary="History" />
+            </ListItemButton>
+            <ListItemButton selected={selectedIndex === 4} onClick={handlePrinter}>
+                <ListItemIcon>
+                    <UnorderedListOutlined />
+                </ListItemIcon>
+                <ListItemText primary="Printer" />
             </ListItemButton>
             <ListItemButton onClick={handleLogout}>
                 <ListItemIcon>

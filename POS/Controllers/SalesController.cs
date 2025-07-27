@@ -33,13 +33,21 @@ namespace LMS.Controllers
         [HttpPost]
         public async Task<IActionResult> SaveSale([FromBody] SaleDto saleDto)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
-            saleDto.UserID = _userContext.UserId;
+                saleDto.UserID = _userContext.UserId;
 
-            BillNoDto bill = await _saleRepository.SaveSaleAsync(saleDto);
-            return Ok(bill);
+                var sale = await _saleRepository.SaveSaleAsync(saleDto);
+                return sale == null ? NotFound() : Ok(sale);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception (ex) here if needed
+                return StatusCode(500, "An error occurred while saving the sale. Please try again later.");
+            }
         }
 
         [HttpGet("GetSalesById/{saleId}")]

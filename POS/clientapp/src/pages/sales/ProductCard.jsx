@@ -1,19 +1,21 @@
-﻿import React, { useEffect, useState, useMemo } from 'react';
+﻿import React from 'react';
 import {
-    Card, Typography, Divider,
-    Table, TableBody, TableCell, TableRow, TableHead,
-    TableContainer, Paper
+    Card, Typography, useTheme
 } from '@mui/material';
 
-const ProductCard = React.memo(({ product, isInCart, onClick }) => (
-   (
+const ProductCard = React.memo(({ product, isInCart, onClick }) => {
+    const theme = useTheme();
+
+    return (
         <Card
             sx={{
                 p: 1,
                 textAlign: 'center',
                 cursor: 'pointer',
-                backgroundColor: isInCart ? '#e0f7fa' : 'white',
-                border: isInCart ? '2px solid #0288d1' : '1px solid #e0e0e0',
+                backgroundColor: isInCart ? theme.palette.warning.light : 'white',
+                border: isInCart
+                    ? `2px solid ${theme.palette.warning.main}`
+                    : '1px solid #e0e0e0',
                 transition: 'transform 0.2s, box-shadow 0.2s',
                 '&:hover': {
                     boxShadow: 6,
@@ -29,13 +31,12 @@ const ProductCard = React.memo(({ product, isInCart, onClick }) => (
                 ₹{product.price.toFixed(2)}
             </Typography>
             {product.discountPercent > 0 && (
-                <Typography variant="caption" color="green">
+                <Typography variant="caption" sx={{ color: 'green' }}>
                     {product.discountPercent}% OFF
                 </Typography>
             )}
         </Card>
-    )
-));
-
+    );
+});
 
 export default ProductCard;

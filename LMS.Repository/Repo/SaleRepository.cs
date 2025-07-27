@@ -13,7 +13,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
  
 
-    public async Task<BillNoDto> SaveSaleAsync(SaleDto saleDto)
+    public async Task<SaleListDto> SaveSaleAsync(SaleDto saleDto)
     {
       
 
@@ -42,8 +42,14 @@ public class SaleRepository : BaseRepository,ISaleRepository
         parameters.Add("@SaleItems", saleItemsTable.AsTableValuedParameter("dbo.SaleItemTableType"));
         parameters.Add("@SaleID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        BillNoDto dto=await QueryFirstOrDefaultAsync<BillNoDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
-        return dto;
+        //await ExecuteAsync("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
+        //int saleId = parameters.Get<int>("@SaleID");
+
+        var (saleItem, saleItems) = await QueryMultipleAsync<SaleListDto, SaleItemListDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
+
+        saleItem.Cart = saleItems.ToList();
+        return saleItem;
+
     }
 
     public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search,int CompanyID, DateTime? date, int page, int pageSize)

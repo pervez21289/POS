@@ -2,7 +2,7 @@
 import { createSlice ,createAsyncThunk } from '@reduxjs/toolkit';
 
 const initialState = {
-    receiptInfo: {cart:[]},
+    receiptInfo: { cart: [], saleID :null},
     isSearch:false
 };
 
@@ -23,6 +23,9 @@ const sales = createSlice({
             const receiptInfoData = { ...receiptInfo, totalAmount, discountAmount, taxAmount, net, totalItems };
             state.receiptInfo = receiptInfoData;
         },
+        resetReceiptInfo: (state) => {
+            state.receiptInfo = { cart: [] };
+        },
         setIsSearch(state, action) {
             state.isSearch = action.payload;
         }
@@ -31,4 +34,4 @@ const sales = createSlice({
 });
 
 export default sales.reducer;
-export const { setReceiptInfo, setIsSearch } = sales.actions;
+export const { setReceiptInfo, setIsSearch, resetReceiptInfo } = sales.actions;
