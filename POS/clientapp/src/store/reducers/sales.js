@@ -56,10 +56,10 @@ const sales = createSlice({
         setIsSearch(state, action) {
             state.isSearch = action.payload;
         },
-        saveDraftCart(state) {
+        saveDraftCart(state, action) {
             if (state.receiptInfo.cart.length > 0) {
                 const newDraft = {
-                    id: Date.now(),
+                    tableNo: action.payload,
                     cart: JSON.parse(JSON.stringify(state.receiptInfo.cart)),
                     savedAt: new Date().toISOString()
                 };
