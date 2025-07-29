@@ -119,18 +119,21 @@ const SalesPOSPage = () => {
         }
     };
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            if (!isSearching) {
-                barcodeInputRef.current?.focus();
-            }
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [isSearching]);
+    //useEffect(() => {
+    //    const interval = setInterval(() => {
+    //        if (!isSearching) {
+    //            barcodeInputRef.current?.focus();
+    //        }
+    //    }, 1000);
+    //    return () => clearInterval(interval);
+    //}, [isSearching]);
 
     useMemo(() => {
         if (isSearch) {
-            setIsSearching(isSearch);
+            barcodeInputRef.current?.blur();
+        }
+        else {
+            barcodeInputRef.current?.focus();
         }
     }, [isSearch]);
 
@@ -175,6 +178,14 @@ const SalesPOSPage = () => {
 
     return (
         <Container>
+            <input
+                ref={barcodeInputRef}
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                onKeyDown={handleBarcodeScan}
+                style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                tabIndex={-1}
+            />
             <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
                 Point of Sale
             </Typography>
@@ -201,14 +212,7 @@ const SalesPOSPage = () => {
                         </Box>
 
 
-                        <input
-                            ref={barcodeInputRef}
-                            value={barcodeInput}
-                            onChange={(e) => setBarcodeInput(e.target.value)}
-                            onKeyDown={handleBarcodeScan}
-                            style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
-                            tabIndex={-1}
-                        />
+                       
 
                         <Autocomplete
                             value={searchValue}
@@ -228,8 +232,8 @@ const SalesPOSPage = () => {
                             getOptionLabel={(option) => option.name || ''}
                             isOptionEqualToValue={(option, value) => option.productID === value.productID}
                             loading={loading}
-                            onBlur={() => setIsSearching(false)}
-                            onFocus={() => setIsSearching(true)}
+                            onBlur={() =>  dispatch(setIsSearch(true))}
+                            onFocus={() => dispatch(setIsSearch(true))}
                             renderOption={(props, option) => (
                                 <Box component="li" {...props}>
                                     {option.name}
