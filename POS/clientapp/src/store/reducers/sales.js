@@ -39,7 +39,7 @@ const computeReceiptInfo = (receiptInfo) => {
 
 const initialState = {
     receiptInfo: { cart: [], saleID: null },
-    isSearch: false,
+    isSearch: true,
     draftCarts: loadDraftsFromStorage()
 };
 

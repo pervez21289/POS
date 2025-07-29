@@ -3,7 +3,7 @@
 <Project>
   <PropertyGroup>
     <_PublishTargetUrl>\\192.168.1.4\nexbill</_PublishTargetUrl>
-    <History>True|2025-07-27T09:32:10.4955573Z||;True|2025-07-26T14:43:57.4206096+05:30||;</History>
+    <History>True|2025-07-27T16:46:40.6102750Z||;True|2025-07-27T15:02:10.4955573+05:30||;True|2025-07-26T14:43:57.4206096+05:30||;</History>
     <LastFailureDetails />
   </PropertyGroup>
 </Project>

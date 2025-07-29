@@ -206,8 +206,8 @@ const SalesPOSPage = () => {
                             value={barcodeInput}
                             onChange={(e) => setBarcodeInput(e.target.value)}
                             onKeyDown={handleBarcodeScan}
-                            style={{ position: 'absolute', opacity: 0, height: 0, width: 0 }}
-                            autoFocus
+                            style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
+                            tabIndex={-1}
                         />
 
                         <Autocomplete
@@ -266,10 +266,12 @@ const SalesPOSPage = () => {
                                 sx={{
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
-                                    gap: 2,
+                                    gap:1,
                                     maxHeight: 300,
                                     overflowY: 'auto',
                                 }}
+                                onFocus={() => setIsSearching(true)}
+                                onBlur={() => setIsSearching(false)}
                             >
                                 {allProducts.map(product => (
                                     <ProductCard

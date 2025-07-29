@@ -2,7 +2,7 @@
 import {
     Box, Typography, Divider, Card, Stack,
     IconButton, Button, TextField, useMediaQuery, Paper,
-    TableContainer, Table, TableHead, TableRow, TableCell, TableBody
+    TableContainer, Table, TableHead, TableRow, TableCell, TableBody, FormControlLabel, Switch
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -17,7 +17,7 @@ import useIsMobile from './../../components/useIsMobile';
 const CartPage = () => {
     const [notes, setNotes] = useState('');
     const dispatch = useDispatch();
-    const { receiptInfo } = useSelector((state) => state.sales);
+    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
     const isMobile = useIsMobile();
     const fontSize = isMobile ? '11px' : '12px';
 
@@ -155,11 +155,30 @@ const CartPage = () => {
 
     return (
         <Card sx={{ p: isMobile ? 1.5 : 3, boxShadow: 3 }}>
-            <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-                <ShoppingCartIcon color="warning" />
-                <Typography variant="h6" fontSize={isMobile ? '1.2rem' : '1.5rem'} fontWeight={600}>
-                    Cart
-                </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                    <ShoppingCartIcon color="warning" />
+                    <Typography
+                        variant="h6"
+                        fontSize={isMobile ? '1.2rem' : '1.5rem'}
+                        fontWeight={600}
+                    >
+                        Cart
+                    </Typography>
+                </Stack>
+
+                <FormControlLabel
+                    control={
+                        <Switch
+                            checked={!isSearch}
+                            onChange={() => dispatch(setIsSearch(!isSearch))}
+                            size="small"
+                        />
+                    }
+                    label="Barcode Search"
+                    labelPlacement="start"
+                    sx={{ ml: 'auto' }}
+                />
             </Stack>
 
             {receiptInfo?.cart?.length === 0 ? (
@@ -170,15 +189,7 @@ const CartPage = () => {
                 isMobile ? renderMobileCart() : renderDesktopCart()
             )}
 
-            <TextField
-                label="Notes"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                fullWidth
-                multiline
-                minRows={1}
-                sx={{ mt: 3 }}
-            />
+         
 
             <Divider sx={{ my: 2 }} />
 

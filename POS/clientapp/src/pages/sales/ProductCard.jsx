@@ -9,7 +9,7 @@ const ProductCard = React.memo(({ product, isInCart, onClick }) => {
     return (
         <Card
             sx={{
-                p: 1,
+                p:1,
                 textAlign: 'center',
                 cursor: 'pointer',
                 backgroundColor: isInCart ? theme.palette.warning.light : 'white',

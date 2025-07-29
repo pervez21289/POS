@@ -2,22 +2,19 @@
 import { useNavigate } from 'react-router-dom';
 import {
     Box, Button, Dialog, DialogTitle, DialogContent, DialogActions ,Divider, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
-    TableContainer, Paper
+    RadioGroup, FormControlLabel, Radio
 } from '@mui/material';
 import { useReactToPrint } from "react-to-print";
 import SaleService from './../../services/SaleService';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCreateSaleMutation } from './../../services/salesApi';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { setReceiptInfo } from "./../../store/reducers/sales";
-import { openDrawer } from "./../../store/reducers/drawer";
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
-import { useGetBasicSettingsQuery } from './../../services/basicSettingAPI';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
+
 
 const ReceiptPrintWrapper = () => {
     const { receiptInfo, isSearch } = useSelector((state) => state.sales);
@@ -27,7 +24,7 @@ const ReceiptPrintWrapper = () => {
     
     const dispatch = useDispatch();
 
-    const [PaymentModeID, setPaymentModeID] = useState('1');
+    const [PaymentModeID, setPaymentModeID] = useState(null);
     const [mobileError, setMobileError] = useState('');
     const [mobileNumber, setMobileNumber] = useState('');
     const [customerName, setCustomerName] = useState('');
@@ -36,7 +33,7 @@ const ReceiptPrintWrapper = () => {
     const [saleId, setSaleId] = useState(null);
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [openDialog, setOpenDialog] = useState(false);
-    
+    const [paymentModeError, setPaymentModeError] = useState('');
 
     // Called on blur or Enter
     const handleMobileSearch = async (value) => {
@@ -52,12 +49,19 @@ const ReceiptPrintWrapper = () => {
 
     const handleCheckout = async () => {
 
+        if (!PaymentModeID) {
+            setPaymentModeError('Please select a payment mode');
+            return;
+        }
+
         const mobileRegex = /^[6-9]\d{9}$/;
 
         if (!mobileRegex.test(mobileNumber) || mobileNumber === '') {
             setMobileError('Invalid mobile number');
             return;
         }
+
+       
 
         if (receiptInfo) {
             const sale = {
@@ -113,7 +117,7 @@ const ReceiptPrintWrapper = () => {
                     gap={2}
                 >
 
-                    <Button variant="contained" onClick={() => { setMobileNumber(''); setCustomerName(''); setOpenDialog(true); }}>
+                    <Button variant="contained" onClick={() => { setPaymentModeID(null); setMobileNumber(''); setCustomerName(''); setOpenDialog(true); }}>
                             🖨 Submit
                         </Button>
                  
@@ -123,8 +127,36 @@ const ReceiptPrintWrapper = () => {
 
 
             <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Customer Details</DialogTitle>
+                <DialogTitle>Payment Details</DialogTitle>
                 <DialogContent>
+
+                    <Typography variant="subtitle1" >Payment Mode</Typography>
+                    <RadioGroup
+                        row
+                        value={PaymentModeID}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            setPaymentModeID(value);
+                            if (!value) {
+                                setPaymentModeError('Please select a payment mode');
+                                return;
+                            } else {
+                                setPaymentModeError('');
+
+                            }
+
+                        }}
+                    >
+                        <FormControlLabel value="1" control={<Radio />} label="UPI" />
+                        <FormControlLabel value="2" control={<Radio />} label="Cash" />
+                        <FormControlLabel value="3" control={<Radio />} label="Card" />
+
+                    </RadioGroup>
+                    {paymentModeError && (
+                        <Typography variant="caption" color="error" sx={{ ml: 1 }}>
+                            {paymentModeError}
+                        </Typography>
+                    )}
                     <TextField
                         fullWidth
                         label="Mobile Number"
@@ -151,6 +183,7 @@ const ReceiptPrintWrapper = () => {
                         onChange={(e) => setCustomerName(e.target.value)}
                         disabled={!!customerId}
                     />
+                 
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => setOpenDialog(false)}>Cancel</Button>

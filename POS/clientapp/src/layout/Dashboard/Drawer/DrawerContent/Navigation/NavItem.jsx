@@ -39,7 +39,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
       setSelectedID(item.id);
     }
   };
-    debugger;
+  
     const Icon = getMuiIcon(item.icon);
     let itemIcon = null;
     if (Icon) {

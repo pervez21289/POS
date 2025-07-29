@@ -61,55 +61,69 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
     };
 
     const generateTextReceipt = () => {
-        const LINE_WIDTH = 42;
+        const LINE_WIDTH = 32; // 2-inch thermal printer width
 
-        const padRight = (text, length) => (text + ' '.repeat(length)).slice(0, length);
-        const padLeft = (text, length) => (' '.repeat(length) + text).slice(-length);
+        // Safe padding functions with .repeat fix
+        const padRight = (text, length) =>
+            (text + ' '.repeat(Math.max(length - text.length, 0))).slice(0, length);
+
+        const padLeft = (text, length) =>
+            (' '.repeat(Math.max(length - text.length, 0)) + text).slice(-length);
+
         const center = (text) => {
             const space = Math.floor((LINE_WIDTH - text.length) / 2);
-            return ' '.repeat(space) + text;
+            return ' '.repeat(Math.max(space, 0)) + text;
         };
+
+        const safeText = (text) => (text || '').toString().slice(0, LINE_WIDTH);
 
         const lines = [];
 
         // Header
-        lines.push(center(data?.[0].storeName || 'Store Name'));
-        lines.push(center(data?.[0].address || 'Store Address'));
-        lines.push(center(`GST: ${data?.[0].gstin || '-'}`));
+        lines.push(center(safeText(data?.[0]?.storeName || 'Store Name')));
+        lines.push(center(safeText(data?.[0]?.address || 'Store Address')));
+        lines.push(center(`GST: ${safeText(data?.[0]?.gstin || '-')}`));
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Info
-        lines.push(`Bill#: ${receiptInfo?.billNo}  Date: ${receiptInfo?.saleTime || ''}`);
-        lines.push(`Cashier: ${receiptInfo?.userName}`);
-        lines.push(`Name: ${receiptInfo?.customerName}`);
-        lines.push(`Mobile: ${receiptInfo?.mobileNumber}`);
+        lines.push(`Bill#: ${receiptInfo?.billNo || ''}`);
+        lines.push(`Date: ${receiptInfo?.saleTime || ''}`);
+        lines.push(`Cashier: ${receiptInfo?.userName || ''}`);
+        lines.push(`Name: ${receiptInfo?.customerName || ''}`);
+        lines.push(`Mobile: ${receiptInfo?.mobileNumber || ''}`);
         lines.push('-'.repeat(LINE_WIDTH));
-        lines.push('Barcode     Qty  Rate   Disc   Total');
+        lines.push('Item         Qty Rt Ds  Tot');
+
         // Items
         receiptInfo?.cart?.forEach(item => {
-            debugger;
-            lines.push(item.name.slice(0, LINE_WIDTH));
-            const qty = padLeft(item.quantity.toString(), 2);
-            const price = padLeft(item.price.toFixed(2), 7);
-            const discountAmount = padLeft((item.discountAmount * item.quantity)?.toFixed(2),7);
-            const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(2), 7);
-            lines.push(`${padRight(item.barcode || '-', 10)} ${qty} x ${price} ${discountAmount} ${total}`);
+            lines.push(safeText(item.name)); // Item name on its own line
+
+            const qty = padLeft(item.quantity?.toString() || '0', 2);
+            const rate = padLeft(item.price?.toFixed(0) || '0', 3);
+            const disc = padLeft((item.discountAmount * item.quantity)?.toFixed(0) || '0', 3);
+            const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(0), 5);
+            const barcode = padRight(item.barcode || '-', 10);
+
+            lines.push(`${barcode} ${qty} ${rate} ${disc} ${total}`);
         });
 
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Summary
-        lines.push(`${padRight('Subtotal:', 24)}${padLeft(receiptInfo?.totalAmount?.toFixed(2), 14)}`);
-        lines.push(`${padRight('Discount:', 24)}${padLeft(receiptInfo?.discountAmount?.toFixed(2), 14)}`);
-        lines.push(`${padRight('Tax:', 24)}${padLeft(receiptInfo?.taxAmount?.toFixed(2), 14)}`);
-        lines.push(`${padRight('Total Payable:', 24)}${padLeft(`₹${receiptInfo?.net?.toFixed(2)}`, 14)}`);
-        lines.push(`${padRight('Total Items:', 24)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0), 14)}`);
+        lines.push(`${padRight('Subtotal:', 16)}${padLeft(receiptInfo?.totalAmount?.toFixed(2) || '0.00', 14)}`);
+        lines.push(`${padRight('Discount:', 16)}${padLeft(receiptInfo?.discountAmount?.toFixed(2) || '0.00', 14)}`);
+        lines.push(`${padRight('Tax:', 16)}${padLeft(receiptInfo?.taxAmount?.toFixed(2) || '0.00', 14)}`);
+        lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${receiptInfo?.net?.toFixed(2) || '0.00'}`, 14)}`);
+        lines.push(`${padRight('Total Items:', 16)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0) || '0', 14)}`);
 
         lines.push('-'.repeat(LINE_WIDTH));
-        lines.push(center('Thank you! Visit again.'));
+        lines.push(center('Thank you!'));
+        lines.push(center('Visit again!'));
 
         return lines.join('\n');
     };
+
+
 
 
     useEffect(() => {
@@ -174,10 +188,10 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                     <tr>
                                         <td style={{ fontSize, fontWeight: 'bold' }}>{item.barcode || '-'}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'center' }}>{item.quantity}</td>
-                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{item.costPrice.toFixed(2)}</td>
-                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{(item.quantity * item.discountAmount)?.toFixed(2)}</td>
+                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{item.costPrice?.toFixed(2)}</td>
+                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{(item?.quantity * item?.discountAmount)?.toFixed(2)}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>
-                                            {(item.quantity * item.price).toFixed(2)}
+                                            {(item?.quantity * item?.price).toFixed(2)}
                                         </td>
                                     </tr>
                                 </React.Fragment>
