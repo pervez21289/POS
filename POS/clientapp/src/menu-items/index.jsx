@@ -11,6 +11,7 @@ try {
     if (storedMenus) {
         const menuItemsData = JSON.parse(storedMenus)?.menus;
         menuItems.items = JSON.parse(menuItemsData).items;
+        console.log("Hello", menuItems.items);
     }
 } catch (e) {
     console.error('Error loading menu items from localStorage', e);

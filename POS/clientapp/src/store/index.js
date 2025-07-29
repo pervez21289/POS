@@ -11,6 +11,7 @@ import sales from './reducers/sales';
 import users from './reducers/users';
 import alert from './reducers/alert';
 import confirm from './reducers/confirm';
+import { ticketApi } from './../services/ticketApi';
 // import other reducers if needed
 // import authReducer from './authSlice';
 
@@ -19,6 +20,7 @@ const rootReducer = combineReducers({
     [categoryApi.reducerPath]: categoryApi.reducer,
     [basicSettingApi.reducerPath]: basicSettingApi.reducer,
     [userAPI.reducerPath]: userAPI.reducer,
+    [ticketApi.reducerPath]: ticketApi.reducer,
     drawer,
     sales,
     users,
@@ -34,6 +36,7 @@ export const store = configureStore({
             productApi.middleware,
             categoryApi.middleware,
             salesApi.middleware,
-            userAPI.middleware
+            userAPI.middleware,
+            ticketApi.middleware
         ),
 });

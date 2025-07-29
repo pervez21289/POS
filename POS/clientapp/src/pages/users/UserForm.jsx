@@ -64,7 +64,7 @@ export default function UserForm({ editUser }) {
             dispatch(showAlert({ open: true, message: 'Updated saved succefully!', severity: 'success' }));
             setErrors({});
         } catch (error) {
-            debugger;
+          
             console.error('Error saving user:', error);
             dispatch(showAlert({ open: true, message: error?.data, severity: 'error' }));
         }

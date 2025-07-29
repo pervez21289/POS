@@ -25,7 +25,7 @@ const ConfirmBox = () => {
 
     const handleConfirm = async () => {
 
-        debugger;
+     
         if (onConfirm) {
             await onConfirm();
         }

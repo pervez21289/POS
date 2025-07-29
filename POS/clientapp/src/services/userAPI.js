@@ -34,11 +34,22 @@ export const userAPI = createApi({
             }),
             invalidatesTags: ['User'],
         }),
+        getApiLogs: builder.query({
+            query: ({ search = '', startDate = '', endDate = '' } = {}) => {
+                const params = new URLSearchParams();
+                if (search) params.append("search", search);
+                if (startDate) params.append("startDate", startDate);
+                if (endDate) params.append("endDate", endDate);
+                return `/user/ApiLogs?${params.toString()}`;
+            },
+            providesTags: ['ApiLog'],
+        }),
     }),
 });
 
 export const {
     useGetUsersQuery,
     useUpdateOrCreateUserMutation,
-    useDeleteUserMutation
+    useDeleteUserMutation,
+    useGetApiLogsQuery
 } = userAPI;

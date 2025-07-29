@@ -12,10 +12,12 @@ import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 
+
 // project imports
 import IconButton from 'components/@extended/IconButton';
 
 import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
+import { getMuiIcon } from '../../../../../components/getMuiIcon';
 
 // ==============================|| NAVIGATION - LIST ITEM ||============================== //
 
@@ -37,18 +39,19 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
       setSelectedID(item.id);
     }
   };
-
-  const Icon = item.icon;
-  const itemIcon = item.icon ? (
-    <Icon
-      style={{
-        fontSize: drawerOpen ? '1rem' : '1.25rem',
-        ...(isParents && { fontSize: 20, stroke: '1.5' })
-      }}
-    />
-  ) : (
-    false
-  );
+  
+    const Icon = getMuiIcon(item.icon);
+    let itemIcon = null;
+    if (Icon) {
+        itemIcon = (
+            <Icon
+                style={{
+                    fontSize: drawerOpen ? '1rem' : '1.25rem',
+                    ...(isParents && { fontSize: 20, stroke: '1.5' })
+                }}
+            />
+        );
+    }
 
   const { pathname } = useLocation();
   const isSelected = !!matchPath({ path: item?.link ? item.link : item.url, end: false }, pathname);
@@ -135,7 +138,7 @@ export default function NavItem({ item, level, isParents = false, setSelectedID 
         {(drawerOpen || (!drawerOpen && level !== 1)) &&
           item?.actions &&
           item?.actions.map((action, index) => {
-            const ActionIcon = action.icon;
+              const ActionIcon = getMuiIcon(action.icon);
             const callAction = action?.function;
             return (
               <IconButton

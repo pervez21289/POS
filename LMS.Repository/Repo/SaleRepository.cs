@@ -13,20 +13,21 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
  
 
-    public async Task<BillNoDto> SaveSaleAsync(SaleDto saleDto)
+    public async Task<SaleListDto> SaveSaleAsync(SaleDto saleDto)
     {
       
 
         var saleItemsTable = new DataTable();
         saleItemsTable.Columns.Add("ProductID", typeof(int));
         saleItemsTable.Columns.Add("Quantity", typeof(int));
-        saleItemsTable.Columns.Add("UnitPrice", typeof(decimal));
+        saleItemsTable.Columns.Add("CostPrice", typeof(decimal));
+        saleItemsTable.Columns.Add("Price", typeof(decimal));
         saleItemsTable.Columns.Add("Discount", typeof(decimal));
         saleItemsTable.Columns.Add("Tax", typeof(decimal));
 
         foreach (var item in saleDto.saleItems)
         {
-            saleItemsTable.Rows.Add(item.ProductID, item.Quantity, item.Price, item.Discount, item.Tax);
+            saleItemsTable.Rows.Add(item.ProductID, item.Quantity,item.CostPrice, item.Price, item.Discount, item.Tax);
         }
 
         var parameters = new DynamicParameters();
@@ -42,8 +43,14 @@ public class SaleRepository : BaseRepository,ISaleRepository
         parameters.Add("@SaleItems", saleItemsTable.AsTableValuedParameter("dbo.SaleItemTableType"));
         parameters.Add("@SaleID", dbType: DbType.Int32, direction: ParameterDirection.Output);
 
-        BillNoDto dto=await QueryFirstOrDefaultAsync<BillNoDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
-        return dto;
+        //await ExecuteAsync("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
+        //int saleId = parameters.Get<int>("@SaleID");
+
+        var (saleItem, saleItems) = await QueryMultipleAsync<SaleListDto, SaleItemListDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
+
+        saleItem.Cart = saleItems.ToList();
+        return saleItem;
+
     }
 
     public async Task<(IEnumerable<Sale> Rows, long Total)> GetSalesAsync(string search,int CompanyID, DateTime? date, int page, int pageSize)

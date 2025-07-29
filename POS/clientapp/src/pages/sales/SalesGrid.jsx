@@ -18,7 +18,7 @@ import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
 import { useDispatch } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
-import ReceiptPrintWrapper from './ReceiptPrintWrapper';
+import SalesReceipt from './SalesReceipt';
 import { DataGrid } from '@mui/x-data-grid';
 
 const SalesGrid = () => {
@@ -38,7 +38,7 @@ const SalesGrid = () => {
         const data = await SaleService.GetSalesById(row.saleID);
         dispatch(
             setDrawerComponent({
-                DrawerComponentChild: ReceiptPrintWrapper,
+                DrawerComponentChild: SalesReceipt,
                 drawerProps: {
                     receiptInfo: data
                 },
