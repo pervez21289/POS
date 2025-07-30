@@ -24,7 +24,7 @@ import {
 
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
-import CartPage from './CartPage';
+import PrintIcon from '@mui/icons-material/Print';
 import { useGetProductsQuery } from './../../services/productApi';
 import ProductCard from './ProductCard';
 
@@ -35,7 +35,7 @@ const SalesPOSPage = () => {
     const { data: allProducts = [], isLoading } = useGetProductsQuery('');
 
     const [isSearching, setIsSearching] = useState(false);
-    const [barcodeInput, setBarcodeInput] = useState('');
+    const [barcodeInput, setBarcodeInput] = useState(''); 
     const barcodeInputRef = useRef(null);
     const [searchValue, setSearchValue] = useState(null);
     const [searchInput, setSearchInput] = useState('');
@@ -146,14 +146,19 @@ const SalesPOSPage = () => {
         }
 
         if (!hasError) {
-            const txtPrint = generateKOTText(tableNo, receiptInfo.cart);
-            if (window.ReactNativeWebView) {
-                handlePrintMobile(txtPrint);
-            } else {
-                handlePrintWeb(txtPrint);
-            }
+            handlePrintDraft({ tableNo: tableNo, cart:receiptInfo.cart });
+           
             dispatch(saveDraftCart(tableNo.trim()));
             setTableNo('');
+        }
+    };
+
+    const handlePrintDraft = (draft) => {
+        const txtPrint = generateKOTText(draft.tableNo, draft.cart || []);
+        if (window.ReactNativeWebView) {
+            handlePrintMobile(txtPrint);
+        } else {
+            handlePrintWeb(txtPrint);
         }
     };
 
@@ -305,7 +310,7 @@ const SalesPOSPage = () => {
                                     renderInput={(params) => (
                                         <TextField
                                             {...params}
-                                            label="Search Product"
+                                            label="Search by product name"
                                             variant="outlined"
                                             size="small"
                                             InputProps={{
@@ -320,9 +325,7 @@ const SalesPOSPage = () => {
                                         />
                                     )}
                                 />
-                                <Typography variant="caption" color="text.secondary">
-                                    Search by product name.
-                                </Typography>
+                              
                             </Stack>
 
                             {/* Right Side: Table No + Action Buttons */}
@@ -408,9 +411,14 @@ const SalesPOSPage = () => {
                             <ListItem
                                 key={draft.id}
                                 secondaryAction={
-                                    <IconButton edge="end" onClick={() => handleLoadDraft(draft.tableNo)} >
-                                        <RestoreIcon />
-                                    </IconButton>
+                                    <Stack direction="row" spacing={1}>
+                                        <IconButton edge="end" onClick={() => handlePrintDraft(draft)} color="primary">
+                                            <PrintIcon />
+                                        </IconButton>
+                                        <IconButton edge="end" onClick={() => handleLoadDraft(draft.tableNo)} >
+                                            <RestoreIcon />
+                                        </IconButton>
+                                    </Stack>
                                 }
                             >
                                 <IconButton edge="start" onClick={() => handleDeleteDraft(draft.tableNo)} color="error">
@@ -421,6 +429,7 @@ const SalesPOSPage = () => {
                                     secondary={`Saved: ${new Date(draft.savedAt).toLocaleString()}`}
                                 />
                             </ListItem>
+
 
                         ))}
                     </List>

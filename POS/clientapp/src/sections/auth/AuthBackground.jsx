@@ -27,7 +27,7 @@ export default function AuthBackground() {
                     left: '10%',
                     width: 300,
                     height: 300,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.5) 0%, transparent 80%)',
+                    background: 'white',
                     filter: 'blur(80px)',
                     borderRadius: '50%',
                 }}
@@ -39,7 +39,7 @@ export default function AuthBackground() {
                     right: '15%',
                     width: 250,
                     height: 250,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 80%)',
+                    background: 'white',
                     filter: 'blur(60px)',
                     borderRadius: '50%',
                 }}
@@ -51,7 +51,7 @@ export default function AuthBackground() {
                     left: '40%',
                     width: 400,
                     height: 400,
-                    background: 'radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 80%)',
+                    background: 'white',
                     filter: 'blur(100px)',
                     borderRadius: '50%',
                 }}
