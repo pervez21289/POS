@@ -85,7 +85,7 @@ const CartPage = () => {
     );
 
     const renderDesktopCart = () => (
-        <TableContainer sx={{ maxHeight: 260 }}>
+        <TableContainer sx={{ maxHeight: 450 }}>
             <Table size="small" stickyHeader>
                 <TableHead>
                     <TableRow>

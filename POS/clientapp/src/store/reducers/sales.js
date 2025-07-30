@@ -69,14 +69,14 @@ const sales = createSlice({
             }
         },
         loadDraftCart(state, action) {
-            const draft = state.draftCarts.find(d => d.id === action.payload);
+            const draft = state.draftCarts.find(d => d.tableNo === action.payload);
             if (draft) {
                 const receiptInfo = { cart: draft.cart };
                 state.receiptInfo = computeReceiptInfo(receiptInfo);
             }
         },
         deleteDraftCart(state, action) {
-            state.draftCarts = state.draftCarts.filter(d => d.id !== action.payload);
+            state.draftCarts = state.draftCarts.filter(d => d.tableNo !== action.payload);
             saveDraftsToStorage(state.draftCarts); 
         }
     }

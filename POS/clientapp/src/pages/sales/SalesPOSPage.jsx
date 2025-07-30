@@ -119,23 +119,8 @@ const SalesPOSPage = () => {
         }
     };
 
-    //useEffect(() => {
-    //    const interval = setInterval(() => {
-    //        if (!isSearching) {
-    //            barcodeInputRef.current?.focus();
-    //        }
-    //    }, 1000);
-    //    return () => clearInterval(interval);
-    //}, [isSearching]);
+  
 
-    useMemo(() => {
-        if (isSearch) {
-            barcodeInputRef.current?.blur();
-        }
-        else {
-            barcodeInputRef.current?.focus();
-        }
-    }, [isSearch]);
 
     useEffect(() => {
         dispatch(resetReceiptInfo());
@@ -277,48 +262,92 @@ const SalesPOSPage = () => {
     if (isLoading) return <p>Loading...</p>;
 
     return (
-        <Container>
-           
-            <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
-                Point of Sale
-            </Typography>
+      <>
             <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
-                {!isMobile && <CartPage />}
-                <Card sx={{ flex: 3, p: 2, boxShadow: 3 }}>
+              
+                <Card sx={{ flex:1, boxShadow: 3 }}>
                     <CardContent>
                         <Box
                             display="flex"
                             justifyContent="space-between"
-                            alignItems="flex-end"
+                            alignItems="flex-start"
+                            flexWrap="wrap"
                             mb={2}
-                            flexWrap="nowrap"
                             gap={2}
                         >
-                            {/* Left Side: Icon + Title */}
-                            <Stack direction="row" alignItems="left" spacing={1}>
-                                <SearchIcon color="action" />
-                                <Typography variant="h6" fontWeight={600}>
-                                    Product Lookup
+                            {/* Left Side: Autocomplete + Hint */}
+                            <Stack direction="column" spacing={1} flex={1} minWidth={250}>
+                                <Autocomplete
+                                    value={searchValue}
+                                    onChange={(event, newValue) => {
+                                        if (newValue) {
+                                            addToCart(newValue);
+                                            setSearchValue(null);
+                                            setSearchInput('');
+                                        }
+                                    }}
+                                    inputValue={searchInput}
+                                    onInputChange={(event, newInputValue) => {
+                                        setSearchInput(newInputValue);
+                                        setIsSearching(true);
+                                    }}
+                                    options={searchResults || []}
+                                    getOptionLabel={(option) => option.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.productID === value.productID}
+                                    loading={loading}
+                                    onBlur={() => dispatch(setIsSearch(true))}
+                                    onFocus={() => dispatch(setIsSearch(true))}
+                                    renderOption={(props, option) => (
+                                        <Box component="li" {...props}>
+                                            {option.name}
+                                        </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Search Product"
+                                            variant="outlined"
+                                            size="small"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                />
+                                <Typography variant="caption" color="text.secondary">
+                                    Search by product name.
                                 </Typography>
                             </Stack>
 
-                            {/* Right Side: Table No + Buttons */}
-                            <Stack direction="row" spacing={1} alignItems="flex-start">
+                            {/* Right Side: Table No + Action Buttons */}
+                            <Stack direction="row" spacing={1} alignItems="right" flexShrink={0}>
                                 <TextField
                                     label="Table No"
                                     value={tableNo}
                                     onChange={(e) => setTableNo(e.target.value)}
                                     error={!!tableNoError}
-                                    helperText={tableNoError || ' '} // ⬅️ Always reserve space
+                                    helperText={tableNoError || ''}
                                     size="small"
-                                    sx={{ width: 120 }}
+                                    sx={{ width: 90 }}
+                                    FormHelperTextProps={{
+                                        sx: {
+                                            minHeight: '10px', // ensures consistent space
+                                            margin: 0,         // removes default extra margin
+                                        },
+                                    }}
                                 />
                                 <Button
                                     variant="outlined"
                                     color="warning"
                                     size="small"
                                     onClick={handleSaveKOT}
-                                    sx={{ height: 40 }} // Optional: force consistent height
+                                    sx={{ height: 40 }}
                                 >
                                     Print KOT
                                 </Button>
@@ -336,58 +365,7 @@ const SalesPOSPage = () => {
                         </Box>
 
 
-
-                       
-
-                        <Autocomplete
-                            value={searchValue}
-                            onChange={(event, newValue) => {
-                                if (newValue) {
-                                    addToCart(newValue);
-                                    setSearchValue(null);
-                                    setSearchInput('');
-                                }
-                            }}
-                            inputValue={searchInput}
-                            onInputChange={(event, newInputValue) => {
-                                setSearchInput(newInputValue);
-                                setIsSearching(true);
-                            }}
-                            options={searchResults || []}
-                            getOptionLabel={(option) => option.name || ''}
-                            isOptionEqualToValue={(option, value) => option.productID === value.productID}
-                            loading={loading}
-                            onBlur={() =>  dispatch(setIsSearch(true))}
-                            onFocus={() => dispatch(setIsSearch(true))}
-                            renderOption={(props, option) => (
-                                <Box component="li" {...props}>
-                                    {option.name}
-                                </Box>
-                            )}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Search Product"
-                                    variant="outlined"
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        endAdornment: (
-                                            <>
-                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                {params.InputProps.endAdornment}
-                                            </>
-                                        ),
-                                    }}
-                                />
-                            )}
-                        />
-
-                        <Typography variant="caption" color="text.secondary" mt={1} display="block">
-                            Scan barcode or search by product name.
-                        </Typography>
-
-
-                        <Box sx={{ mt: 3 }}>
+                        <Box >
                             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                                 Quick Select
                             </Typography>
@@ -396,7 +374,7 @@ const SalesPOSPage = () => {
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
                                     gap:1,
-                                    maxHeight: 300,
+                                    maxHeight: 450,
                                     overflowY: 'auto',
                                 }}
                                 onFocus={() => setIsSearching(true)}
@@ -418,11 +396,11 @@ const SalesPOSPage = () => {
 
             {/* Draft Modal */}
             <Dialog open={draftModalOpen} onClose={() => setDraftModalOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Saved Draft Carts</DialogTitle>
+                <DialogTitle>Saved Orders</DialogTitle>
                 <DialogContent dividers>
                     {receiptInfo.cart.length > 0 && (
                         <Typography variant="caption" color="text.secondary" mb={2}>
-                            Current cart will be replaced when loading a draft.
+                            Current cart will be replaced when loading a KOT.
                         </Typography>
                     )}
                     <List>
@@ -430,12 +408,12 @@ const SalesPOSPage = () => {
                             <ListItem
                                 key={draft.id}
                                 secondaryAction={
-                                    <IconButton edge="end" onClick={() => handleLoadDraft(draft.id)} >
+                                    <IconButton edge="end" onClick={() => handleLoadDraft(draft.tableNo)} >
                                         <RestoreIcon />
                                     </IconButton>
                                 }
                             >
-                                <IconButton edge="start" onClick={() => handleDeleteDraft(draft.id)} color="error">
+                                <IconButton edge="start" onClick={() => handleDeleteDraft(draft.tableNo)} color="error">
                                     <DeleteIcon />
                                 </IconButton>
                                 <ListItemText
@@ -451,7 +429,7 @@ const SalesPOSPage = () => {
                     <Button onClick={() => setDraftModalOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+       </>
     );
 };
 
