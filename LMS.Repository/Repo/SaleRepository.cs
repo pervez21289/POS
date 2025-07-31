@@ -11,8 +11,6 @@ using static Dapper.SqlMapper;
 public class SaleRepository : BaseRepository,ISaleRepository
 {
 
- 
-
     public async Task<SaleListDto> SaveSaleAsync(SaleDto saleDto)
     {
       
@@ -40,11 +38,9 @@ public class SaleRepository : BaseRepository,ISaleRepository
         parameters.Add("@PaymentModeID", saleDto.PaymentModeID); // e.g. "Cash", "UPI"
         parameters.Add("@CustomerName", saleDto.CustomerName);
         parameters.Add("@MobileNumber", saleDto.MobileNumber);
+        parameters.Add("@CompanyID", saleDto.CompanyID);
         parameters.Add("@SaleItems", saleItemsTable.AsTableValuedParameter("dbo.SaleItemTableType"));
         parameters.Add("@SaleID", dbType: DbType.Int32, direction: ParameterDirection.Output);
-
-        //await ExecuteAsync("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
-        //int saleId = parameters.Get<int>("@SaleID");
 
         var (saleItem, saleItems) = await QueryMultipleAsync<SaleListDto, SaleItemListDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
 
@@ -127,6 +123,6 @@ public class SaleRepository : BaseRepository,ISaleRepository
     {
       
         return await QueryFirstOrDefaultAsync<string>(
-            "GetMonthlySalesSummaryJson",new { CompanyID = CompanyID }, commandType: CommandType.StoredProcedure);
+            "GetSalesSummary", new { CompanyID = CompanyID }, commandType: CommandType.StoredProcedure);
     }
 }

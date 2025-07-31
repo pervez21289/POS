@@ -31,6 +31,7 @@ namespace LMS.Core.Entities
         public string CustomerName { get; set; }
         public string MobileNumber { get; set; }
         public string PaymentModeID { get; set; }
+        public int? CompanyID { get; set; }
         public List<SaleItemDto> saleItems { get; set; }
     }
 

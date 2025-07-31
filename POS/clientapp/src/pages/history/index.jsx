@@ -2,12 +2,16 @@
 import { Box, TextField } from "@mui/material";
 import { DataGrid } from "@mui/x-data-grid";
 import { useGetApiLogsQuery } from "../../services/userAPI"; // adjust path if needed
+import { useSelector } from 'react-redux';
 
 const ApiLogsTable = () => {
+    const { userDetails } = useSelector((state) => state.users);
+    if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
+
     const [search, setSearch] = useState("");
     const [startDate, setStartDate] = useState("");
     const [endDate, setEndDate] = useState("");
-
+   
     const { data = [], isLoading } = useGetApiLogsQuery({
         search,
         startDate,
@@ -24,6 +28,8 @@ const ApiLogsTable = () => {
         { field: "durationMs", headerName: "Duration (ms)", width: 130 },
         { field: "userId", headerName: "User ID", width: 100 },
     ];
+
+    
 
     return (
         <Box sx={{ height: 600, width: "100%", p: 2 }}>

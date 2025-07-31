@@ -13,14 +13,14 @@ import {
     useDeleteUserMutation
 } from './../../services/userAPI';
 import UserForm from './UserForm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
 
 export default function UserManagement() {
     const { data: users = [], refetch } = useGetUsersQuery();
     const [deleteUser] = useDeleteUserMutation();
     const dispatch = useDispatch();
-
+    const { userDetails } = useSelector((state) => state.users);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -38,6 +38,11 @@ export default function UserManagement() {
             })
         );
     };
+
+
+
+    if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
+
 
     const columns = [
         { field: 'firstName', headerName: 'Name', width: 150 },

@@ -39,6 +39,7 @@ namespace LMS.Controllers
                     return BadRequest(ModelState);
 
                 saleDto.UserID = _userContext.UserId;
+                saleDto.CompanyID = _userContext.CompanyID;
 
                 var sale = await _saleRepository.SaveSaleAsync(saleDto);
                 return sale == null ? NotFound() : Ok(sale);

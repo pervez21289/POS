@@ -1,829 +1,1087 @@
-﻿import React from 'react';
-import {
-    Box,
-    Container,
-    Typography,
-    Button,
-    Grid,
-    Card,
-    CardContent,
-    Avatar,
-    useTheme,
-    CardActions,
-    Accordion,
-    AccordionSummary,
-    AccordionDetails,
-    Stack,
-    IconButton,
-} from '@mui/material';
-import {
-    PointOfSale,
-    Speed,
-    Security,
-    WorkspacePremium,
-    MonetizationOn,
-    Star,
-    Inventory,
-    Store,
-    WifiOff,
-    ExpandMore,
-    Facebook,
-    Twitter,
-    LinkedIn,
-    Instagram,
-} from '@mui/icons-material';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router';
-import poshero from '../../assets/images/pos-hero.jpg';     
-const features = [
-    {
-        title: 'Fast & Intuitive Billing',
-        description: 'Lightning-fast POS interface with smart shortcuts and quick billing features.',
-        icon: <PointOfSale fontSize="large" color="primary" />,
-    },
-    {
-        title: 'Real-time Inventory',
-        description: 'Track stock levels, get low inventory alerts, and manage products effortlessly.',
-        icon: <Inventory fontSize="large" color="primary" />,
-    },
-    {
-        title: 'Multi-store Management',
-        description: 'Manage multiple locations from a single dashboard with real-time synchronization.',
-        icon: <Store fontSize="large" color="primary" />,
-    },
-    {
-        title: 'Offline Mode',
-        description: 'Keep selling even without internet. Auto-sync when connection is restored.',
-        icon: <WifiOff fontSize="large" color="primary" />,
-    },
-    {
-        title: 'Smart Analytics',
-        description: 'Make data-driven decisions with comprehensive sales and inventory reports.',
-        icon: <Speed fontSize="large" color="primary" />,
-    },
-    {
-        title: 'Enterprise Security',
-        description: 'Bank-grade encryption with role-based access control and audit logs.',
-        icon: <Security fontSize="large" color="primary" />,
-    },
-];
+﻿import React, { useState, useRef, useEffect } from 'react';
+import POSHERO from '../../assets/images/pos.jpg';
 
-const pricingPlans = [
-    {
-        title: 'Free',
-        price: '$0',
-        period: '/month',
-        popular: false,
-        features: [
-            'Up to 100 invoices/month',
-            'Basic Analytics',
-            'Single Store',
-            'Email Support',
-            'Basic Inventory Management',
-            'Cloud Backup'
-        ],
-        icon: <Star color="primary" />,
-    },
-    {
-        title: 'Pro',
-        price: '$49',
-        period: '/month',
-        popular: true,
-        features: [
-            'Unlimited invoices',
-            'Advanced Analytics',
-            'Up to 3 Stores',
-            'Priority Support',
-            'Advanced Inventory',
-            'Customer Management',
-            'Offline Mode'
-        ],
-        icon: <MonetizationOn color="secondary" />,
-    },
-    {
-        title: 'Enterprise',
-        price: 'Custom',
-        period: '',
-        popular: false,
-        features: [
-            'Unlimited Everything',
-            'Custom Analytics',
-            'Unlimited Stores',
-            '24/7 Dedicated Support',
-            'Custom Integration',
-            'White Label Option',
-            'API Access'
-        ],
-        icon: <WorkspacePremium color="warning" />,
-    },
-];
+// --- CSS directly embedded ---
+const AppStyles = `
+:root {
+    --primary-blue: #1976d2;
+    --light-grey: #f8f8f8;
+    --dark-grey: #333;
+    --text-color: #555;
+    --white: #fff;
+}
 
-const testimonials = [
-    {
-        name: 'Sarah Johnson',
-        role: 'Restaurant Owner',
-        quote: 'NexBill transformed how we handle rush hours. The speed and reliability are impressive!',
-        avatar: '/assets/images/users/sarah.jpg'
-    },
-    {
-        name: 'Michael Chen',
-        role: 'Retail Chain Manager',
-        quote: 'Managing multiple stores has never been easier. The real-time sync is a game-changer.',
-        avatar: '/assets/images/users/michael.jpg'
-    },
-    {
-        name: 'Emma Davis',
-        role: 'Cafe Owner',
-        quote: 'The offline mode saved us during internet outages. Customer support is exceptional!',
-        avatar: '/assets/images/users/emma.jpg'
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--white);
+    scroll-behavior: smooth;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* --- Global Button Styles --- */
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary {
+    background-color: var(--primary-blue);
+    color: var(--white);
+}
+
+.btn-primary:hover {
+    background-color: #1565c0;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.btn-secondary {
+    background-color: var(--white);
+    color: var(--primary-blue);
+    border: 2px solid var(--primary-blue);
+}
+
+.btn-secondary:hover {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+/* --- Section Heading --- */
+.section {
+    padding: 80px 0;
+    text-align: center;
+}
+
+.section-heading {
+    font-size: 2.5rem;
+    color: var(--primary-blue);
+    margin-bottom: 60px;
+    font-weight: 600;
+}
+
+/* --- Animations --- */
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
     }
-];
-
-const faqs = [
-    {
-        question: 'How easy is it to get started with NexBill?',
-        answer: 'Getting started with NexBill is simple! Sign up for a free account, and you can start billing within minutes. Our setup wizard will guide you through the process of adding your products and configuring your store settings.'
-    },
-    {
-        question: 'Can I use NexBill offline?',
-        answer: 'Yes! NexBill works seamlessly offline. You can continue making sales during internet outages, and all data will automatically sync once the connection is restored.'
-    },
-    {
-        question: 'Is my data secure with NexBill?',
-        answer: 'Absolutely! We use bank-grade encryption to protect your data. All information is stored in secure cloud servers with regular backups. We are also compliant with industry security standards.'
-    },
-    {
-        question: 'Do you offer custom integrations?',
-        answer: 'Yes, our Enterprise plan includes custom integrations with your existing systems. Contact our sales team to discuss your specific requirements.'
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
-];
+}
 
-const POSLandingPage = () => {
-    const theme = useTheme();
-    const navigate = useNavigate();
+.animated {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.animated.fade-in {
+    opacity: 1;
+    transform: translateY(0);
+}
 
-    return (
-        <Box>
-            {/* Hero Section */}
-            <Box
-                sx={{
-                    minHeight: '90vh',
-                    background: 'linear-gradient(135deg, #1976d2 0%, #1565c0 100%)',
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'radial-gradient(circle at 20% 150%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%)',
-                    },
-                }}
-            >
-                <Container maxWidth="lg">
-                    <Grid container spacing={6} alignItems="center">
-                        <Grid item xs={12} md={6}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: 0.8 }}
-                            >
-                                <Typography 
-                                    variant="h2" 
-                                    fontWeight={700} 
-                                    gutterBottom
-                                    sx={{
-                                        fontSize: { xs: '2.5rem', md: '3.5rem' },
-                                        lineHeight: 1.2,
-                                    }}
-                                >
-                                    Smart POS System for Modern Businesses
-                                </Typography>
-                                <Typography 
-                                    variant="h5" 
-                                    mb={4}
-                                    sx={{ 
-                                        opacity: 0.9,
-                                        fontWeight: 400,
-                                        lineHeight: 1.5,
-                                    }}
-                                >
-                                    Simplify billing, manage inventory, and grow your business with NexBill.
-                                </Typography>
-                                <Stack direction="row" spacing={2}>
-                                    <Button
-                                        variant="contained"
-                                        size="large"
-                                        sx={{
-                                            bgcolor: '#fff',
-                                            color: '#1976d2',
-                                            fontSize: '1.1rem',
-                                            py: 1.5,
-                                            px: 4,
-                                            '&:hover': {
-                                                bgcolor: 'rgba(255,255,255,0.9)',
-                                            },
-                                        }}
-                                        onClick={() => navigate('/register')}
-                                    >
-                                        Get Started Free
-                                    </Button>
-                                    <Button
-                                        variant="outlined"
-                                        size="large"
-                                        sx={{
-                                            borderColor: 'rgba(255,255,255,0.5)',
-                                            color: '#fff',
-                                            fontSize: '1.1rem',
-                                            py: 1.5,
-                                            px: 4,
-                                            '&:hover': {
-                                                borderColor: '#fff',
-                                                bgcolor: 'rgba(255,255,255,0.1)',
-                                            },
-                                        }}
-                                        onClick={() => navigate('/contact')}
-                                    >
-                                        Schedule a Demo
-                                    </Button>
-                                </Stack>
-                            </motion.div>
-                        </Grid>
-                        <Grid item xs={12} md={6}>
-                            <motion.div
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.8, delay: 0.2 }}
-                            >
-                                <Box
-                                    component="img"
-                                    src={poshero}
-                                    alt="NexBill POS System"
-                                sx={{
-                                    width: '100%',
-                                    maxHeight: 500,
-                                    borderRadius: 4,
-                                    boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-                                    transform: 'perspective(1000px) rotateY(-5deg)',
-                                }}
-                            />
-                            </motion.div>
-                        </Grid>
-                    </Grid>
-                </Container>
-            </Box>
 
-            {/* About Section */}
-            <Container sx={{ py: 12 }}>
-                <Grid container spacing={8} alignItems="center">
-                    <Grid item xs={12} md={6}>
-                        <motion.div
-                            initial={{ opacity: 0, x: -40 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                            viewport={{ once: true }}
-                        >
-                            <Typography variant="h3" fontWeight={700} gutterBottom color="primary">
-                                Why NexBill?
-                            </Typography>
-                            <Box sx={{ mb: 4 }}>
-                                {[
-                                    'Fast and intuitive billing process',
-                                    'Real-time inventory tracking',
-                                    'Multi-store management capabilities',
-                                    'Works offline - never miss a sale',
-                                ].map((benefit, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            mb: 2,
-                                            '&:last-child': { mb: 0 },
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                width: 24,
-                                                height: 24,
-                                                borderRadius: '50%',
-                                                bgcolor: 'primary.main',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                mr: 2,
-                                            }}
-                                        >
-                                            <Typography color="white" fontSize={14}>✓</Typography>
-                                        </Box>
-                                        <Typography variant="h6" color="text.primary">
-                                            {benefit}
-                                        </Typography>
-                                    </Box>
-                                ))}
-                            </Box>
-                            <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
-                                Whether you run a small retail shop or a multi-branch business, NexBill provides everything you need for modern retail operations. With smart integrations and an intuitive interface, you'll wonder how you ever managed without it.
-                            </Typography>
-                            <Button
-                                variant="contained"
-                                size="large"
-                                color="primary"
-                                onClick={() => navigate('/register')}
-                                sx={{ px: 4, py: 1.5 }}
-                            >
-                                Try It Free
-                            </Button>
-                        </motion.div>
-                    </Grid>
-                    <Grid item xs={12} md={6}>
-                        <motion.div
-                            initial={{ opacity: 0, x: 40 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.8 }}
-                            viewport={{ once: true }}
-                        >
-                            <Box
-                                component="img"
-                                src="/assets/images/pos-hero.jpg"
-                                alt="NexBill Interface"
-                                sx={{
-                                    width: '100%',
-                                    borderRadius: 4,
-                                    boxShadow: '0 20px 40px rgba(0,0,0,0.1)',
-                                }}
-                            />
-                        </motion.div>
-                    </Grid>
-                </Grid>
-            </Container>
+/* --- Header --- */
+header {
+    background-color: var(--white);
+    padding: 20px 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
 
-            {/* Features */}
-            <Box sx={{ bgcolor: '#f8fafc', py: 12 }}>
-                <Container>
-                    <Box sx={{ textAlign: 'center', mb: 8 }}>
-                        <Typography 
-                            variant="h3" 
-                            fontWeight={700} 
-                            gutterBottom
-                            sx={{ color: theme.palette.primary.main }}
-                        >
-                            Features that Power Your Business
-                        </Typography>
-                        <Typography 
-                            variant="h6" 
-                            sx={{ 
-                                color: 'text.secondary',
-                                maxWidth: 600,
-                                mx: 'auto',
-                                mb: 1
-                            }}
-                        >
-                            Everything you need to run your business efficiently
-                        </Typography>
-                    </Box>
-                    <Grid container spacing={4}>
-                        {features.map((feature, index) => (
-                            <Grid item xs={12} sm={6} md={4} key={index}>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                >
-                                    <Card 
-                                        sx={{ 
-                                            p: 3, 
-                                            height: '100%',
-                                            borderRadius: 4,
-                                            transition: 'all 0.3s ease',
-                                            border: '1px solid',
-                                            borderColor: 'divider',
-                                            boxShadow: 'none',
-                                            '&:hover': {
-                                                transform: 'translateY(-8px)',
-                                                boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
-                                                borderColor: 'transparent',
-                                            }
-                                        }}
-                                    >
-                                        <Box
-                                            sx={{
-                                                width: 60,
-                                                height: 60,
-                                                borderRadius: 3,
-                                                bgcolor: 'primary.lighter',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                mb: 2,
-                                                '& svg': {
-                                                    fontSize: 30,
-                                                    color: theme.palette.primary.main,
-                                                }
-                                            }}
-                                        >
-                                            {feature.icon}
-                                        </Box>
-                                        <Typography 
-                                            variant="h5" 
-                                            gutterBottom
-                                            sx={{ fontWeight: 600 }}
-                                        >
-                                            {feature.title}
-                                        </Typography>
-                                        <Typography 
-                                            variant="body1" 
-                                            color="text.secondary"
-                                            sx={{ lineHeight: 1.7 }}
-                                        >
-                                            {feature.description}
-                                        </Typography>
-                                    </Card>
-                                </motion.div>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Container>
-            </Box>
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-            {/* Testimonials */}
-            <Container sx={{ py: 12 }}>
-                <Typography 
-                    variant="h3" 
-                    align="center" 
-                    fontWeight={700} 
-                    gutterBottom
-                    color="primary"
-                >
-                    Trusted by Businesses
-                </Typography>
-                <Typography 
-                    variant="h6" 
-                    align="center" 
-                    color="text.secondary" 
-                    sx={{ mb: 6, maxWidth: 700, mx: 'auto' }}
-                >
-                    See what our customers say about their experience with NexBill
-                </Typography>
-                <Grid container spacing={4}>
-                    {testimonials.map((testimonial, index) => (
-                        <Grid item xs={12} md={4} key={index}>
-                            <motion.div
-                                initial={{ opacity: 0, y: 20 }}
-                                whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ duration: 0.5, delay: index * 0.1 }}
-                            >
-                                <Card
-                                    sx={{
-                                        p: 4,
-                                        height: '100%',
-                                        borderRadius: 4,
-                                        boxShadow: 'none',
-                                        border: '1px solid',
-                                        borderColor: 'divider',
-                                    }}
-                                >
-                                    <Typography 
-                                        variant="body1" 
-                                        sx={{ 
-                                            mb: 3,
-                                            fontStyle: 'italic',
-                                            color: 'text.secondary',
-                                            lineHeight: 1.7
-                                        }}
-                                    >
-                                        "{testimonial.quote}"
-                                    </Typography>
-                                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                        <Avatar
-                                            src={testimonial.avatar}
-                                            sx={{ width: 48, height: 48, mr: 2 }}
-                                        />
-                                        <Box>
-                                            <Typography variant="subtitle1" fontWeight={600}>
-                                                {testimonial.name}
-                                            </Typography>
-                                            <Typography variant="body2" color="text.secondary">
-                                                {testimonial.role}
-                                            </Typography>
-                                        </Box>
-                                    </Box>
-                                </Card>
-                            </motion.div>
-                        </Grid>
-                    ))}
-                </Grid>
-            </Container>
+.logo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--primary-blue);
+    text-decoration: none;
+}
 
-            {/* Pricing */}
-            <Box sx={{ bgcolor: '#f8fafc', py: 12 }}>
-                <Container>
-                    <Typography 
-                        variant="h3" 
-                        align="center" 
-                        fontWeight={700} 
-                        gutterBottom
-                        color="primary"
-                    >
-                        Simple, Transparent Pricing
-                    </Typography>
-                    <Typography 
-                        variant="h6" 
-                        align="center" 
-                        color="text.secondary"
-                        sx={{ mb: 8, maxWidth: 600, mx: 'auto' }}
-                    >
-                        Choose the perfect plan for your business needs
-                    </Typography>
-                    <Grid container spacing={4} alignItems="center">
-                        {pricingPlans.map((plan, index) => (
-                            <Grid item xs={12} md={4} key={index}>
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 0.5, delay: index * 0.1 }}
-                                >
-                                    <Card
-                                        sx={{
-                                            p: 4,
-                                            height: '100%',
-                                            borderRadius: 4,
-                                            position: 'relative',
-                                            transition: 'all 0.3s ease',
-                                            border: '1px solid',
-                                            borderColor: plan.popular ? 'primary.main' : 'divider',
-                                            boxShadow: plan.popular ? '0 8px 24px rgba(0,0,0,0.12)' : 'none',
-                                            '&:hover': {
-                                                transform: 'translateY(-8px)',
-                                                boxShadow: '0 12px 24px rgba(0,0,0,0.1)',
-                                            },
-                                        }}
-                                    >
-                                        {plan.popular && (
-                                            <Box
-                                                sx={{
-                                                    position: 'absolute',
-                                                    top: 12,
-                                                    right: 12,
-                                                    bgcolor: 'primary.main',
-                                                    color: 'white',
-                                                    px: 2,
-                                                    py: 0.5,
-                                                    borderRadius: 6,
-                                                    fontSize: '0.875rem',
-                                                }}
-                                            >
-                                                Popular
-                                            </Box>
-                                        )}
-                                        <Box 
-                                            sx={{
-                                                width: 56,
-                                                height: 56,
-                                                borderRadius: 3,
-                                                bgcolor: 'primary.lighter',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'center',
-                                                mb: 3,
-                                            }}
-                                        >
-                                            {plan.icon}
-                                        </Box>
-                                        <Typography variant="h5" fontWeight={600} gutterBottom>
-                                            {plan.title}
-                                        </Typography>
-                                        <Box sx={{ display: 'flex', alignItems: 'baseline', mb: 3 }}>
-                                            <Typography variant="h3" fontWeight={700} color="primary">
-                                                {plan.price}
-                                            </Typography>
-                                            <Typography variant="h6" color="text.secondary" sx={{ ml: 1 }}>
-                                                {plan.period}
-                                            </Typography>
-                                        </Box>
-                                        {plan.features.map((feature, i) => (
-                                            <Box
-                                                key={i}
-                                                sx={{
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    mb: 1.5,
-                                                }}
-                                            >
-                                                <Box
-                                                    sx={{
-                                                        width: 20,
-                                                        height: 20,
-                                                        borderRadius: '50%',
-                                                        bgcolor: 'primary.lighter',
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        justifyContent: 'center',
-                                                        mr: 1.5,
-                                                    }}
-                                                >
-                                                    <Typography color="primary" fontSize={12}>✓</Typography>
-                                                </Box>
-                                                <Typography variant="body1" color="text.secondary">
-                                                    {feature}
-                                                </Typography>
-                                            </Box>
-                                        ))}
-                                        <Button
-                                            variant={plan.popular ? "contained" : "outlined"}
-                                            color="primary"
-                                            fullWidth
-                                            size="large"
-                                            sx={{ mt: 4 }}
-                                            onClick={() => navigate('/register')}
-                                        >
-                                            Get Started
-                                        </Button>
-                                    </Card>
-                                </motion.div>
-                            </Grid>
-                        ))}
-                    </Grid>
-                </Container>
-            </Box>
+.nav-links a {
+    text-decoration: none;
+    color: var(--dark-grey);
+    font-weight: 500;
+    margin-left: 30px;
+    transition: color 0.3s ease;
+}
 
-            {/* FAQ Section */}
-            <Container sx={{ py: 12 }}>
-                <Typography 
-                    variant="h3" 
-                    align="center" 
-                    fontWeight={700} 
-                    gutterBottom
-                    color="primary"
-                >
-                    Frequently Asked Questions
-                </Typography>
-                <Typography 
-                    variant="h6" 
-                    align="center" 
-                    color="text.secondary"
-                    sx={{ mb: 6, maxWidth: 600, mx: 'auto' }}
-                >
-                    Got questions? We've got answers
-                </Typography>
-                <Box sx={{ maxWidth: 800, mx: 'auto' }}>
-                    {faqs.map((faq, index) => (
-                        <Accordion
-                            key={index}
-                            sx={{
-                                mb: 2,
-                                boxShadow: 'none',
-                                '&:before': { display: 'none' },
-                                borderRadius: '8px !important',
-                                border: '1px solid',
-                                borderColor: 'divider',
-                            }}
-                        >
-                            <AccordionSummary
-                                expandIcon={<ExpandMore />}
-                                sx={{
-                                    '& .MuiAccordionSummary-content': {
-                                        my: 2,
-                                    },
-                                }}
-                            >
-                                <Typography variant="h6" fontWeight={500}>
-                                    {faq.question}
-                                </Typography>
-                            </AccordionSummary>
-                            <AccordionDetails>
-                                <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7 }}>
-                                    {faq.answer}
-                                </Typography>
-                            </AccordionDetails>
-                        </Accordion>
-                    ))}
-                </Box>
-            </Container>
+.nav-links a:hover {
+    color: var(--primary-blue);
+}
 
-            {/* CTA Section */}
-            <Box 
-                sx={{ 
-                    bgcolor: 'primary.main',
-                    color: 'white',
-                    py: 12,
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&::before': {
-                        content: '""',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        background: 'radial-gradient(circle at 20% 150%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 50%)',
-                    },
-                }}
-            >
-                <Container>
-                    <Box sx={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-                        <Typography variant="h3" fontWeight={700} gutterBottom>
-                            Ready to Transform Your Business?
-                        </Typography>
-                        <Typography variant="h6" sx={{ mb: 4, opacity: 0.9 }}>
-                            Join thousands of businesses that trust NexBill
-                        </Typography>
-                        <Button
-                            variant="contained"
-                            size="large"
-                            sx={{
-                                bgcolor: 'white',
-                                color: 'primary.main',
-                                fontSize: '1.1rem',
-                                py: 1.5,
-                                px: 4,
-                                '&:hover': {
-                                    bgcolor: 'rgba(255,255,255,0.9)',
-                                },
-                            }}
-                            onClick={() => navigate('/register')}
-                        >
-                            Start Free Trial
-                        </Button>
-                    </Box>
-                </Container>
-            </Box>
+/* --- Hero Section --- */
+.hero-section {
+    background: linear-gradient(135deg, var(--white) 0%, var(--light-grey) 100%);
+    padding: 100px 0;
+    display: flex;
+    align-items: center;
+    min-height: 80vh;
+    overflow: hidden;
+}
 
-            {/* Footer */}
-            <Box sx={{ bgcolor: '#0A1929', color: 'white', py: 6 }}>
-                <Container>
-                    <Grid container spacing={4}>
-                        <Grid item xs={12} md={4}>
-                            <Typography variant="h6" fontWeight={600} gutterBottom>
-                                NexBill
-                            </Typography>
-                            <Typography variant="body2" color="grey.400" sx={{ mb: 2 }}>
-                                Smart POS System for Modern Businesses
-                            </Typography>
-                            <Stack direction="row" spacing={1}>
-                                <IconButton size="small" sx={{ color: 'grey.400' }}>
-                                    <Facebook />
-                                </IconButton>
-                                <IconButton size="small" sx={{ color: 'grey.400' }}>
-                                    <Twitter />
-                                </IconButton>
-                                <IconButton size="small" sx={{ color: 'grey.400' }}>
-                                    <LinkedIn />
-                                </IconButton>
-                                <IconButton size="small" sx={{ color: 'grey.400' }}>
-                                    <Instagram />
-                                </IconButton>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={12} md={2}>
-                            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                                Product
-                            </Typography>
-                            <Stack spacing={1}>
-                                <Typography variant="body2" color="grey.400">Features</Typography>
-                                <Typography variant="body2" color="grey.400">Pricing</Typography>
-                                <Typography variant="body2" color="grey.400">Demo</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={12} md={2}>
-                            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                                Company
-                            </Typography>
-                            <Stack spacing={1}>
-                                <Typography variant="body2" color="grey.400">About</Typography>
-                                <Typography variant="body2" color="grey.400">Blog</Typography>
-                                <Typography variant="body2" color="grey.400">Careers</Typography>
-                            </Stack>
-                        </Grid>
-                        <Grid item xs={12} md={4}>
-                            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                                Contact
-                            </Typography>
-                            <Typography variant="body2" color="grey.400" gutterBottom>
-                                support@nexbill.com
-                            </Typography>
-                            <Typography variant="body2" color="grey.400">
-                                +1 (555) 123-4567
-                            </Typography>
-                        </Grid>
-                    </Grid>
-                    <Box sx={{ mt: 6, pt: 3, borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
-                        <Typography variant="body2" color="grey.400">
-                            © {new Date().getFullYear()} NexBill. All rights reserved.
-                        </Typography>
-                    </Box>
-                </Container>
-            </Box>
-        </Box>
-    );
+.hero-content {
+    flex: 1;
+    padding-right: 40px;
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    color: var(--primary-blue);
+    margin-bottom: 20px;
+    line-height: 1.2;
+    font-weight: 700;
+}
+
+.hero-content p {
+    font-size: 1.3rem;
+    color: var(--dark-grey);
+    margin-bottom: 40px;
+}
+
+.cta-buttons .btn {
+    margin-right: 20px;
+}
+.cta-buttons .btn:last-child {
+    margin-right: 0;
+}
+
+
+.hero-image {
+    flex: 1;
+    text-align: right;
+}
+
+.hero-image img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* --- About Section --- */
+.about-section {
+    background-color: var(--light-grey);
+    padding: 100px 0;
+}
+
+.about-content {
+    display: flex;
+    align-items: center;
+    gap: 60px;
+    text-align: left;
+}
+
+.about-text {
+    flex: 1;
+}
+
+.about-text h2 {
+    font-size: 2.2rem;
+    color: var(--primary-blue);
+    margin-bottom: 30px;
+    font-weight: 600;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 25px;
+}
+
+.benefit-item i {
+    font-size: 2rem;
+    color: var(--primary-blue);
+    margin-right: 20px;
+    width: 40px;
+    text-align: center;
+}
+
+.benefit-item h3 {
+    font-size: 1.3rem;
+    color: var(--dark-grey);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.benefit-item p {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.about-image {
+    flex: 1;
+    text-align: center;
+}
+
+.about-image img {
+    max-width: 90%;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+/* --- Features Section --- */
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+}
+
+.feature-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.feature-card i {
+    font-size: 3rem;
+    color: var(--primary-blue);
+    margin-bottom: 20px;
+}
+
+.feature-card h3 {
+    font-size: 1.5rem;
+    color: var(--dark-grey);
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.feature-card p {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+/* --- Testimonials Section --- */
+.testimonials-section {
+    background-color: var(--light-grey);
+}
+
+.testimonial-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 40px;
+}
+
+.testimonial-card {
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    text-align: left;
+}
+
+.testimonial-card p {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--dark-grey);
+    margin-bottom: 20px;
+}
+
+.customer-info {
+    display: flex;
+    align-items: center;
+}
+
+.customer-info img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    border: 2px solid var(--primary-blue);
+}
+
+.customer-info h4 {
+    font-size: 1.1rem;
+    color: var(--primary-blue);
+    margin-bottom: 5px;
+    font-weight: 600;
+}
+
+.customer-info span {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+/* --- Pricing Section --- */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.pricing-card {
+    background-color: var(--white);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+    text-align: center;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+
+.pricing-card.popular {
+    border: 3px solid var(--primary-blue);
+    box-shadow: 0 8px 25px rgba(25, 118, 210, 0.3);
+}
+
+.pricing-card h3 {
+    font-size: 1.8rem;
+    color: var(--primary-blue);
+    margin-bottom: 20px;
+    font-weight: 700;
+}
+
+.pricing-card .price {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--dark-grey);
+    margin-bottom: 20px;
+}
+
+.pricing-card .price span {
+    font-size: 1.2rem;
+    color: var(--text-color);
+    font-weight: 400;
+}
+
+.pricing-card ul {
+    list-style: none;
+    text-align: left;
+    margin-bottom: 30px;
+}
+
+.pricing-card ul li {
+    margin-bottom: 10px;
+    color: var(--text-color);
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.pricing-card ul li::before {
+    content: '✓';
+    color: var(--primary-blue);
+    margin-right: 10px;
+    font-weight: 700;
+}
+
+.pricing-card .btn {
+    width: 100%;
+    padding: 12px 0;
+    margin-top: 20px;
+}
+
+.popular-badge {
+    background-color: var(--primary-blue);
+    color: var(--white);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+}
+
+/* --- FAQ Section --- */
+.faq-section {
+    background-color: var(--light-grey);
+}
+
+.accordion {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.accordion-item {
+    background-color: var(--white);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.accordion-header {
+    padding: 20px 25px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--dark-grey);
+    transition: background-color 0.3s ease;
+}
+
+.accordion-header:hover {
+    background-color: #f0f0f0;
+}
+
+.accordion-header i {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+}
+
+.accordion-content {
+    padding: 0 25px 20px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-out, padding 0.4s ease-out;
+    color: var(--text-color);
+    font-size: 1rem;
+}
+
+.accordion-item.active .accordion-content {
+    max-height: 200px; /* Adjust as needed */
+    padding-top: 10px;
+}
+
+.accordion-item.active .accordion-header i {
+    transform: rotate(180deg);
+}
+
+/* --- Footer --- */
+footer {
+    background-color: var(--dark-grey);
+    color: var(--white);
+    padding: 60px 0 30px;
+    font-size: 0.95rem;
+}
+
+.footer-content {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.footer-col {
+    flex: 1;
+    min-width: 200px;
+}
+
+.footer-col h4 {
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    color: var(--primary-blue);
+    font-weight: 600;
+}
+
+.footer-col p, .footer-col ul {
+    margin-bottom: 10px;
+}
+
+.footer-col ul {
+    list-style: none;
+}
+
+.footer-col ul li a {
+    text-decoration: none;
+    color: var(--white);
+    transition: color 0.3s ease;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.footer-col ul li a:hover {
+    color: var(--primary-blue);
+}
+
+.social-icons a {
+    color: var(--white);
+    font-size: 1.5rem;
+    margin-right: 15px;
+    transition: color 0.3s ease;
+}
+
+.social-icons a:hover {
+    color: var(--primary-blue);
+}
+
+.footer-bottom {
+    text-align: center;
+    margin-top: 50px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+/* --- Responsive Design --- */
+@media (max-width: 992px) {
+    .hero-content h1 {
+        font-size: 3rem;
+    }
+    .hero-content p {
+        font-size: 1.1rem;
+    }
+    .about-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .about-text, .about-image {
+        padding-right: 0;
+    }
+    .about-image img {
+        max-width: 70%;
+        margin-top: 40px;
+    }
+    .testimonial-grid, .pricing-grid, .features-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .hero-section {
+        flex-direction: column;
+        text-align: center;
+        padding: 80px 0 50px;
+    }
+    .hero-content {
+        padding-right: 0;
+    }
+    .hero-image {
+        margin-top: 40px;
+        text-align: center;
+    }
+    .hero-image img {
+        max-width: 80%;
+    }
+    .cta-buttons .btn {
+        display: block;
+        margin: 15px auto;
+        width: 80%;
+    }
+    .nav-links {
+        display: none;
+    }
+    .section-heading {
+        font-size: 2rem;
+    }
+    .footer-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    .footer-col {
+        min-width: unset;
+        width: 100%;
+    }
+    .social-icons {
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-content h1 {
+        font-size: 2.2rem;
+    }
+    .hero-content p {
+        font-size: 1rem;
+    }
+    .feature-card, .testimonial-card, .pricing-card, .accordion-item {
+        padding: 20px;
+    }
+    .pricing-card .price {
+        font-size: 2.5rem;
+    }
+}
+`;
+
+// --- Custom Hook: useIntersectionObserver ---
+const useIntersectionObserver = (ref, options, callback, delay = 0) => {
+    useEffect(() => {
+        const observer = new IntersectionObserver(([entry]) => {
+            if (entry.isIntersecting) {
+                if (delay > 0) {
+                    setTimeout(() => {
+                        callback(entry);
+                    }, delay);
+                } else {
+                    callback(entry);
+                }
+            }
+        }, options);
+
+        const currentRef = ref.current;
+
+        if (currentRef) {
+            observer.observe(currentRef);
+        }
+
+        return () => {
+            if (currentRef) {
+                observer.unobserve(currentRef);
+            }
+        };
+    }, [ref, options, callback, delay]);
 };
 
-export default POSLandingPage;
+// --- Component: Header ---
+function Header() {
+    return (
+        <header>
+            <div className="container">
+                <nav>
+                    <a href="#" className="logo">NexBill</a>
+                    <div className="nav-links">
+                        <a href="#about">Why NexBill?</a>
+                        <a href="#features">Features</a>
+                        <a href="#pricing">Pricing</a>
+                        <a href="#faq">FAQ</a>
+                        <a href="#contact">Contact</a>
+                    </div>
+                </nav>
+            </div>
+        </header>
+    );
+}
+
+// --- Component: Hero ---
+function Hero() {
+    const contentRef = useRef(null);
+    const imageRef = useRef(null);
+
+    useIntersectionObserver(contentRef, { threshold: 0.1 }, (entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('fade-in');
+    });
+    useIntersectionObserver(imageRef, { threshold: 0.1 }, (entry) => {
+        if (entry.isIntersecting) entry.target.classList.add('fade-in');
+    }, 200);
+
+    return (
+        <section className="hero-section">
+            <div className="container">
+                <div className="hero-content animated" ref={contentRef}>
+                    <h1>Smart POS System for Modern Businesses</h1>
+                    <p>Simplify billing, manage inventory, and grow your business with NexBill.</p>
+                    <div className="cta-buttons">
+                        <a href="#" className="btn btn-primary">Get Started Free</a>
+                        <a href="#" className="btn btn-secondary">Schedule a Demo</a>
+                    </div>
+                </div>
+                <div className="hero-image animated" ref={imageRef}>
+                    <img src={POSHERO} alt="NexBill POS Dashboard" />
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: About ---
+function About() {
+    const aboutSectionRef = useRef(null);
+    useIntersectionObserver(aboutSectionRef, { threshold: 0.2 }, (entry) => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.benefit-item').forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.2}s`;
+                item.classList.add('fade-in');
+            });
+            if (entry.target.querySelector('.about-image img')) {
+                entry.target.querySelector('.about-image img').classList.add('fade-in');
+            }
+        }
+    });
+
+    return (
+        <section id="about" className="section about-section" ref={aboutSectionRef}>
+            <div className="container">
+                <div className="about-content">
+                    <div className="about-text">
+                        <h2>Why NexBill?</h2>
+                        <div className="benefit-item animated">
+                            <i className="fas fa-bolt"></i>
+                            <div>
+                                <h3>Fast and intuitive billing</h3>
+                                <p>Streamline your checkout process with an easy-to-use interface that speeds up transactions.</p>
+                            </div>
+                        </div>
+                        <div className="benefit-item animated">
+                            <i className="fas fa-chart-line"></i>
+                            <div>
+                                <h3>Real-time inventory tracking</h3>
+                                <p>Keep track of your stock levels instantly and never miss a sale or overstock again.</p>
+                            </div>
+                        </div>
+                        <div className="benefit-item animated">
+                            <i className="fas fa-store"></i>
+                            <div>
+                                <h3>Multi-store management</h3>
+                                <p>Manage all your business locations from a single, centralized dashboard with ease.</p>
+                            </div>
+                        </div>
+                        <div className="benefit-item animated">
+                            <i className="fas fa-cloud-download-alt"></i>
+                            <div>
+                                <h3>Offline mode support</h3>
+                                <p>Continue making sales even when your internet connection is down, syncing automatically later.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="about-image animated">
+                        <img src="/assets/pos-about.png" alt="NexBill Benefits Illustration" />
+                    </div>
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: Features ---
+const featuresData = [
+    { icon: "fas fa-chart-bar", title: "Sales Reports", description: "Gain deep insights into your sales performance with customizable reports and analytics." },
+    { icon: "fas fa-barcode", title: "Barcode Scanning", description: "Accelerate checkout processes and reduce errors with quick and accurate barcode scanning." },
+    { icon: "fas fa-user-shield", title: "Role-Based Access", description: "Define user roles and permissions for secure and controlled access to your system." },
+    { icon: "fas fa-file-invoice", title: "GST-Compliant Billing", description: "Ensure all your invoices and transactions meet the latest GST regulations effortlessly." },
+    { icon: "fas fa-truck", title: "Supplier Management", description: "Efficiently manage your suppliers, orders, and purchase history in one place." },
+    { icon: "fas fa-tag", title: "Discount & Promotions", description: "Create flexible discounts and promotions to attract customers and boost sales." },
+];
+
+function Features() {
+    const featuresGridRef = useRef(null);
+    useIntersectionObserver(featuresGridRef, { threshold: 0.15 }, (entry) => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.feature-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in');
+            });
+        }
+    });
+
+    return (
+        <section id="features" className="section">
+            <div className="container">
+                <h2 className="section-heading">Powerful Features to Empower Your Business</h2>
+                <div className="features-grid" ref={featuresGridRef}>
+                    {featuresData.map((feature, index) => (
+                        <div className="feature-card animated" key={index}>
+                            <i className={feature.icon}></i>
+                            <h3>{feature.title}</h3>
+                            <p>{feature.description}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: Testimonials ---
+const testimonialsData = [
+    {
+        quote: "NexBill transformed our billing process! It's so fast and easy to use. Our staff loves it, and so do our customers.",
+        name: "Jane Doe",
+        title: "Owner, FreshBites Cafe",
+        img: "https://via.placeholder.com/60/1976d2/FFFFFF?text=JD"
+    },
+    {
+        quote: "The real-time inventory tracking is a game-changer. We've significantly reduced stockouts and improved our order accuracy.",
+        name: "Sam Miller",
+        title: "Manager, TechGadget Store",
+        img: "https://via.placeholder.com/60/1976d2/FFFFFF?text=SM"
+    },
+    {
+        quote: "Managing multiple stores used to be a headache. NexBill's multi-store feature has saved us countless hours and simplified everything.",
+        name: "Lisa Andrews",
+        title: "CEO, Global Retail",
+        img: "https://via.placeholder.com/60/1976d2/FFFFFF?text=LA"
+    },
+];
+
+function Testimonials() {
+    const testimonialsGridRef = useRef(null);
+    useIntersectionObserver(testimonialsGridRef, { threshold: 0.15 }, (entry) => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.testimonial-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.15}s`;
+                card.classList.add('fade-in');
+            });
+        }
+    });
+
+    return (
+        <section className="section testimonials-section">
+            <div className="container">
+                <h2 className="section-heading">What Our Customers Say</h2>
+                <div className="testimonial-grid" ref={testimonialsGridRef}>
+                    {testimonialsData.map((testimonial, index) => (
+                        <div className="testimonial-card animated" key={index}>
+                            <p>"{testimonial.quote}"</p>
+                            <div className="customer-info">
+                                <img src={testimonial.img} alt={`Customer ${testimonial.name}`} />
+                                <div>
+                                    <h4>{testimonial.name}</h4>
+                                    <span>{testimonial.title}</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: Pricing ---
+const pricingTiers = [
+    {
+        name: "Free",
+        price: "$0",
+        period: "/month",
+        isPopular: false,
+        features: [
+            "Basic billing features",
+            "Single user",
+            "Limited reports",
+            "Email support"
+        ],
+        buttonText: "Get Started Free",
+        buttonClass: "btn-secondary"
+    },
+    {
+        name: "Pro",
+        price: "$29",
+        period: "/month",
+        isPopular: true,
+        features: [
+            "All Free features",
+            "Real-time inventory",
+            "Multi-user access",
+            "Advanced reports",
+            "Priority support"
+        ],
+        buttonText: "Choose Pro Plan",
+        buttonClass: "btn-primary"
+    },
+    {
+        name: "Enterprise",
+        price: "Custom",
+        period: "",
+        isPopular: false,
+        features: [
+            "All Pro features",
+            "Multi-store management",
+            "Custom integrations",
+            "Dedicated account manager",
+            "24/7 Premium support"
+        ],
+        buttonText: "Contact Sales",
+        buttonClass: "btn-secondary"
+    },
+];
+
+function Pricing() {
+    const pricingGridRef = useRef(null);
+    useIntersectionObserver(pricingGridRef, { threshold: 0.15 }, (entry) => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.pricing-card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.15}s`;
+                card.classList.add('fade-in');
+            });
+        }
+    });
+
+    return (
+        <section id="pricing" className="section">
+            <div className="container">
+                <h2 className="section-heading">Simple Pricing, Powerful Features</h2>
+                <div className="pricing-grid" ref={pricingGridRef}>
+                    {pricingTiers.map((tier, index) => (
+                        <div className={`pricing-card animated ${tier.isPopular ? 'popular' : ''}`} key={index}>
+                            {tier.isPopular && <span className="popular-badge">Popular Choice</span>}
+                            <h3>{tier.name}</h3>
+                            <p className="price">{tier.price}<span>{tier.period}</span></p>
+                            <ul>
+                                {tier.features.map((feature, idx) => (
+                                    <li key={idx}>{feature}</li>
+                                ))}
+                            </ul>
+                            <a href="#" className={`btn ${tier.buttonClass}`}>{tier.buttonText}</a>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: FAQ ---
+const faqData = [
+    {
+        question: "Is NexBill compatible with my existing hardware?",
+        answer: "NexBill is designed for broad compatibility with most standard POS hardware including barcode scanners, receipt printers, and cash drawers. Our team can help you verify compatibility during setup."
+    },
+    {
+        question: "Do I need an internet connection to use NexBill?",
+        answer: "NexBill offers an robust offline mode. You can continue making sales and managing inventory even without an internet connection. All data will automatically sync once you're back online."
+    },
+    {
+        question: "How secure is my data with NexBill?",
+        answer: "We prioritize your data security. NexBill uses industry-standard encryption protocols and secure cloud infrastructure to protect your business information from unauthorized access."
+    },
+    {
+        question: "Can I manage multiple stores with one NexBill account?",
+        answer: "Yes, our Pro and Enterprise plans offer comprehensive multi-store management features, allowing you to oversee all your locations from a single dashboard."
+    },
+];
+
+function FAQ() {
+    const [activeIndex, setActiveIndex] = useState(null);
+    const accordionRef = useRef(null);
+
+    useIntersectionObserver(accordionRef, { threshold: 0.1 }, (entry) => {
+        if (entry.isIntersecting) {
+            entry.target.querySelectorAll('.accordion-item').forEach((item, index) => {
+                item.style.animationDelay = `${index * 0.1}s`;
+                item.classList.add('fade-in');
+            });
+        }
+    });
+
+    const toggleAccordion = (index) => {
+        setActiveIndex(activeIndex === index ? null : index);
+    };
+
+    return (
+        <section id="faq" className="section faq-section">
+            <div className="container">
+                <h2 className="section-heading">Frequently Asked Questions</h2>
+                <div className="accordion" ref={accordionRef}>
+                    {faqData.map((item, index) => (
+                        <div className={`accordion-item animated ${activeIndex === index ? 'active' : ''}`} key={index}>
+                            <div className="accordion-header" onClick={() => toggleAccordion(index)}>
+                                {item.question}
+                                <i className={`fas ${activeIndex === index ? 'fa-chevron-up' : 'fa-chevron-down'}`}></i>
+                            </div>
+                            <div className="accordion-content">
+                                <p>{item.answer}</p>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </section>
+    );
+}
+
+// --- Component: Footer ---
+function Footer() {
+    return (
+        <footer id="contact">
+            <div className="container">
+                <div className="footer-content">
+                    <div className="footer-col">
+                        <h4>NexBill</h4>
+                        <p>Simplify billing, manage inventory, and grow your business with NexBill.</p>
+                        <p>Email: info@nexbill.com</p>
+                        <p>Phone: +91 123 456 7890</p>
+                    </div>
+                    <div className="footer-col">
+                        <h4>Quick Links</h4>
+                        <ul>
+                            <li><a href="#about">Why NexBill?</a></li>
+                            <li><a href="#features">Features</a></li>
+                            <li><a href="#pricing">Pricing</a></li>
+                            <li><a href="#faq">FAQ</a></li>
+                        </ul>
+                    </div>
+                    <div className="footer-col">
+                        <h4>Connect With Us</h4>
+                        <div className="social-icons">
+                            <a href="#"><i className="fab fa-facebook-f"></i></a>
+                            <a href="#"><i className="fab fa-twitter"></i></a>
+                            <a href="#"><i className="fab fa-linkedin-in"></i></a>
+                            <a href="#"><i className="fab fa-instagram"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div className="footer-bottom">
+                    <p>&copy; 2025 NexBill. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    );
+}
+
+// --- Main App Component ---
+function App() {
+    // Add global Font Awesome CDN link in public/index.html <head>
+    // <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    // <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+
+    // Smooth scroll for navigation links - This needs to be active on mount
+    useEffect(() => {
+        document.querySelectorAll('nav a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href');
+                document.querySelector(targetId).scrollIntoView({
+                    behavior: 'smooth'
+                });
+            });
+        });
+    }, []);
+
+    return (
+        <div className="App">
+            {/* Inject styles */}
+            <style>{AppStyles}</style>
+            <Header />
+            <Hero />
+            <About />
+            <Features />
+            <Testimonials />
+            <Pricing />
+            <FAQ />
+            <Footer />
+        </div>
+    );
+}
+
+export default App;
