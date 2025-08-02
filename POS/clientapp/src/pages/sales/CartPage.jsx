@@ -21,6 +21,8 @@ const CartPage = () => {
     const isMobile = useIsMobile();
     const fontSize = isMobile ? '11px' : '12px';
 
+
+
     const updateQty = (productID, qty) => {
         const currentCart = receiptInfo?.cart ?? [];
         const updatedCart = currentCart.map((i) =>
@@ -83,7 +85,7 @@ const CartPage = () => {
     );
 
     const renderDesktopCart = () => (
-        <TableContainer sx={{ maxHeight: 260 }}>
+        <TableContainer sx={{ maxHeight: 450 }}>
             <Table size="small" stickyHeader>
                 <TableHead>
                     <TableRow>
@@ -167,18 +169,7 @@ const CartPage = () => {
                     </Typography>
                 </Stack>
 
-                <FormControlLabel
-                    control={
-                        <Switch
-                            checked={!isSearch}
-                            onChange={() => dispatch(setIsSearch(!isSearch))}
-                            size="small"
-                        />
-                    }
-                    label="Barcode Search"
-                    labelPlacement="start"
-                    sx={{ ml: 'auto' }}
-                />
+               
             </Stack>
 
             {receiptInfo?.cart?.length === 0 ? (

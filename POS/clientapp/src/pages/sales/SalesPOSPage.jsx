@@ -24,7 +24,7 @@ import {
 
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
-import CartPage from './CartPage';
+import PrintIcon from '@mui/icons-material/Print';
 import { useGetProductsQuery } from './../../services/productApi';
 import ProductCard from './ProductCard';
 
@@ -35,16 +35,16 @@ const SalesPOSPage = () => {
     const { data: allProducts = [], isLoading } = useGetProductsQuery('');
 
     const [isSearching, setIsSearching] = useState(false);
-    const [barcodeInput, setBarcodeInput] = useState('');
+    const [barcodeInput, setBarcodeInput] = useState(''); 
     const barcodeInputRef = useRef(null);
     const [searchValue, setSearchValue] = useState(null);
     const [searchInput, setSearchInput] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [draftModalOpen, setDraftModalOpen] = useState(false);
-
+    const [tableNoError, setTableNoError] = useState('');
     const { receiptInfo, isSearch, draftCarts } = useSelector((state) => state.sales);
-
+    const [tableNo, setTableNo] = useState('');
     // Debounced search
     const fetchProducts = useMemo(() =>
         debounce(async (query) => {
@@ -119,23 +119,8 @@ const SalesPOSPage = () => {
         }
     };
 
-    //useEffect(() => {
-    //    const interval = setInterval(() => {
-    //        if (!isSearching) {
-    //            barcodeInputRef.current?.focus();
-    //        }
-    //    }, 1000);
-    //    return () => clearInterval(interval);
-    //}, [isSearching]);
+  
 
-    useMemo(() => {
-        if (isSearch) {
-            barcodeInputRef.current?.blur();
-        }
-        else {
-            barcodeInputRef.current?.focus();
-        }
-    }, [isSearch]);
 
     useEffect(() => {
         dispatch(resetReceiptInfo());
@@ -144,9 +129,39 @@ const SalesPOSPage = () => {
     const cartProductIds = useMemo(() =>
         new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
 
-    const handleSaveDraft = () => {
-        dispatch(saveDraftCart());
+    const handleSaveKOT = () => {
+        let hasError = false;
+
+        if (!tableNo.trim()) {
+            setTableNoError('Required');
+            hasError = true;
+        } else {
+            const isAlreadyReserved = draftCarts.some(draft => draft.tableNo === tableNo.trim());
+            if (isAlreadyReserved) {
+                setTableNoError('Table already reserved');
+                hasError = true;
+            } else {
+                setTableNoError('');
+            }
+        }
+
+        if (!hasError) {
+            handlePrintDraft({ tableNo: tableNo, cart:receiptInfo.cart });
+           
+            dispatch(saveDraftCart(tableNo.trim()));
+            setTableNo('');
+        }
     };
+
+    const handlePrintDraft = (draft) => {
+        const txtPrint = generateKOTText(draft.tableNo, draft.cart || []);
+        if (window.ReactNativeWebView) {
+            handlePrintMobile(txtPrint);
+        } else {
+            handlePrintWeb(txtPrint);
+        }
+    };
+
 
     const handleLoadDraft = (id) => {
         const hasCartItems = receiptInfo.cart && receiptInfo.cart.length > 0;
@@ -163,6 +178,7 @@ const SalesPOSPage = () => {
                     setDraftModalOpen(false);
                 }
             }));
+           
         } else {
             dispatch(loadDraftCart(id));
             setDraftModalOpen(false);
@@ -174,95 +190,185 @@ const SalesPOSPage = () => {
         dispatch(deleteDraftCart(id));
     };
 
+
+    const handlePrintMobile = (txtPrint) => {
+        window.ReactNativeWebView?.postMessage(txtPrint);
+    };
+
+
+    const handlePrintWeb = (txtPrint) => {
+     
+
+        const printWindow = window.open('', '_blank', 'width=320,height=600');
+
+        if (!printWindow) return;
+
+        printWindow.document.write(`
+        <html>
+        <head>
+            <title>Receipt</title>
+            <style>
+                @media print {
+                    @page { margin: 0; }
+                    body { margin: 0; font-family: monospace; font-size: 12px; }
+                }
+                body { font-family: monospace; white-space: pre; font-size: 12px; }
+            </style>
+        </head>
+        <body onload="window.print(); window.close();">
+            <pre>${txtPrint}</pre>
+        </body>
+        </html>
+    `);
+        printWindow.document.close();
+    };
+
+    function centerText(text, width) {
+        const left = Math.floor((width - text.length) / 2);
+        return ' '.repeat(left) + text;
+    }
+
+    function formatDate(date) {
+        const d = date;
+        return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')
+            }/${d.getFullYear()}`;
+    }
+
+    function generateKOTText(tableNo, cart ) {
+        const maxLine = 32;
+        const padRight = (str, len) => str.padEnd(len, ' ');
+        const padLeft = (str, len) => str.padStart(len, ' ');
+
+        const lines = [];
+
+        // Header
+        lines.push(centerText('*** KITCHEN ORDER ***', maxLine));
+        lines.push(`Table No: ${tableNo}   ${formatDate(new Date())}`);
+        lines.push('-'.repeat(maxLine));
+        lines.push(padRight('Item', 18) + 'Qty');
+        lines.push('-'.repeat(maxLine));
+
+        // Items
+        cart.forEach(item => {
+            const name = item.name.length > 18 ? item.name.substring(0, 18) : item.name;
+            const qty = `x${item.quantity}`;
+            lines.push(padRight(name, 18) + padLeft(qty, 4));
+        });
+
+        lines.push('-'.repeat(maxLine));
+        lines.push(centerText('THANK YOU!', maxLine));
+
+        return lines.join('\n');
+    }
+
+  
+
+
     if (isLoading) return <p>Loading...</p>;
 
     return (
-        <Container>
-            <input
-                ref={barcodeInputRef}
-                value={barcodeInput}
-                onChange={(e) => setBarcodeInput(e.target.value)}
-                onKeyDown={handleBarcodeScan}
-                style={{ position: 'absolute', opacity: 0, height: 0, width: 0, pointerEvents: 'none' }}
-                tabIndex={-1}
-            />
-            <Typography variant="h4" gutterBottom fontWeight={700} color="primary.main">
-                Point of Sale
-            </Typography>
+      <>
             <Stack direction={{ s: 'column', sm: 'row' }} spacing={3}>
-                {!isMobile && <CartPage />}
-                <Card sx={{ flex: 3, p: 2, boxShadow: 3 }}>
+              
+                <Card sx={{ flex:1, boxShadow: 3 }}>
                     <CardContent>
-                        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2} flexWrap="wrap" gap={1}>
-                            <Stack direction="row" alignItems="center" spacing={1}>
-                                <SearchIcon color="action" />
-                                <Typography variant="h6" fontWeight={600}>
-                                    Product Lookup
-                                </Typography>
+                        <Box
+                            display="flex"
+                            justifyContent="space-between"
+                            alignItems="flex-start"
+                            flexWrap="wrap"
+                            mb={2}
+                            gap={2}
+                        >
+                            {/* Left Side: Autocomplete + Hint */}
+                            <Stack direction="column" spacing={1} flex={1} minWidth={250}>
+                                <Autocomplete
+                                    value={searchValue}
+                                    onChange={(event, newValue) => {
+                                        if (newValue) {
+                                            addToCart(newValue);
+                                            setSearchValue(null);
+                                            setSearchInput('');
+                                        }
+                                    }}
+                                    inputValue={searchInput}
+                                    onInputChange={(event, newInputValue) => {
+                                        setSearchInput(newInputValue);
+                                        setIsSearching(true);
+                                    }}
+                                    options={searchResults || []}
+                                    getOptionLabel={(option) => option.name || ''}
+                                    isOptionEqualToValue={(option, value) => option.productID === value.productID}
+                                    loading={loading}
+                                    onBlur={() => dispatch(setIsSearch(true))}
+                                    onFocus={() => dispatch(setIsSearch(true))}
+                                    renderOption={(props, option) => (
+                                        <Box component="li" {...props}>
+                                            {option.name}
+                                        </Box>
+                                    )}
+                                    renderInput={(params) => (
+                                        <TextField
+                                            {...params}
+                                            label="Search by product name"
+                                            variant="outlined"
+                                            size="small"
+                                            InputProps={{
+                                                ...params.InputProps,
+                                                endAdornment: (
+                                                    <>
+                                                        {loading ? <CircularProgress color="inherit" size={20} /> : null}
+                                                        {params.InputProps.endAdornment}
+                                                    </>
+                                                ),
+                                            }}
+                                        />
+                                    )}
+                                />
+                              
                             </Stack>
 
-                            <Stack direction="row" spacing={1}>
-                                <Button variant="outlined" color="warning" size="small" onClick={handleSaveDraft}>
-                                    Save as Draft
+                            {/* Right Side: Table No + Action Buttons */}
+                            <Stack direction="row" spacing={1} alignItems="right" flexShrink={0}>
+                                <TextField
+                                    label="Table No"
+                                    value={tableNo}
+                                    onChange={(e) => setTableNo(e.target.value)}
+                                    error={!!tableNoError}
+                                    helperText={tableNoError || ''}
+                                    size="small"
+                                    sx={{ width: 90 }}
+                                    FormHelperTextProps={{
+                                        sx: {
+                                            minHeight: '10px', // ensures consistent space
+                                            margin: 0,         // removes default extra margin
+                                        },
+                                    }}
+                                />
+                                <Button
+                                    variant="outlined"
+                                    color="warning"
+                                    size="small"
+                                    onClick={handleSaveKOT}
+                                    sx={{ height: 40 }}
+                                >
+                                    Print KOT
                                 </Button>
-                                <Button variant="outlined" color="warning" size="small" onClick={() => setDraftModalOpen(true)}>
-                                    View Drafts
+                                <Button
+                                    variant="outlined"
+                                    color="warning"
+                                    size="small"
+                                    onClick={() => setDraftModalOpen(true)}
+                                    sx={{ height: 40 }}
+                                >
+                                    View KOT
                                 </Button>
                             </Stack>
+
                         </Box>
 
 
-                       
-
-                        <Autocomplete
-                            value={searchValue}
-                            onChange={(event, newValue) => {
-                                if (newValue) {
-                                    addToCart(newValue);
-                                    setSearchValue(null);
-                                    setSearchInput('');
-                                }
-                            }}
-                            inputValue={searchInput}
-                            onInputChange={(event, newInputValue) => {
-                                setSearchInput(newInputValue);
-                                setIsSearching(true);
-                            }}
-                            options={searchResults || []}
-                            getOptionLabel={(option) => option.name || ''}
-                            isOptionEqualToValue={(option, value) => option.productID === value.productID}
-                            loading={loading}
-                            onBlur={() =>  dispatch(setIsSearch(true))}
-                            onFocus={() => dispatch(setIsSearch(true))}
-                            renderOption={(props, option) => (
-                                <Box component="li" {...props}>
-                                    {option.name}
-                                </Box>
-                            )}
-                            renderInput={(params) => (
-                                <TextField
-                                    {...params}
-                                    label="Search Product"
-                                    variant="outlined"
-                                    InputProps={{
-                                        ...params.InputProps,
-                                        endAdornment: (
-                                            <>
-                                                {loading ? <CircularProgress color="inherit" size={20} /> : null}
-                                                {params.InputProps.endAdornment}
-                                            </>
-                                        ),
-                                    }}
-                                />
-                            )}
-                        />
-
-                        <Typography variant="caption" color="text.secondary" mt={1} display="block">
-                            Scan barcode or search by product name.
-                        </Typography>
-
-
-                        <Box sx={{ mt: 3 }}>
+                        <Box >
                             <Typography variant="subtitle1" fontWeight={600} gutterBottom>
                                 Quick Select
                             </Typography>
@@ -271,7 +377,7 @@ const SalesPOSPage = () => {
                                     display: 'grid',
                                     gridTemplateColumns: 'repeat(auto-fill, minmax(120px, 1fr))',
                                     gap:1,
-                                    maxHeight: 300,
+                                    maxHeight: 450,
                                     overflowY: 'auto',
                                 }}
                                 onFocus={() => setIsSearching(true)}
@@ -293,11 +399,11 @@ const SalesPOSPage = () => {
 
             {/* Draft Modal */}
             <Dialog open={draftModalOpen} onClose={() => setDraftModalOpen(false)} maxWidth="sm" fullWidth>
-                <DialogTitle>Saved Draft Carts</DialogTitle>
+                <DialogTitle>Saved Orders</DialogTitle>
                 <DialogContent dividers>
                     {receiptInfo.cart.length > 0 && (
                         <Typography variant="caption" color="text.secondary" mb={2}>
-                            Current cart will be replaced when loading a draft.
+                            Current cart will be replaced when loading a KOT.
                         </Typography>
                     )}
                     <List>
@@ -305,19 +411,25 @@ const SalesPOSPage = () => {
                             <ListItem
                                 key={draft.id}
                                 secondaryAction={
-                                    <IconButton edge="end" onClick={() => handleLoadDraft(draft.id)} >
-                                        <RestoreIcon />
-                                    </IconButton>
+                                    <Stack direction="row" spacing={1}>
+                                        <IconButton edge="end" onClick={() => handlePrintDraft(draft)} color="primary">
+                                            <PrintIcon />
+                                        </IconButton>
+                                        <IconButton edge="end" onClick={() => handleLoadDraft(draft.tableNo)} >
+                                            <RestoreIcon />
+                                        </IconButton>
+                                    </Stack>
                                 }
                             >
-                                <IconButton edge="start" onClick={() => handleDeleteDraft(draft.id)} color="error">
+                                <IconButton edge="start" onClick={() => handleDeleteDraft(draft.tableNo)} color="error">
                                     <DeleteIcon />
                                 </IconButton>
                                 <ListItemText
-                                    primary={`Draft #${draft.id}`}
+                                    primary={`Table No: ${draft.tableNo || 'N/A'}`}
                                     secondary={`Saved: ${new Date(draft.savedAt).toLocaleString()}`}
                                 />
                             </ListItem>
+
 
                         ))}
                     </List>
@@ -326,7 +438,7 @@ const SalesPOSPage = () => {
                     <Button onClick={() => setDraftModalOpen(false)}>Close</Button>
                 </DialogActions>
             </Dialog>
-        </Container>
+       </>
     );
 };
 

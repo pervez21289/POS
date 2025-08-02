@@ -9,7 +9,7 @@ const ProductCard = React.memo(({ product, isInCart, onClick }) => {
     return (
         <Card
             sx={{
-                p:1,
+                p: 1,
                 textAlign: 'center',
                 cursor: 'pointer',
                 backgroundColor: isInCart ? theme.palette.warning.light : 'white',
@@ -30,11 +30,6 @@ const ProductCard = React.memo(({ product, isInCart, onClick }) => {
             <Typography variant="caption" color="text.secondary">
                 ₹{product.price.toFixed(2)}
             </Typography>
-            {product.discountPercent > 0 && (
-                <Typography variant="caption" sx={{ color: 'green' }}>
-                    {product.discountPercent}% OFF
-                </Typography>
-            )}
         </Card>
     );
 });

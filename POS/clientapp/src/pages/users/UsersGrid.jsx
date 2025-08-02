@@ -13,14 +13,14 @@ import {
     useDeleteUserMutation
 } from './../../services/userAPI';
 import UserForm from './UserForm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
 
 export default function UserManagement() {
     const { data: users = [], refetch } = useGetUsersQuery();
     const [deleteUser] = useDeleteUserMutation();
     const dispatch = useDispatch();
-
+    const { userDetails } = useSelector((state) => state.users);
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -39,6 +39,11 @@ export default function UserManagement() {
         );
     };
 
+
+
+    if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
+
+
     const columns = [
         { field: 'firstName', headerName: 'Name', width: 150 },
         { field: 'mobile', headerName: 'Mobile', width: 150 },
@@ -54,13 +59,21 @@ export default function UserManagement() {
                     : params.value;
 
                 return (
-                    <Stack direction="row" spacing={1} flexWrap="wrap">
+                    <Stack
+                        direction="row"
+                        spacing={1}
+                        flexWrap="wrap"
+                        useFlexGap
+                        alignItems="center"
+                        sx={{ width: '100%' }}
+                    >
                         {roles?.map((role, idx) => (
                             <Chip key={idx} label={role} size="small" color="primary" />
                         ))}
                     </Stack>
                 );
             }
+
         },
         {
             field: 'actions',
@@ -101,13 +114,23 @@ export default function UserManagement() {
                                 <Typography variant="body2">📞 {user.mobile}</Typography>
                                 <Typography variant="body2">📧 {user.email}</Typography>
                                 <Typography variant="body2">🏢 Company ID: {user.companyID}</Typography>
-                                <Stack direction="row" spacing={1} mt={1} flexWrap="wrap">
+                                <Stack
+                                    direction="row"
+                                    spacing={1}
+                                    flexWrap="wrap"
+                                    useFlexGap
+                                    alignItems="center"
+                                    sx={{ mt: 1 }}
+                                >
                                     {(typeof user.roleNames === 'string'
                                         ? user.roleNames.split(',').map(r => r.trim())
                                         : user.roleNames || []).map((role, idx) => (
-                                            <Chip key={idx} label={role} size="small" color="primary" />
+                                            <Box key={idx} sx={{ mb: 0.5 }}>
+                                                <Chip label={role} size="small" color="primary" />
+                                            </Box>
                                         ))}
                                 </Stack>
+
                             </CardContent>
                             <CardActions>
                                 <IconButton onClick={() => handleEdit(user)} aria-label="edit">

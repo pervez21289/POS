@@ -118,7 +118,7 @@ const ReceiptPrintWrapper = () => {
                 >
 
                     <Button variant="contained" onClick={() => { setPaymentModeID(null); setMobileNumber(''); setCustomerName(''); setOpenDialog(true); }}>
-                            🖨 Submit
+                           Payment
                         </Button>
                  
                 </Box>)}

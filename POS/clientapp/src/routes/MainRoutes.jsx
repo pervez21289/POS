@@ -21,15 +21,16 @@ import Support from '../pages/support';
 import History from '../pages/history';
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
-
+import Landing from '../pages/landing';
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
   path: '/',
   element: <DashboardLayout />,
-  children: [
+    children: [
+        
     {
-      path: '/',
+        path: '/Dashboard',
       element: <DashboardDefault />
     },
     {

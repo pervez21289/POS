@@ -73,16 +73,16 @@ export default function DashboardDefault() {
         <Typography variant="h5">Dashboard</Typography>
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <AnalyticEcommerce title="Today Sale" count={res?.SalesStats[0].TodayTotalNet} percentage={res?.SalesStats[0].SaleChange} extra={res?.SalesStats[0].NetAmount} />
+              <AnalyticEcommerce title="Today Sale" count={res?.TodayTotalSale} percentage={res?.PercentIncreaseFromYesterday} extra={res?.TodayTotalSale} />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <AnalyticEcommerce title="Total Users" count={res?.SalesStats[0].UniqueCustomerCount} percentage={70.5} extra="8,900" />
+              <AnalyticEcommerce title="Total Users" count={res?.TotalCustomersAdded} percentage={res?.PercentChangeCustomersAdded} extra="8,900" />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <AnalyticEcommerce title="Total Order" count={res?.SalesStats[0].TotalSales} percentage={27.4} isLoss color="warning" extra="1,943" />
+              <AnalyticEcommerce title="Total Order" count={res?.TotalInvoicesForCompany} percentage={res?.PercentChangeInvoicesForCompany} isLoss color="warning" extra="1,943" />
       </Grid>
       <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <AnalyticEcommerce title="Total Sales" count={res?.SalesStats[0].NetAmount} percentage={27.4} isLoss color="warning" extra="20,395" />
+              <AnalyticEcommerce title="Total Sales" count={res?.TillDateCompanySale} percentage={res?.PercentChangeTillDateCompanySale} isLoss color="warning" extra="20,395" />
       </Grid>
       <Grid sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} size={{ md: 8 }} />
       

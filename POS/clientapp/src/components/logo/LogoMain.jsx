@@ -14,14 +14,6 @@ import { useTheme } from '@mui/material/styles';
 export default function LogoMain() {
   const theme = useTheme();
   return (
-    /**
-     * if you want to use image instead of svg uncomment following, and comment out <svg> element.
-     *
-     * <img src={theme.palette.mode === ThemeMode.DARK ? logoDark : logo} alt="Mantis" width="100" />
-     *
-     */
-    <>
-          <h1>NexBill</h1> 
-    </>
+      <span className="gradient-text">NexBill</span>
   );
 }

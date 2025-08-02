@@ -14,6 +14,7 @@ import {
     useCreateBasicSettingMutation,
     useUpdateBasicSettingMutation
 } from './../../services/basicSettingAPI';
+import { useSelector } from 'react-redux';
 
 const initialState = {
     id: 0,
@@ -23,7 +24,12 @@ const initialState = {
     gstin: ''
 };
 
+
 export default function BasicSettingForm() {
+
+    const { userDetails } = useSelector((state) => state.users);
+    if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
+
     const { data, isLoading } = useGetBasicSettingsQuery();
     const [createBasicSetting] = useCreateBasicSettingMutation();
     const [updateBasicSetting] = useUpdateBasicSettingMutation();

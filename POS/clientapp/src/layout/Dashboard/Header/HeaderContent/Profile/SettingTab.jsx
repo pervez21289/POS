@@ -22,6 +22,7 @@ import { setUserDetails } from "./../../../../../store/reducers/users";
 export default function SettingTab() {
     const navigate = useNavigate();
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const { userDetails } = useSelector((state) => state.users);
     const dispatch = useDispatch();
     const handleListItemClick = (event, index, route = '') => {
         setSelectedIndex(index);
@@ -44,19 +45,29 @@ export default function SettingTab() {
     return (
         <List component="nav" sx={{ p: 0, '& .MuiListItemIcon-root': { minWidth: 32 } }}>
 
-            <ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0, 'usermanagement')}>
+            {(userDetails?.role?.indexOf('SuperAdmin') > -1) && (<>< ListItemButton selected={selectedIndex === 0} onClick={(event) => handleListItemClick(event, 0, 'usermanagement')}>
                 <ListItemIcon>
                     <ManageAccountsOutlinedIcon />
                 </ListItemIcon>
                 <ListItemText primary="User Management" />
             </ListItemButton>
 
-            <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1, 'settings')}>
-                <ListItemIcon>
-                    <UserOutlined />
-                </ListItemIcon>
-                <ListItemText primary="Account Settings" />
-            </ListItemButton>
+
+                <ListItemButton selected={selectedIndex === 1} onClick={(event) => handleListItemClick(event, 1, 'settings')}>
+                    <ListItemIcon>
+                        <UserOutlined />
+                    </ListItemIcon>
+                    <ListItemText primary="Account Settings" />
+                </ListItemButton>
+
+                <ListItemButton selected={selectedIndex === 3} onClick={(event) => handleListItemClick(event, 3, 'history')}>
+                    <ListItemIcon>
+                        <UnorderedListOutlined />
+                    </ListItemIcon>
+                    <ListItemText primary="History" />
+                </ListItemButton>
+            </>)
+            }
             <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2, 'support')}>
                 <ListItemIcon>
                     <LockOutlined />
@@ -64,12 +75,8 @@ export default function SettingTab() {
                 <ListItemText primary="Support" />
             </ListItemButton>
 
-            <ListItemButton selected={selectedIndex === 3} onClick={(event) => handleListItemClick(event, 3, 'history')}>
-                <ListItemIcon>
-                    <UnorderedListOutlined />
-                </ListItemIcon>
-                <ListItemText primary="History" />
-            </ListItemButton>
+
+
             <ListItemButton selected={selectedIndex === 4} onClick={handlePrinter}>
                 <ListItemIcon>
                     <UnorderedListOutlined />

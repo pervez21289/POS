@@ -55,6 +55,7 @@ function a11yProps(index) {
 export default function Profile() {
   const theme = useTheme();
     const dispatch = useDispatch();
+    const { userDetails } = useSelector((state) => state.users);
   const anchorRef = useRef(null);
   const [open, setOpen] = useState(false);
   const handleToggle = () => {
@@ -99,8 +100,8 @@ export default function Profile() {
       >
         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center', p: 0.5 }}>
           <Avatar alt="profile user" src={avatar1} size="sm" />
-          <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
-            John Doe
+                  <Typography variant="subtitle1" sx={{ textTransform: 'capitalize' }}>
+                      {userDetails?.name}
           </Typography>
         </Stack>
       </ButtonBase>
@@ -133,9 +134,9 @@ export default function Profile() {
                         <Stack direction="row" sx={{ gap: 1.25, alignItems: 'center' }}>
                           <Avatar alt="profile user" src={avatar1} sx={{ width: 32, height: 32 }} />
                           <Stack>
-                            <Typography variant="h6">John Doe</Typography>
+                            <Typography variant="h6"> {userDetails?.name}</Typography>
                             <Typography variant="body2" color="text.secondary">
-                              UI/UX Designer
+                                                          {userDetails?.role}
                             </Typography>
                           </Stack>
                         </Stack>

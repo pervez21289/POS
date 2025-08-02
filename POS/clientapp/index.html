@@ -2,30 +2,67 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <link rel="icon" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta name="description" content="POS billing software: Create professional bills, manage inventory, share invoices, send payment reminders, and collect payments faster with Vyapar&#039;s POS billing app. Download Now!" />
-    <link rel="canonical" href="https://pos.sipaz.in/" />
+    <link rel="icon" href="/favicon.png" sizes="42x62" />
     <link rel="apple-touch-icon" href="/logo192.png" />
-    <title>NexBill</title>
+    <link rel="canonical" href="https://nexbillpos.com" />
+    <title>NexBill - POS Billing Software for Small Businesses & Retail Stores</title>
 
-    <!-- this is to resolve issue in old safari browser in tablet -->
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="NexBill - POS Billing Software for Small Businesses & Retail Stores" />
+    <meta name="description" content="NexBill POS Software helps you create professional bills, manage inventory, share invoices, track GST, send reminders, and collect payments seamlessly. Try our SaaS-based POS billing app now!" />
+    <meta name="keywords" content="POS billing software, point of sale software, inventory management, GST billing software, SaaS POS system, invoicing software, retail billing, billing app for shop, Vyapar alternative, NexBill" />
+    <meta name="author" content="NexBill Team" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://nexbillpos.com" />
+    <meta property="og:title" content="NexBill - Powerful POS Billing Software" />
+    <meta property="og:description" content="Create GST-compliant bills, manage stock, generate invoices, and accept payments � all with NexBill's easy-to-use POS solution." />
+    <meta property="og:image" content="https://nexbillpos.comassets/og-image.png" /> <!-- Replace with actual image -->
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://nexbillpos.com" />
+    <meta property="twitter:title" content="NexBill - Powerful POS Billing Software" />
+    <meta property="twitter:description" content="Easy and fast POS billing software for retail, pharma, grocery, and small businesses. Download now!" />
+    <meta property="twitter:image" content="https://nexbillpos.comassets/twitter-image.png" /> <!-- Replace with actual image -->
+    <!-- Structured Data for SEO (JSON-LD) -->
+    <script type="application/ld+json">
+        {
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          "name": "NexBill",
+          "url": "https://nexbillpos.com",
+          "image": "https://nexbillpos.com/logo.png",
+          "author": {
+            "@type": "Organization",
+            "name": "NexBill"
+          },
+          "applicationCategory": "BusinessApplication",
+          "operatingSystem": "Web",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "INR"
+          },
+          "aggregateRating": {
+            "@type": "AggregateRating",
+            "ratingValue": "4.8",
+            "reviewCount": "1200"
+          },
+          "description": "NexBill is a cloud-based POS billing software that helps retailers and small businesses generate invoices, track stock, manage customers, and accept payments."
+        }
+    </script>
+
+    <!-- Safari Resize Observer Polyfill -->
     <script src="https://cdn.jsdelivr.net/npm/resize-observer-polyfill@1.5.1/dist/ResizeObserver.min.js"></script>
 </head>
-  <body>
+<body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
-
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    <!-- Main App Script -->
     <script type="module" src="/src/index.jsx"></script>
-  </body>
+</body>
 </html>

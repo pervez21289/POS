@@ -1,0 +1,8 @@
+.gradient-text {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 600;
+    font-size: 34px;
+    background: linear-gradient(to right, #8e44ad, #3498db);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
