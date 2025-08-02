@@ -25,59 +25,40 @@ import {
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
 import PrintIcon from '@mui/icons-material/Print';
-import { useGetProductsQuery } from './../../services/productApi';
+
 import ProductCard from './ProductCard';
 
+import { manualProductSync, getProductsSync, getSettingsSync, saveSettingsSync } from '../../hooks/useProductSync';
 
 const SalesPOSPage = () => {
+    const isOnline = navigator.onLine;
     const dispatch = useDispatch();
     const isMobile = useIsMobile();
-    const { data: allProducts = [], isLoading } = useGetProductsQuery('');
+   
+
+    const [searchInput, setSearchInput] = useState('');
+    const [ offlineProducts, setOfflineproducts ] = useState(null);
+    
 
     const [isSearching, setIsSearching] = useState(false);
     const [barcodeInput, setBarcodeInput] = useState(''); 
     const barcodeInputRef = useRef(null);
     const [searchValue, setSearchValue] = useState(null);
-    const [searchInput, setSearchInput] = useState('');
+  
     const [searchResults, setSearchResults] = useState([]);
     const [loading, setLoading] = useState(false);
     const [draftModalOpen, setDraftModalOpen] = useState(false);
     const [tableNoError, setTableNoError] = useState('');
     const { receiptInfo, isSearch, draftCarts } = useSelector((state) => state.sales);
     const [tableNo, setTableNo] = useState('');
-    // Debounced search
-    const fetchProducts = useMemo(() =>
-        debounce(async (query) => {
-            if (!query) {
-                setSearchResults([]);
-                return;
-            }
-            setLoading(true);
-            try {
-                const data = await ProductService.GetProduct(query);
-                setSearchResults(Array.isArray(data) ? data : []);
-            } catch (err) {
-                console.error('Error fetching products:', err);
-                setSearchResults([]);
-            } finally {
-                setLoading(false);
-            }
-        }, 300), []);
+    
 
-    useEffect(() => {
-        fetchProducts(searchInput);
-        return () => fetchProducts.cancel();
-    }, [searchInput, fetchProducts]);
+ 
 
     const addToCart = (product) => {
         let discount = 0;
-        //if (product.discountPercent > 0) {
-        //    discount = (product.price * product.discountPercent) / 100;
-        //} else if (product.discountAmount > 0) {
-        //    discount = product.discountAmount;
-        //}
-
-        const currentCart = receiptInfo?.cart ?? [];
+       
+        const currentCart = receiptInfo?.saleItems ?? [];
         const found = currentCart.find((i) => i.productID === product.productID);
         let updatedCart;
 
@@ -96,7 +77,7 @@ const SalesPOSPage = () => {
             }];
         }
 
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
     const handleBarcodeScan = async (e) => {
@@ -119,15 +100,12 @@ const SalesPOSPage = () => {
         }
     };
 
-  
 
 
-    useEffect(() => {
-        dispatch(resetReceiptInfo());
-    }, [dispatch]);
+
 
     const cartProductIds = useMemo(() =>
-        new Set(receiptInfo?.cart?.map(item => item.productID)), [receiptInfo?.cart]);
+        new Set(receiptInfo?.saleItems?.map(item => item.productID)), [receiptInfo?.saleItems]);
 
     const handleSaveKOT = () => {
         let hasError = false;
@@ -146,7 +124,7 @@ const SalesPOSPage = () => {
         }
 
         if (!hasError) {
-            handlePrintDraft({ tableNo: tableNo, cart:receiptInfo.cart });
+            handlePrintDraft({ tableNo: tableNo, saleItems: receiptInfo.saleItems });
            
             dispatch(saveDraftCart(tableNo.trim()));
             setTableNo('');
@@ -154,7 +132,7 @@ const SalesPOSPage = () => {
     };
 
     const handlePrintDraft = (draft) => {
-        const txtPrint = generateKOTText(draft.tableNo, draft.cart || []);
+        const txtPrint = generateKOTText(draft.tableNo, draft.saleItems || []);
         if (window.ReactNativeWebView) {
             handlePrintMobile(txtPrint);
         } else {
@@ -164,7 +142,7 @@ const SalesPOSPage = () => {
 
 
     const handleLoadDraft = (id) => {
-        const hasCartItems = receiptInfo.cart && receiptInfo.cart.length > 0;
+        const hasCartItems = receiptInfo.saleItems && receiptInfo.saleItems.length > 0;
 
         if (hasCartItems) {
             dispatch(showConfirmDialog({
@@ -261,10 +239,28 @@ const SalesPOSPage = () => {
         return lines.join('\n');
     }
 
-  
+    const handleRefreshProducts = async () => {
+        await manualProductSync().then(() => {
+            getProductsSync().then((products) => {
+                setOfflineproducts(products);
+            });
+        });
+    };
 
 
-    if (isLoading) return <p>Loading...</p>;
+    useEffect(() => {
+        if (navigator.onLine) {
+            handleRefreshProducts();
+        }
+        else {
+            getProductsSync().then((products) => {
+                setOfflineproducts(products);
+            });
+        }
+    }, []);
+
+
+    if (!offlineProducts) return <p>Loading...</p>;
 
     return (
       <>
@@ -296,7 +292,7 @@ const SalesPOSPage = () => {
                                         setSearchInput(newInputValue);
                                         setIsSearching(true);
                                     }}
-                                    options={searchResults || []}
+                                    options={offlineProducts || []}
                                     getOptionLabel={(option) => option.name || ''}
                                     isOptionEqualToValue={(option, value) => option.productID === value.productID}
                                     loading={loading}
@@ -369,9 +365,20 @@ const SalesPOSPage = () => {
 
 
                         <Box >
-                            <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                                Quick Select
-                            </Typography>
+                            <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                                <Typography variant="subtitle1" fontWeight={600}>
+                                    Quick Select
+                                </Typography>
+                                <Button
+                                    variant="contained"
+                                    color="success"
+                                    size="small"
+                                    onClick={handleRefreshProducts}
+                                    sx={{ minWidth: 120, ml: 2 }}
+                                >
+                                    Refresh Products
+                                </Button>
+                            </Box>
                             <Box
                                 sx={{
                                     display: 'grid',
@@ -383,7 +390,7 @@ const SalesPOSPage = () => {
                                 onFocus={() => setIsSearching(true)}
                                 onBlur={() => setIsSearching(false)}
                             >
-                                {allProducts.map(product => (
+                                {offlineProducts?.map(product => (
                                     <ProductCard
                                         key={product.productID}
                                         product={product}
@@ -401,7 +408,7 @@ const SalesPOSPage = () => {
             <Dialog open={draftModalOpen} onClose={() => setDraftModalOpen(false)} maxWidth="sm" fullWidth>
                 <DialogTitle>Saved Orders</DialogTitle>
                 <DialogContent dividers>
-                    {receiptInfo.cart.length > 0 && (
+                    {receiptInfo?.saleItems?.length > 0 && (
                         <Typography variant="caption" color="text.secondary" mb={2}>
                             Current cart will be replaced when loading a KOT.
                         </Typography>

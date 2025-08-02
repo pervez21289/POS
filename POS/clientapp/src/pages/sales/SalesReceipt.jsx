@@ -7,10 +7,12 @@ import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import { setReceiptInfo } from "./../../store/reducers/sales";
 import { useDispatch } from 'react-redux';
 import { openDrawer } from "./../../store/reducers/drawer";
+import { getSettingsSync } from '../../hooks/useProductSync';
+
 const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
-    const { data, isLoading } = useGetBasicSettingsQuery();
+    const [settingData, setSettingData] = useState({});
     const fontSize = '11px';
-    const totalItems = receiptInfo?.cart?.reduce((sum, item) => sum + item.quantity, 0) || 0;
+    const totalItems = receiptInfo?.saleItems?.reduce((sum, item) => sum + item.quantity, 0) || 0;
     const dispatch = useDispatch();
 
     const handlePrint = () => {
@@ -20,7 +22,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
             handlePrintWeb();
         }
 
-        dispatch(setReceiptInfo({ receiptInfo: { cart: [] } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
         dispatch(openDrawer({ drawerOpen: false }));
 
     };
@@ -80,9 +82,9 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         const lines = [];
 
         // Header
-        lines.push(center(safeText(data?.[0]?.storeName || 'Store Name')));
-        lines.push(center(safeText(data?.[0]?.address || 'Store Address')));
-        lines.push(center(`GST: ${safeText(data?.[0]?.gstin || '-')}`));
+        lines.push(center(safeText(settingData?.[0]?.storeName || 'Store Name')));
+        lines.push(center(safeText(settingData?.[0]?.address || 'Store Address')));
+        lines.push(center(`GST: ${safeText(settingData?.[0]?.gstin || '-')}`));
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Info
@@ -95,7 +97,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         lines.push('Item         Qty Rt Ds  Tot');
 
         // Items
-        receiptInfo?.cart?.forEach(item => {
+        receiptInfo?.saleItems?.forEach(item => {
             lines.push(safeText(item.name)); // Item name on its own line
 
             const qty = padLeft(item.quantity?.toString() || '0', 2);
@@ -114,7 +116,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         lines.push(`${padRight('Discount:', 16)}${padLeft(receiptInfo?.discountAmount?.toFixed(2) || '0.00', 14)}`);
         lines.push(`${padRight('Tax:', 16)}${padLeft(receiptInfo?.taxAmount?.toFixed(2) || '0.00', 14)}`);
         lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${receiptInfo?.net?.toFixed(2) || '0.00'}`, 14)}`);
-        lines.push(`${padRight('Total Items:', 16)}${padLeft(receiptInfo?.cart?.reduce((s, i) => s + i.quantity, 0) || '0', 14)}`);
+        lines.push(`${padRight('Total Items:', 16)}${padLeft(receiptInfo?.saleItems?.reduce((s, i) => s + i.quantity, 0) || '0', 14)}`);
 
         lines.push('-'.repeat(LINE_WIDTH));
         lines.push(center('Thank you!'));
@@ -140,7 +142,15 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         };
     }, [handlePrint]);
 
-    if (isLoading) return <p>Loading...</p>;
+
+    useEffect(() => {
+        getSettingsSync().then((data) => {
+            debugger;
+            setSettingData(data);
+        });
+    }, []);
+
+  /*  if (isLoading) return <p>Loading...</p>;*/
 
     return (
         <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>
@@ -148,9 +158,9 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
 
             <Box mt={2}>
                 <div ref={ref} style={{ fontFamily: 'Courier New, monospace', padding: 0, margin: 0 }}>
-                    <p style={{ fontSize: '12px', fontWeight: 'bolder', textAlign: 'center', margin: 0 }}>{data[0]?.storeName}</p>
-                    <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>{data[0]?.address}</p>
-                    <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>GST: {data[0]?.gstin}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 'bolder', textAlign: 'center', margin: 0 }}>{settingData?.storeName}</p>
+                    <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>{settingData?.address}</p>
+                    <p style={{ fontSize, textAlign: 'center', margin: 0, fontWeight: 'bold' }}>GST: {settingData?.gstin}</p>
                     
 
                     {receiptInfo.billNo && (<><hr style={{ margin: '4px 0' }} /><div style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -178,7 +188,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                             </tr>
                         </thead>
                         <tbody>
-                            {receiptInfo?.cart?.map((item, index) => (
+                            {receiptInfo?.saleItems?.map((item, index) => (
                                 <React.Fragment key={index}>
                                     <tr>
                                         <td colSpan="4" style={{ fontWeight: 'bold', fontSize, borderBottom: 'none', paddingTop: '4px' }}>

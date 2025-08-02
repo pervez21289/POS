@@ -24,17 +24,17 @@ const CartPage = () => {
 
 
     const updateQty = (productID, qty) => {
-        const currentCart = receiptInfo?.cart ?? [];
+        const currentCart = receiptInfo?.saleItems ?? [];
         const updatedCart = currentCart.map((i) =>
             i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
         );
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
     const removeFromCart = (productID) => {
-        const currentCart = receiptInfo?.cart ?? [];
+        const currentCart = receiptInfo?.saleItems ?? [];
         const updatedCart = currentCart.filter((i) => i.productID !== productID);
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
     const handleCheckout = () => {
@@ -49,7 +49,7 @@ const CartPage = () => {
 
     const renderMobileCart = () => (
         <Stack spacing={2}>
-            {receiptInfo?.cart?.map((item) => (
+            {receiptInfo?.saleItems?.map((item) => (
                 <Paper key={item.productID} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
@@ -98,7 +98,7 @@ const CartPage = () => {
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {receiptInfo?.cart?.map((item) => (
+                    {receiptInfo?.saleItems?.map((item) => (
                         <React.Fragment key={item.productID}>
                             <TableRow>
                                 <TableCell colSpan={6} sx={{ p: 0.5, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
@@ -172,7 +172,7 @@ const CartPage = () => {
                
             </Stack>
 
-            {receiptInfo?.cart?.length === 0 ? (
+            {receiptInfo?.saleItems?.length === 0 ? (
                 <Typography variant="body1" color="text.secondary">
                     Cart is empty
                 </Typography>
@@ -205,7 +205,7 @@ const CartPage = () => {
                     color="primary"
                     size="large"
                     fullWidth={isMobile}
-                    disabled={receiptInfo?.cart?.length === 0}
+                    disabled={receiptInfo?.saleItems?.length === 0}
                     onClick={handleCheckout}
                     sx={{ minWidth: isMobile ? '100%' : 140, fontWeight: 600 }}
                 >

@@ -21,11 +21,11 @@ const saveDraftsToStorage = (draftCarts) => {
 };
 
 const computeReceiptInfo = (receiptInfo) => {
-    const totalAmount = receiptInfo?.cart.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
-    const discountAmount = receiptInfo?.cart.reduce((sum, i) => sum + (i.discountAmount || 0) * i.quantity, 0);
-    const taxAmount = receiptInfo?.cart.reduce((sum, i) => sum + (i.tax || 0), 0);
+    const totalAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
+    const discountAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + (i.discountAmount || 0) * i.quantity, 0);
+    const taxAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + (i.tax || 0), 0);
     const net = totalAmount - discountAmount + taxAmount;
-    const totalItems = receiptInfo?.cart.reduce((sum, i) => sum + i.quantity, 0);
+    const totalItems = receiptInfo?.saleItems.reduce((sum, i) => sum + i.quantity, 0);
 
     return {
         ...receiptInfo,
@@ -57,10 +57,10 @@ const sales = createSlice({
             state.isSearch = action.payload;
         },
         saveDraftCart(state, action) {
-            if (state.receiptInfo.cart.length > 0) {
+            if (state.receiptInfo.saleItems.length > 0) {
                 const newDraft = {
                     tableNo: action.payload,
-                    cart: JSON.parse(JSON.stringify(state.receiptInfo.cart)),
+                    saleItems: JSON.parse(JSON.stringify(state.receiptInfo.saleItems)),
                     savedAt: new Date().toISOString()
                 };
                 state.draftCarts.push(newDraft);
@@ -71,7 +71,7 @@ const sales = createSlice({
         loadDraftCart(state, action) {
             const draft = state.draftCarts.find(d => d.tableNo === action.payload);
             if (draft) {
-                const receiptInfo = { cart: draft.cart };
+                const receiptInfo = { saleItems: draft.saleItems };
                 state.receiptInfo = computeReceiptInfo(receiptInfo);
             }
         },

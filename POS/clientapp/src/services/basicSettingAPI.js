@@ -4,7 +4,16 @@ import Config from "./config";
 
 export const basicSettingApi = createApi({
     reducerPath: 'basicSettingApi',
-    baseQuery: fetchBaseQuery({ baseUrl: Config.baseurl }),
+    baseQuery: fetchBaseQuery({
+        baseUrl: Config.baseurl,
+        prepareHeaders: (headers, { getState }) => {
+            const token = getState()?.users?.userDetails?.token;
+            if (token) {
+                headers.set('Authorization', `Bearer ${token}`);
+            }
+            return headers;
+        }
+    }),
     tagTypes: ['BasicSetting'],
     endpoints: (builder) => ({
         getBasicSettings: builder.query({

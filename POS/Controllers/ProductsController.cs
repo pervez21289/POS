@@ -102,7 +102,7 @@ namespace LMS.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> Search(string q)
+        public async Task<IActionResult> Search(string? q)
         {
     
             IEnumerable<Product> result = await _repo.SearchProductsAsync(q ?? "", _userContext.CompanyID);

@@ -14,6 +14,7 @@ import MuiAlert from '@mui/material/Alert';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
+import { db } from '../../data/db';
 
 
 const ReceiptPrintWrapper = () => {
@@ -65,7 +66,8 @@ const ReceiptPrintWrapper = () => {
 
         if (receiptInfo) {
             const sale = {
-                userID: 3, // Replace with actual user
+                billNo: await generateInvoiceNumber(),
+                userID: 0, // Replace with actual user
                 totalAmount: receiptInfo?.totalAmount,
                 discountAmount: receiptInfo?.discountAmount,
                 taxAmount: receiptInfo?.taxAmount,
@@ -74,26 +76,43 @@ const ReceiptPrintWrapper = () => {
                 mobileNumber: mobileNumber,
                 customerName: customerName,
                 PaymentModeID: PaymentModeID,
-                saleItems: receiptInfo.cart.map(i => ({
-                    productID: i.productID,
-                    quantity: i.quantity,
-                    price: i.price,
-                    costPrice: i.costPrice,
-                    discount: i.discountAmount,
-                    tax: i.tax
-                }))
+                saleItems: receiptInfo.saleItems
             };
 
-            const saleD = await createSale(sale).unwrap();
+            await addBill(sale);
             dispatch(setReceiptInfo({
-                receiptInfo: saleD
+                receiptInfo: sale
             }));
             setOpenDialog(false);
             setOpenSnackbar(true);
-            //handlePrint();
-            // handlePrint();
         }
     }
+
+    const addBill = async (sale) => {
+
+            await db.bills.add({
+                createdAt: new Date(),
+                sales: sale,
+                isSynced: false
+            });
+        console.log('Bill saved locally!');
+    };
+
+
+    const generateInvoiceNumber = async () => {
+        const now = new Date();
+
+        const year = String(now.getFullYear()).slice(2); // "25"
+        const month = String(now.getMonth() + 1).padStart(2, '0'); // "08"
+        const day = String(now.getDate()).padStart(2, '0'); // "02"
+
+        const datePart = `${year}${month}${day}`;
+
+        const lastSynced = await db.bills.orderBy('id').reverse().first();
+        const lastSyncedId = lastSynced?.id ?? 1;
+
+        return `INV${datePart}${lastSyncedId}`;
+    };
 
     return (
         <>

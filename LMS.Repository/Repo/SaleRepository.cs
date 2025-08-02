@@ -44,7 +44,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
 
         var (saleItem, saleItems) = await QueryMultipleAsync<SaleListDto, SaleItemListDto>("SaveSaleWithItems", parameters, commandType: CommandType.StoredProcedure);
 
-        saleItem.Cart = saleItems.ToList();
+        saleItem.saleItems = saleItems.ToList();
         return saleItem;
 
     }
@@ -83,7 +83,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
                 commandType: CommandType.StoredProcedure
             );
 
-           saleItem.Cart = saleItems.ToList();
+           saleItem.saleItems = saleItems.ToList();
            return saleItem;
         }
         catch (Exception ex)

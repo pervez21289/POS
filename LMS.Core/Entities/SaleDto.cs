@@ -22,6 +22,7 @@ namespace LMS.Core.Entities
 
     public class SaleDto
     {
+        public string BillNo { get; set; }
         public int UserID { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; }
@@ -72,7 +73,7 @@ namespace LMS.Core.Entities
         public string MobileNumber { get; set; }
         public string UserName { get; set; }
         public string CompanyName { get; set; }
-        public List<SaleItemListDto> Cart { get; set; } = new();
+        public List<SaleItemListDto> saleItems { get; set; } = new();
     }
 
     public class SaleItemListDto
