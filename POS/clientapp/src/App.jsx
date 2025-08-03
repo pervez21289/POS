@@ -10,7 +10,7 @@ import useBillSync from './hooks/useBillSync';
 // ==============================|| APP - THEME, ROUTER, LOCAL ||============================== //
 
 export default function App() {
-    useBillSync();
+  useBillSync();
   return (
     <ThemeCustomization>
       <ScrollTop>

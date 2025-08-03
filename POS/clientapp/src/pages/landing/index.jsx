@@ -125,13 +125,13 @@ function About() {
                                 <p>Manage all your business locations from a single, centralized dashboard with ease.</p>
                             </div>
                         </div>
-                        {/*<div className="benefit-item animated">*/}
-                        {/*    <i className="fas fa-cloud-download-alt"></i>*/}
-                        {/*    <div>*/}
-                        {/*        <h3>Offline mode support</h3>*/}
-                        {/*        <p>Continue making sales even when your internet connection is down, syncing automatically later.</p>*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
+                        <div className="benefit-item animated">
+                            <i className="fas fa-cloud-download-alt"></i>
+                            <div>
+                                <h3>Offline mode support</h3>
+                                <p>Continue making sales even when your internet connection is down, syncing automatically later.</p>
+                            </div>
+                        </div>
                     </div>
                     <div className="about-image animated">
                         <img src="/assets/pos-about.png" alt="NexBill Benefits Illustration" />
