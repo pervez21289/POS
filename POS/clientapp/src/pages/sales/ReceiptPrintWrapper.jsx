@@ -81,7 +81,7 @@ const ReceiptPrintWrapper = () => {
 
             await addBill(sale);
             dispatch(setReceiptInfo({
-                receiptInfo: sale
+                receiptInfo: {saleItems:[]}
             }));
             setOpenDialog(false);
             setOpenSnackbar(true);

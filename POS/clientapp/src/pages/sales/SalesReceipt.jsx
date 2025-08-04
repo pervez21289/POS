@@ -19,7 +19,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         if (window.ReactNativeWebView) {
             handlePrintMobile();
         } else {
-            handlePrintWeb();
+            handlePrintWeb();                                                           
         }
 
         dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));

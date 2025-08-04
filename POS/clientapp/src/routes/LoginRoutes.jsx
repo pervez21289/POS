@@ -9,6 +9,8 @@ const LoginPage = Loadable(lazy(() => import('pages/auth/Login')));
 const RegisterPage = Loadable(lazy(() => import('pages/auth/Register')));
 
 import Landing from '../pages/landing';
+import PrivacyPolicy from '../pages/landing/PrivacyPolicy'; 
+import TermCondition from '../pages/landing/TermCondition';
 // ==============================|| AUTH ROUTING ||============================== //
 
 const LoginRoutes = {
@@ -29,6 +31,15 @@ const LoginRoutes = {
                 {
                     path: '/register',
                     element: <RegisterPage />
+                },
+                
+                {
+                    path: '/tandc',
+                    element: <TermCondition />
+                },
+                {
+                    path: '/privacypolicy',
+                    element: <PrivacyPolicy />
                 }
             ]
         }

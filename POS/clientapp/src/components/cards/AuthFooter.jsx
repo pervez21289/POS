@@ -25,7 +25,7 @@ export default function AuthFooter() {
             variant="subtitle2"
             color="secondary"
             component={Link}
-            href="https://mui.com/store/terms/"
+            href="/tandc"
             target="_blank"
             underline="hover"
           >
@@ -35,7 +35,7 @@ export default function AuthFooter() {
             variant="subtitle2"
             color="secondary"
             component={Link}
-            href="https://mui.com/legal/privacy/"
+            href="/privacypolicy"
             target="_blank"
             underline="hover"
           >
