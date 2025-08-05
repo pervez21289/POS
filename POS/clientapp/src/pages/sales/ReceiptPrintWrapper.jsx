@@ -1,7 +1,7 @@
 ﻿import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-    Box, Button, Dialog, DialogTitle, DialogContent, DialogActions ,Divider, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
+    Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, List, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
     RadioGroup, FormControlLabel, Radio
 } from '@mui/material';
 import { useReactToPrint } from "react-to-print";
@@ -16,7 +16,8 @@ import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
 import { db } from '../../data/db';
 import { formatDateTime } from '../../utils/common'; 
-
+import PaymentMode from './PaymentMode';
+import { showAlert } from "./../../store/reducers/alert";
 
 const ReceiptPrintWrapper = () => {
     const { receiptInfo } = useSelector((state) => state.sales);
@@ -88,7 +89,7 @@ const ReceiptPrintWrapper = () => {
                 receiptInfo: sale
             }));
             setOpenDialog(false);
-            setOpenSnackbar(true);
+            dispatch(showAlert({ open: true, message: 'Payment successfully completed!', severity: 'success' }));
         }
     }
 
@@ -149,56 +150,66 @@ const ReceiptPrintWrapper = () => {
             </Box>
 
 
-            <Dialog open={openDialog} onClose={() => setOpenDialog(false)} fullWidth maxWidth="sm">
-                <DialogTitle>Payment Details</DialogTitle>
-                <DialogContent>
+            <Dialog
+                open={openDialog}
+                onClose={() => setOpenDialog(false)}
+                fullWidth
+                maxWidth="sm"
+                scroll="body" // Enables scroll on mobile
+            >
+                <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+                    Payment Details
+                </DialogTitle>
 
-                    <Typography variant="subtitle1" >Payment Mode</Typography>
-                    <RadioGroup
-                        row
-                        value={PaymentModeID}
-                        onChange={(e) => {
-                            const value = e.target.value;
-                            setPaymentModeID(value);
-                            if (!value) {
-                                setPaymentModeError('Please select a payment mode');
-                                return;
-                            } else {
-                                setPaymentModeError('');
-
-                            }
-
-                        }}
-                    >
-                        <FormControlLabel value="1" control={<Radio />} label="UPI" />
-                        <FormControlLabel value="2" control={<Radio />} label="Cash" />
-                        <FormControlLabel value="3" control={<Radio />} label="Card" />
-
-                    </RadioGroup>
+                <DialogContent sx={{ px: 2 }}>
+                    {/* Payment Mode */}
+                    <Typography variant="subtitle1" gutterBottom>
+                        Payment Mode
+                    </Typography>
+                    <PaymentMode PaymentModeID={PaymentModeID} setPaymentModeID={setPaymentModeID}></PaymentMode>
+            
                     {paymentModeError && (
                         <Typography variant="caption" color="error" sx={{ ml: 1 }}>
                             {paymentModeError}
                         </Typography>
                     )}
+
+                    {/* Mobile Number */}
                     <TextField
                         fullWidth
+                        type="tel" // better semantic HTML for phone numbers
                         label="Mobile Number"
+                        inputMode="numeric"
                         value={mobileNumber}
                         onChange={(e) => {
                             const value = e.target.value;
+
+                            // Allow only digits
+                            if (!/^\d*$/.test(value)) return;
+
                             setMobileNumber(value);
-                            if (!/^[6-9]\d{9}$/.test(value)) {
-                                setMobileError('Invalid mobile number');
-                                setCustomerName('');
+
+                            // Validate mobile number only if it's 10 digits
+                            if (value.length === 10) {
+                                if (!/^[6-9]\d{9}$/.test(value)) {
+                                    setMobileError('Invalid mobile number');
+                                    setCustomerName('');
+                                } else {
+                                    setMobileError('');
+                                    handleMobileSearch(value); // async call to backend or local state search
+                                }
                             } else {
-                                setMobileError('');
-                                handleMobileSearch(value);
+                                setMobileError(''); // Clear error if still typing
                             }
                         }}
                         error={!!mobileError}
                         helperText={mobileError || ' '}
-                        sx={{ mb: 2 }}
+                        sx={{ my: 2 }}
+                        inputProps={{ maxLength: 10 }} // prevent typing more than 10 digits
                     />
+
+
+                    {/* Customer Name */}
                     <TextField
                         fullWidth
                         label="Customer Name"
@@ -206,30 +217,33 @@ const ReceiptPrintWrapper = () => {
                         onChange={(e) => setCustomerName(e.target.value)}
                         disabled={!!customerId}
                     />
-                 
                 </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
-                    <Button variant="contained" onClick={() => {
-                        
-                        handleCheckout();
-                    }}>
+
+                <DialogActions
+                    sx={{
+                        px: 2,
+                        pb: 2,
+                        flexDirection: { xs: 'column-reverse', sm: 'row' },
+                        gap: 1
+                    }}
+                >
+                    <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={() => setOpenDialog(false)}
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        fullWidth
+                        variant="contained"
+                        onClick={handleCheckout}
+                    >
                         Proceed
                     </Button>
                 </DialogActions>
             </Dialog>
 
-
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={3000}
-                onClose={() => setOpenSnackbar(false)}
-                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            >
-                <MuiAlert onClose={() => setOpenSnackbar(false)} severity="success" sx={{ width: '100%' }}>
-                    Sale saved successfully!
-                </MuiAlert>
-            </Snackbar>
         </>
     );
 }
