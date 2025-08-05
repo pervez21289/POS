@@ -99,7 +99,7 @@ const ProductForm = ({ initialData = {} }) => {
                 dispatch(showAlert({ open: true, message: 'Product saved successfully!', severity: 'success' }));
             }
             dispatch(openDrawer({ drawerOpen: false }));
-            setProduct(null);
+            //setProduct(product);
         } catch (error) {
             dispatch(showAlert({ open: true, message: 'Failed to save product!', severity: 'error' }));
         }
@@ -284,7 +284,7 @@ const ProductForm = ({ initialData = {} }) => {
                     <FormControlLabel
                         control={
                             <Checkbox
-                                checked={product?.isActive}
+                                checked={!!product?.isActive}
                                 onChange={handleCheckbox}
                                 name="isActive"
                             />

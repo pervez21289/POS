@@ -433,7 +433,7 @@ const SalesPOSPage = () => {
                                 </IconButton>
                                 <ListItemText
                                     primary={`Table No: ${draft.tableNo || 'N/A'}`}
-                                    secondary={`Saved: ${new Date(draft.savedAt).toLocaleString()}`}
+                                    secondary={`${new Date(draft.savedAt).toLocaleString()}`}
                                 />
                             </ListItem>
 
