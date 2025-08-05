@@ -39,7 +39,7 @@ export default function BasicSettingForm() {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        if (data?.length > 0) setFormData(data[0]);
+        if (data) setFormData(data);
     }, [data]);
 
     const validate = () => {

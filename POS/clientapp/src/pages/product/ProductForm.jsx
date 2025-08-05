@@ -136,35 +136,10 @@ const ProductForm = ({ initialData = {} }) => {
             <Typography variant="subtitle1" sx={{ mb: 1, fontWeight: 'medium' }}>
                 Basic Information
             </Typography>
-            <Grid container spacing={2}>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Product Name"
-                        name="name"
-                        value={product?.name || ''}
-                        onChange={handleChange}
-                        required
-                    />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="SKU"
-                        name="sku"
-                        value={product?.sku || ''}
-                        onChange={handleChange}
-                    />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                    <TextField
-                        label="Barcode"
-                        name="barcode"
-                        value={product?.barcode || ''}
-                        onChange={handleChange}
-                    />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                    <FormControl>
-                        <InputLabel id="category-label">Category</InputLabel>
+                <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+
+
                         <Select
                             labelId="category-label"
                             name="categoryID"
@@ -179,8 +154,27 @@ const ProductForm = ({ initialData = {} }) => {
                                 </MenuItem>
                             ))}
                         </Select>
-                    </FormControl>
+
+                    </Grid>
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="Product Name"
+                        name="name"
+                        value={product?.name || ''}
+                        onChange={handleChange}
+                        required
+                    />
                 </Grid>
+               
+                <Grid item xs={12} sm={6}>
+                    <TextField
+                        label="Barcode"
+                        name="barcode"
+                        value={product?.barcode || ''}
+                        onChange={handleChange}
+                    />
+                </Grid>
+               
             </Grid>
 
             <Typography variant="subtitle1" sx={{ mt: 3, mb: 1, fontWeight: 'medium' }}>

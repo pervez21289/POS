@@ -12,27 +12,38 @@ using System.Text;
 
 namespace LMS.Controllers
 {
-
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class BasicSettingsController : ControllerBase
     {
         private readonly IBasicSettingRepository _repo;
+        private IUserContext _userContext;
 
-        public BasicSettingsController(IBasicSettingRepository repo)
+        public BasicSettingsController(IBasicSettingRepository repo,IUserContext userContext)
         {
             _repo = repo;
+            _userContext = userContext;
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get() => Ok(await _repo.GetAllAsync());
+        public async Task<IActionResult> Get()
+        {
+            return Ok(await _repo.GetByIdAsync(0, _userContext.CompanyID));
+        }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id) => Ok(await _repo.GetByIdAsync(id));
+        public async Task<IActionResult> Get(int id)
+        {
+                                                               
+                return Ok(await _repo.GetByIdAsync(id,_userContext.CompanyID));
+        }
+       
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] BasicSetting setting)
         {
+            setting.CompanyID = _userContext.CompanyID;
             await _repo.InsertAsync(setting);
             return Ok();
         }

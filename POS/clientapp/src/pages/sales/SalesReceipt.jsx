@@ -22,8 +22,9 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
             handlePrintWeb();                                                           
         }
 
-        dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
+       
         dispatch(openDrawer({ drawerOpen: false }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
 
     };
 
@@ -80,18 +81,21 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         const safeText = (text) => (text || '').toString().slice(0, LINE_WIDTH);
 
         const lines = [];
-
+        console.log('settingdataa', settingData);
         // Header
-        lines.push(center(safeText(settingData?.[0]?.storeName || 'Store Name')));
-        lines.push(center(safeText(settingData?.[0]?.address || 'Store Address')));
-        lines.push(center(`GST: ${safeText(settingData?.[0]?.gstin || '-')}`));
+        lines.push(center(safeText(settingData?.storeName || 'Store Name')));
+        lines.push(center(safeText(settingData?.address || 'Store Address')));
+        lines.push(center(`GST: ${safeText(settingData?.gstin || '-')}`));
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Info
         lines.push(`Bill#: ${receiptInfo?.billNo || ''}`);
         lines.push(`Date: ${receiptInfo?.saleTime || ''}`);
         lines.push(`Cashier: ${receiptInfo?.userName || ''}`);
-        lines.push(`Name: ${receiptInfo?.customerName || ''}`);
+
+        if (receiptInfo.customerName)
+            lines.push(`Name: ${receiptInfo?.customerName || ''}`);
+
         lines.push(`Mobile: ${receiptInfo?.mobileNumber || ''}`);
         lines.push('-'.repeat(LINE_WIDTH));
         lines.push('Item         Qty Rt Ds  Tot');
@@ -145,7 +149,6 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
 
     useEffect(() => {
         getSettingsSync().then((data) => {
-            debugger;
             setSettingData(data);
         });
     }, []);

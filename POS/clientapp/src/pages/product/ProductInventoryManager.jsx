@@ -38,7 +38,7 @@ const ProductInventoryManager = ({ product }) => {
         try {
             await adjustStock({
                 productId: product?.productID,
-                data: { quantity: Number(quantity), reason, userID: 23 },
+                data: { quantity: Number(quantity), reason },
             }).unwrap();
             setSuccess('Stock adjusted successfully.');
             setQuantity('');
@@ -136,7 +136,7 @@ const ProductInventoryManager = ({ product }) => {
                                     </ListItem>
                                     <ListItem>
                                         <ListItemText
-                                            secondary={`Reason: ${log.reason} | By User: ${log.userID}`}
+                                            secondary={`Reason: ${log.reason} | By User: ${log.name}`}
                                         />
                                     </ListItem>
                                     <Divider component="li" />

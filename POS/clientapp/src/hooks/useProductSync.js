@@ -38,7 +38,6 @@ export const getProductsSync = async () => {
 
 
 export const saveSettingsSync = async () => {
-    debugger;
     try {
         const settings = await ProductService.GetBasicSettings();
         await saveSettings(settings);

@@ -10,7 +10,7 @@ namespace LMS.Core.Entities
     {
         public int ProductID { get; set; }
         public string Name { get; set; }
-        public string SKU { get; set; }
+     
         public string Barcode { get; set; }
         public string Description { get; set; }
         public decimal Price { get; set; }
@@ -32,12 +32,13 @@ namespace LMS.Core.Entities
         public string Reason { get; set; }
         public int UserID { get; set; }
         public string Timestamp { get; set; }
+        public string? Name{get;set;}
     }
 
     public class AdjustStockDto
     {
         public int Quantity { get; set; }
         public string Reason { get; set; }
-        public int UserID { get; set; }
+        public int? UserID { get; set; }
     }
 }

@@ -94,7 +94,8 @@ namespace LMS.Repo.Repository
                    commandType: CommandType.StoredProcedure
                );
 
-            userDto.menuItemDtos = menuItems;
+            if(userDto!=null)
+               userDto.menuItemDtos = menuItems;
            
             return userDto;
 

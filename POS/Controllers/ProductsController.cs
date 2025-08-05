@@ -115,7 +115,8 @@ namespace LMS.Controllers
         {
             try
             {
-                var success = await _repo.AdjustStockAsync(id, dto.Quantity, dto.Reason, dto.UserID);
+                dto.UserID = _userContext.UserId;
+                var success = await _repo.AdjustStockAsync(id, dto.Quantity, dto.Reason, dto.UserID.Value);
                 return success ? Ok() : BadRequest();
             }
             catch (Exception ex)

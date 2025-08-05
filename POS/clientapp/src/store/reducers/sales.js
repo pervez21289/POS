@@ -48,6 +48,7 @@ const sales = createSlice({
     initialState,
     reducers: {
         setReceiptInfo(state, action) {
+         
             state.receiptInfo = computeReceiptInfo(action.payload.receiptInfo);
         },
         resetReceiptInfo(state) {

@@ -13,6 +13,7 @@ namespace LMS.Core.Entities
         public string Address { get; set; }
         public string ContactEmail { get; set; }
         public string GSTIN { get; set; }
+        public int? CompanyID { get; set; } 
     }
 
 }

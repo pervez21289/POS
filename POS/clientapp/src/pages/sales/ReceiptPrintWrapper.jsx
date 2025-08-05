@@ -15,11 +15,13 @@ import { useMediaQuery, useTheme } from '@mui/material';
 import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
 import { db } from '../../data/db';
+import { formatDateTime } from '../../utils/common'; 
 
 
 const ReceiptPrintWrapper = () => {
-    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
-    const theme = useTheme();
+    const { receiptInfo } = useSelector((state) => state.sales);
+    const { userDetails } = useSelector((state) => state.users);
+    
    
     const printRef = useRef();
     
@@ -76,12 +78,14 @@ const ReceiptPrintWrapper = () => {
                 mobileNumber: mobileNumber,
                 customerName: customerName,
                 PaymentModeID: PaymentModeID,
-                saleItems: receiptInfo.saleItems
+                saleItems: receiptInfo.saleItems,
+                saleTime: formatDateTime(new Date()),
+                userName: userDetails?.name || '',
             };
-
+           
             await addBill(sale);
             dispatch(setReceiptInfo({
-                receiptInfo: {saleItems:[]}
+                receiptInfo: sale
             }));
             setOpenDialog(false);
             setOpenSnackbar(true);

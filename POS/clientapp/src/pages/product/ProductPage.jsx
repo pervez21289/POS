@@ -21,11 +21,14 @@ import {
 import { showConfirmDialog } from './../../store/reducers/confirm';
 import { showAlert } from "./../../store/reducers/alert";
 import { useTheme, useMediaQuery } from '@mui/material';
+import { Chip } from '@mui/material';
 
 
 const ProductManager = () => {
     const [searchText, setSearchText] = useState('');
-    const { data: products = [], isLoading } = useGetProductsQuery(searchText);
+    const { data: products = [], isLoading } = useGetProductsQuery(searchText, { refetchOnMountOrArgChange: true });
+    
+
     const [deleteProduct] = useDeleteProductMutation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -101,8 +104,8 @@ const ProductManager = () => {
             minWidth: 200
         },
         {
-            field: 'sku',
-            headerName: 'SKU',
+            field: 'barcode',
+            headerName: 'Barcode',
             flex: 0.7,
             minWidth: 120
         },
@@ -124,6 +127,23 @@ const ProductManager = () => {
             headerAlign: 'right'
 
         },
+        {
+            field: 'isActive',
+            headerName: 'Status',
+            flex: 0.6,
+            minWidth: 120,
+            align: 'center',
+            headerAlign: 'center',
+            renderCell: (params) => (
+                <Chip
+                    label={params.value ? 'Active' : 'Inactive'}
+                    color={params.value ? 'success' : 'error'}
+                    size="small"
+                    sx={{ fontWeight: 600 }}
+                />
+            )
+        }
+,
         {
             field: 'actions',
             headerName: 'Actions',
@@ -174,6 +194,7 @@ const ProductManager = () => {
 
     ];
 
+    if (isLoading) return <p>Loading...</p>;
 
     return (
     

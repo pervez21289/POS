@@ -27,7 +27,7 @@ namespace LMS.Repository.Repo
                 "CreateProduct", new
                 {
                     product.Name,
-                    product.SKU,
+                   
                     product.Barcode,
                     product.Description,
                     product.Price,
@@ -48,7 +48,7 @@ namespace LMS.Repository.Repo
                 {
                     product.ProductID,
                     product.Name,
-                    product.SKU,
+                 
                     product.Barcode,
                     product.Description,
                     product.Price,
