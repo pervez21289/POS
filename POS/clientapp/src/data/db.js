@@ -22,7 +22,7 @@ return await db.products.toArray();
 
 
 export const saveSettings = async (settings) => {
-
+    await db.settings.clear();
     await db.settings.add(settings);
 };
 

@@ -66,6 +66,12 @@ export default function SettingTab() {
                     </ListItemIcon>
                     <ListItemText primary="History" />
                 </ListItemButton>
+                <ListItemButton selected={selectedIndex === 5} onClick={(event) => handleListItemClick(event, 5, 'subscriptionplan')}>
+                    <ListItemIcon>
+                        <UnorderedListOutlined />
+                    </ListItemIcon>
+                    <ListItemText primary="Subscription" />
+                </ListItemButton>
             </>)
             }
             <ListItemButton selected={selectedIndex === 2} onClick={(event) => handleListItemClick(event, 2, 'support')}>

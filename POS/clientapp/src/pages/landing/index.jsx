@@ -1,36 +1,9 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import AppStyles from './appStyle';
 import POSHERO from '../../assets/images/pos.jpg';
+import Pricing from './Pricing';    
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';  
 
-
-// --- Custom Hook: useIntersectionObserver ---
-const useIntersectionObserver = (ref, options, callback, delay = 0) => {
-    useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) {
-                if (delay > 0) {
-                    setTimeout(() => {
-                        callback(entry);
-                    }, delay);
-                } else {
-                    callback(entry);
-                }
-            }
-        }, options);
-
-        const currentRef = ref.current;
-
-        if (currentRef) {
-            observer.observe(currentRef);
-        }
-
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
-            }
-        };
-    }, [ref, options, callback, delay]);
-};
 
 // --- Component: Header ---
 function Header() {
@@ -238,87 +211,7 @@ function Testimonials() {
 }
 
 // --- Component: Pricing ---
-const pricingTiers = [
-    {
-        name: "Free",
-        price: "\u20B90",
-        period: "/month",
-        isPopular: false,
-        features: [
-            "Basic billing features",
-            "Single user",
-            "Limited reports",
-            "Email support"
-        ],
-        buttonText: "Get Started Free",
-        buttonClass: "btn-secondary"
-    },
-    {
-        name: "Pro",
-        price: "\u20B9499",
-        period: "/month",
-        isPopular: true,
-        features: [
-            "All Free features",
-            "Real-time inventory",
-            "Multi-user access",
-            "Advanced reports",
-            "Priority support"
-        ],
-        buttonText: "Choose Pro Plan",
-        buttonClass: "btn-primary"
-    },
-    {
-        name: "Enterprise",
-        price: "\u20B9999",
-        period: "",
-        isPopular: false,
-        features: [
-            "All Pro features",
-            "Multi-store management",
-            "Custom integrations",
-            "Dedicated account manager",
-            "24/7 Premium support"
-        ],
-        buttonText: "Contact Sales",
-        buttonClass: "btn-secondary"
-    },
-];
-
-function Pricing() {
-    const pricingGridRef = useRef(null);
-    useIntersectionObserver(pricingGridRef, { threshold: 0.15 }, (entry) => {
-        if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.pricing-card').forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.15}s`;
-                card.classList.add('fade-in');
-            });
-        }
-    });
-
-    return (
-        <section id="pricing" className="section">
-            <div className="container">
-                <h2 className="section-heading">Simple Pricing, Powerful Features</h2>
-                <div className="pricing-grid" ref={pricingGridRef}>
-                    {pricingTiers.map((tier, index) => (
-                        <div className={`pricing-card animated ${tier.isPopular ? 'popular' : ''}`} key={index}>
-                            {tier.isPopular && <span className="popular-badge">Popular Choice</span>}
-                            <h3>{tier.name}</h3>
-                            <p className="price">{tier.price}<span>{tier.period}</span></p>
-                            <ul>
-                                {tier.features.map((feature, idx) => (
-                                    <li key={idx}>{feature}</li>
-                                ))}
-                            </ul>
-                            <a href="#" className={`btn ${tier.buttonClass}`}>{tier.buttonText}</a>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
+<Pricing></Pricing>
 
 // --- Component: FAQ ---
 const faqData = [

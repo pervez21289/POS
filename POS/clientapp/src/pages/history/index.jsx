@@ -4,7 +4,8 @@ import { DataGrid } from "@mui/x-data-grid";
 import { useGetApiLogsQuery } from "../../services/userAPI"; // adjust path if needed
 import { useSelector } from 'react-redux';
 
-const ApiLogsTable = () => {
+const Index = () => {
+    debugger;
     const { userDetails } = useSelector((state) => state.users);
     if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
 
@@ -64,4 +65,4 @@ const ApiLogsTable = () => {
     );
 };
 
-export default ApiLogsTable;
+export default Index;

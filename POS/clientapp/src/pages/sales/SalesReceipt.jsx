@@ -81,7 +81,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         const safeText = (text) => (text || '').toString().slice(0, LINE_WIDTH);
 
         const lines = [];
-        console.log('settingdataa', settingData);
+      
         // Header
         lines.push(center(safeText(settingData?.storeName || 'Store Name')));
         lines.push(center(safeText(settingData?.address || 'Store Address')));

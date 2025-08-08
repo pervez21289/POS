@@ -5,12 +5,16 @@ import AuthLayout from 'layout/Auth';
 import Loadable from 'components/Loadable';
 
 // jwt auth
-const LoginPage = Loadable(lazy(() => import('pages/auth/Login')));
+import LoginPage from '../pages/auth/Login';
 const RegisterPage = Loadable(lazy(() => import('pages/auth/Register')));
 
 import Landing from '../pages/landing';
 import PrivacyPolicy from '../pages/landing/PrivacyPolicy'; 
 import TermCondition from '../pages/landing/TermCondition';
+
+import Order from '../pages/landing/Order';
+import OrderSuccess from '../pages/landing/OrderSuccess';
+import OrderFailed from '../pages/landing/OrderFailed';
 // ==============================|| AUTH ROUTING ||============================== //
 
 const LoginRoutes = {
@@ -40,6 +44,18 @@ const LoginRoutes = {
                 {
                     path: '/privacypolicy',
                     element: <PrivacyPolicy />
+                },
+                {
+                    path: '/order',
+                    element: <Order />
+                },
+                {
+                    path: '/ordersuccess',
+                    element: <OrderSuccess />
+                },
+                {
+                    path: '/orderfailed',
+                    element: <OrderFailed />
                 }
             ]
         }

@@ -4,7 +4,7 @@ import Config from "./config";
 export const userAPI = createApi({
     reducerPath: 'userAPI',
     baseQuery: fetchBaseQuery({
-        baseUrl: Config.baseurl, // 🔁 Replace with your backend API
+        baseUrl: Config.baseurl, 
         prepareHeaders: (headers, { getState }) => {
             const token = getState()?.users?.userDetails?.token;
             if (token) {

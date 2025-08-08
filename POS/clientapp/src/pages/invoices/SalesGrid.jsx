@@ -18,8 +18,9 @@ import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
 import { useDispatch } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
-import SalesReceipt from './SalesReceipt';
+import SalesReceipt from './../sales/SalesReceipt';
 import { DataGrid } from '@mui/x-data-grid';
+import renderMobileCards from './renderMobileCards'; 
 
 const SalesGrid = () => {
     const [rows, setRows] = useState([]);
@@ -107,54 +108,7 @@ const SalesGrid = () => {
         },
     ];
 
-    const renderMobileCards = () => (
-        <Stack spacing={2}>
-            {rows.map((row) => {
-                const isPaid = row.p_Status?.toLowerCase() === 'paid';
-                return (
-                    <Card key={row.saleID} variant="outlined">
-                        <CardContent>
-                            <Typography variant="subtitle2" gutterBottom>
-                                <strong>Bill No:</strong> {row.billNo}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Customer:</strong> {row.customerName}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Sale Time:</strong> {row.saleTime}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Total:</strong> ₹{row.totalAmount}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Discount:</strong> ₹{row.discountAmount}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Net:</strong> ₹{row.netAmount}
-                            </Typography>
-                            <Chip
-                                label={isPaid ? 'Paid' : 'Not Paid'}
-                                color={isPaid ? 'success' : 'error'}
-                                variant="outlined"
-                                sx={{ mt: 1 }}
-                            />
-                        </CardContent>
-                        <Divider />
-                        <CardActions sx={{ justifyContent: 'flex-end', p: 1 }}>
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleViewInvoice(row)}
-                            >
-                                View Invoice
-                            </Button>
-                        </CardActions>
-                    </Card>
-                );
-            })}
-        </Stack>
-    );
-
+    
     return (
         // Inside SalesGrid return JSX
         <Paper
@@ -196,7 +150,7 @@ const SalesGrid = () => {
             {/* 🔁 Grid or Card View Based on Screen Size */}
             <Box sx={{ width: '100%' }}>
                 {isMobile ? (
-                    renderMobileCards()
+                    renderMobileCards(handleViewInvoice,rows)
                 ) : (
                     <Box sx={{ height: 600, width: '100%' }}>
                         <DataGrid
