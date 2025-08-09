@@ -9,8 +9,34 @@ const RazorpayCheckout = ({ amount,plan }) => {
     const { userDetails } = useSelector((state) => state.users);
     const navigate = useNavigate();
 
+
+    if (plan === 'free') {
+        PaymentService.SubscribeFreePlan(); 
+        navigate('/dashboard');
+    }
+
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => {
+                resolve(true);
+            };
+            script.onerror = () => {
+                resolve(false);
+            };
+            document.body.appendChild(script);
+        });
+    };
+
     const loadRazorpay = async () => {
         setLoading(true);
+        const res = await loadRazorpayScript();
+        if (!res) {
+            alert("Razorpay SDK failed to load. Are you online?");
+            return;
+        }
+
         try {
             const data = await PaymentService.CreateOrder({ amount,plan});
 
@@ -21,7 +47,8 @@ const RazorpayCheckout = ({ amount,plan }) => {
                 order_id: data.orderId,
                 prefill: {
                     name: userDetails.name,
-                    email: userDetails.email
+                    email: userDetails.email,
+                    mobile: userDetails.mobile
                 },
                 handler: async function (response) {
                     const verifyResponse = await PaymentService.VerifyOrder({
