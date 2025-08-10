@@ -87,7 +87,7 @@ const users = createSlice({
       state.showLoginModal = action.payload.showLoginModal;
       },
       setPlan(state, action) {
-          debugger;
+       
           state.SubscriptionPlan = action.payload;
       }
       

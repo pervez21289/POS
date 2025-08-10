@@ -20,7 +20,7 @@ const Order = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const plan = location.state?.plan;
-    debugger;
+ 
 
     useEffect(() => {
         if (plan?.name === 'Free') {

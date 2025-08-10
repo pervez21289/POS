@@ -5,7 +5,7 @@ import { useGetApiLogsQuery } from "../../services/userAPI"; // adjust path if n
 import { useSelector } from 'react-redux';
 
 const Index = () => {
-    debugger;
+  
     const { userDetails } = useSelector((state) => state.users);
     if (userDetails?.role?.indexOf('SuperAdmin') === -1) return (<>Unauthorized</>)
 

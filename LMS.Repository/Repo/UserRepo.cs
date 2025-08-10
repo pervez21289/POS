@@ -21,6 +21,11 @@ namespace LMS.Repo.Repository
 {
     public class UserRepo : BaseRepository, IUser
     {
+        public readonly AppSettings _appSettings;
+        public UserRepo(AppSettings appSettings)
+        {
+            _appSettings = appSettings;
+        }
 
         public async Task<int> CreateUserAsync(User user)
         {
@@ -66,22 +71,34 @@ namespace LMS.Repo.Repository
 
         public async Task<CreateUserResult> RegisterCompanyWithAdminAsync(RegisterRequest request)
         {
-            var passwordHash = ComputeSha256Hash(request.Password);
+            try
+            {
+                var passwordHash = ComputeSha256Hash(request.Password);
 
-            var result = await QueryFirstOrDefaultAsync<CreateUserResult>(
-                "CreateCompanyWithAdmin",
-                new
-                {
-                    CompanyName = request.Company,
-                    FirstName = request.FirstName,
-                    Mobile = request.Mobile,
-                    Email = request.Email,
-                    PasswordHash = passwordHash // Example
-                },
-                commandType: CommandType.StoredProcedure
-            );
+                var result = await QueryFirstOrDefaultAsync<CreateUserResult>(
+                    "CreateCompanyWithAdmin",
+                    new
+                    {
+                        CompanyName = request.Company,
+                        FirstName = request.FirstName,
+                        Mobile = request.Mobile,
+                        Email = request.Email,
+                        PasswordHash = passwordHash // Example
+                    },
+                    commandType: CommandType.StoredProcedure
+                );
 
-            return result;
+                var taskEmail = await SentEmail(result.OTP);
+                //Task taskSMS = SendSMS(result.OTP, request.Mobile);
+                
+            
+
+                return result;
+            }
+            catch
+            {
+                throw;
+            }
         }
 
         public async Task<UserLoginDto?> LoginAsync(string email, string password)
@@ -100,6 +117,52 @@ namespace LMS.Repo.Repository
             return userDto;
 
         }
+
+        public async Task<bool> ValidateOTP(User user)
+        {
+            try
+            {
+                bool IsValid= await QueryFirstOrDefaultAsync<bool>("SP_ValidateOTP", new { UserId = user.UserId, OTP = user.OTP });
+                return IsValid;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
+
+        public async Task<Result> SentEmail(string OTP)
+        {
+            try
+            {
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress("aliusman9760@gmail.com");
+                message.To.Add("pervez21289@gmail.com");
+                message.Subject = "OTP Verification #";
+                message.IsBodyHtml = true;
+                message.Body = "<div>" + OTP + "</div>";
+
+                SmtpClient client = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    Credentials = new NetworkCredential(_appSettings.Email, _appSettings.Secret),
+                    EnableSsl = true
+                };
+
+
+                client.SendAsync(message, null);
+
+
+                return new Result() { IsSuccess = true, Message = "Email sent successfully" };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+
 
         public async Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate)
         {

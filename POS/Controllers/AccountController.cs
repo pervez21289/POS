@@ -86,7 +86,28 @@ public class AccountController : ControllerBase
 
 
 
-    } 
+    }
+
+    [HttpPost]
+    [Route("ValidateOTP")]
+    public async Task<IActionResult> ValidateOTP(User user)
+    {
+        try
+        {
+            if (await _accountService.ValidateOTP(user))
+            {
+                return Ok(new { Success = true, Message = "OTP validated successfully" });
+            }
+            else
+            {
+                return BadRequest(new { Success = false, Message = "Invalid OTP" });
+            }
+        }
+        catch (Exception)
+        {
+            return BadRequest(new { Success = false, Message = "Invalid OTP" });
+        }
+    }
 
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {

@@ -22,7 +22,7 @@ class UserService {
   };
 
   ValidateOTP = async (user) => {
-    const res = await axios.post(`${url}ValidateOTP`, user);
+      const res = await axios.post(`${url}Account/ValidateOTP`, user);
     return res.data;
   };
 

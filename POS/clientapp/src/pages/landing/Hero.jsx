@@ -14,7 +14,7 @@ const Hero = () => {
     const imageRef = useRef(null);
 
     const handlePayment = () => {
-        debugger;
+      
 
         const tier = pricingTiers.find((p) => p.name === 'Free');
 
