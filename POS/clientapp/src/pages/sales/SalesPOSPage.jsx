@@ -8,19 +8,16 @@ import {
 } from '@mui/material';
 
 import { showConfirmDialog } from '../../store/reducers/confirm';
-import SearchIcon from '@mui/icons-material/Search';
 import DeleteIcon from '@mui/icons-material/Delete';
 import RestoreIcon from '@mui/icons-material/Restore';
-
-import debounce from 'lodash.debounce';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     setReceiptInfo,
-    resetReceiptInfo,
     saveDraftCart,
     loadDraftCart,
     deleteDraftCart
 } from './../../store/reducers/sales';
+import { setPlan } from './../../store/reducers/users';
 
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
@@ -29,8 +26,13 @@ import PrintIcon from '@mui/icons-material/Print';
 import ProductCard from './ProductCard';
 
 import { manualProductSync, getProductsSync, getSettingsSync, saveSettingsSync } from '../../hooks/useProductSync';
+import { useNavigate } from 'react-router-dom';
+import PaymentService from '../../services/PaymentService';
+
 
 const SalesPOSPage = () => {
+    const Navigate = useNavigate(); 
+
     const isOnline = navigator.onLine;
     const dispatch = useDispatch();
     const isMobile = useIsMobile();
@@ -40,7 +42,7 @@ const SalesPOSPage = () => {
     const [ offlineProducts, setOfflineproducts ] = useState(null);
     
 
-    const [isSearching, setIsSearching] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [barcodeInput, setBarcodeInput] = useState(''); 
     const barcodeInputRef = useRef(null);
     const [searchValue, setSearchValue] = useState(null);
@@ -249,6 +251,20 @@ const SalesPOSPage = () => {
 
 
     useEffect(() => {
+
+        PaymentService.GetCurrentActivePlan().then((plan) => {
+
+            dispatch(setPlan(plan));
+            if (plan?.planStatus === 'Active') {
+                setIsLoading(false);
+            }
+            else {
+                Navigate('/subscriptionplan');
+            }
+
+        }).catch((err) => { Navigate('/subscriptionplan'); });
+
+
         if (navigator.onLine) {
             handleRefreshProducts();
         }
@@ -260,7 +276,7 @@ const SalesPOSPage = () => {
     }, []);
 
 
-    if (!offlineProducts) return <p>Loading...</p>;
+    if (!offlineProducts && isLoading) return <p>Loading...</p>;
 
     return (
       <>
@@ -290,7 +306,7 @@ const SalesPOSPage = () => {
                                     inputValue={searchInput}
                                     onInputChange={(event, newInputValue) => {
                                         setSearchInput(newInputValue);
-                                        setIsSearching(true);
+                                        
                                     }}
                                     options={offlineProducts || []}
                                     getOptionLabel={(option) => option.name || ''}
@@ -387,8 +403,6 @@ const SalesPOSPage = () => {
                                     maxHeight: 450,
                                     overflowY: 'auto',
                                 }}
-                                onFocus={() => setIsSearching(true)}
-                                onBlur={() => setIsSearching(false)}
                             >
                                 {offlineProducts?.map(product => (
                                     <ProductCard

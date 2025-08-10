@@ -9,7 +9,8 @@ import {
     Stack,
     useTheme,
     useMediaQuery,
-    Tooltip
+    Tooltip,
+    Button
 } from '@mui/material';
 import {
     CheckCircleOutline,
@@ -20,27 +21,15 @@ import {
 import { useSelector } from 'react-redux';
 
 const SubscriptionPlan = () => {
-    const { userDetails } = useSelector((state) => state.users);
-    const [plan, setPlan] = useState(null);
+    const { SubscriptionPlan } = useSelector((state) => state.users);
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    useEffect(() => {
-        if (userDetails?.plan) {
-            try {
-                const parsedPlan = JSON.parse(userDetails.plan);
-                setPlan(parsedPlan);
-            } catch (e) {
-                console.error('Invalid plan JSON:', e);
-            }
-        }
-    }, [userDetails]);
+    if (!SubscriptionPlan) return null;
 
-    if (!plan) return null;
-
-    const isActive = plan?.PlanStatus === 'Active';
-    const isPaid = plan?.PaymentStatus === 'Success';
+    const isActive = SubscriptionPlan?.planStatus === 'Active';
+    const isPaid = SubscriptionPlan?.paymentStatus === 'Success';
 
     return (
         <Card
@@ -50,14 +39,15 @@ const SubscriptionPlan = () => {
                 maxWidth: 700,
                 mx: 'auto',
                 mt: 6,
-                overflow: 'hidden', // ensures rounded corners apply to inner elements
+                overflow: 'hidden',
                 boxShadow: '0px 8px 24px rgba(0, 0, 100, 0.05)',
+                opacity: isActive ? 1 : 0.9
             }}
         >
-            {/* 🔵 Top header section with background */}
+            {/* 🔵 Top header */}
             <Box
                 sx={{
-                    backgroundColor: theme.palette.primary.main,
+                    backgroundColor: '#57d465',
                     color: 'white',
                     px: isMobile ? 2 : 4,
                     py: isMobile ? 2 : 3,
@@ -81,7 +71,7 @@ const SubscriptionPlan = () => {
                                 <CancelOutlined sx={{ color: 'red' }} />
                             )
                         }
-                        label={plan?.PlanStatus}
+                        label={SubscriptionPlan?.planStatus}
                         variant="filled"
                         sx={{
                             backgroundColor: 'white',
@@ -96,52 +86,87 @@ const SubscriptionPlan = () => {
                 </Tooltip>
             </Box>
 
-            {/* ⚪ White content area */}
+            {/* ⚪ Main content */}
             <CardContent sx={{ bgcolor: 'white', px: isMobile ? 2 : 4, py: isMobile ? 3 : 4 }}>
-                <Typography
+                {isActive && (<> < Typography
                     variant={isMobile ? 'h4' : 'h3'}
                     fontWeight="bold"
                     color="text.primary"
                     sx={{ mb: 2 }}
                 >
-                    {plan?.PlanName}
+                    {SubscriptionPlan?.planName}
                 </Typography>
 
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <CalendarToday fontSize="small" color="action" />
-                    <Typography variant="body1" color="text.secondary">
-                        {new Date(plan?.PlanStartDate).toLocaleDateString()} &rarr;{' '}
-                        {new Date(plan?.PlanEndDate).toLocaleDateString()}
-                    </Typography>
-                </Stack>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                        <CalendarToday fontSize="small" color="action" />
+                        <Typography variant="body1" color="text.secondary">
+                            {new Date(SubscriptionPlan?.planStartDate).toLocaleDateString()} &rarr;{' '}
+                            {new Date(SubscriptionPlan?.planEndDate).toLocaleDateString()}
+                        </Typography>
+                    </Stack>
 
-                <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-                    <MonetizationOn fontSize="small" color="primary" />
-                    <Typography variant="body1" color="text.secondary">
-                        Amount Paid:{' '}
-                        <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
-                            ₹{Number(plan?.AmountPaid || 0).toFixed(2)}
-                        </Box>
-                    </Typography>
-                </Stack>
+                    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+                        <MonetizationOn fontSize="small" color="primary" />
+                        <Typography variant="body1" color="text.secondary">
+                            Amount Paid:{' '}
+                            <Box component="span" sx={{ fontWeight: 'bold', color: 'text.primary' }}>
+                                ₹{Number(SubscriptionPlan?.amountPaid || 0).toFixed(2)}
+                            </Box>
+                        </Typography>
+                    </Stack>
 
-                <Divider sx={{ my: 3 }} />
+                    <Divider sx={{ my: 3 }} />
 
-                <Stack direction="row" spacing={2} alignItems="center">
-                    <MonetizationOn color={isPaid ? 'primary' : 'error'} />
-                    <Typography variant="body1" color="text.secondary">
-                        Payment Status:{' '}
-                        <Box
-                            component="span"
-                            sx={{
-                                color: isPaid ? theme.palette.primary.main : 'red',
-                                fontWeight: 'bold'
+                    <Stack direction="row" spacing={2} alignItems="center">
+                        <MonetizationOn color={isPaid ? 'primary' : 'error'} />
+                        <Typography variant="body1" color="text.secondary">
+                            Payment Status:{' '}
+                            <Box
+                                component="span"
+                                sx={{
+                                    color: isPaid ? theme.palette.primary.main : 'red',
+                                    fontWeight: 'bold'
+                                }}
+                            >
+                                {SubscriptionPlan?.paymentStatus}
+                            </Box>
+                        </Typography>
+                    </Stack>
+                </>)
+                }
+
+                {/* 🔴 Show inactive plan message */}
+                {!isActive && (
+                    <Box
+                        sx={{
+                            bgcolor: '#fff4f4',
+                            border: '1px dashed red',
+                            borderRadius: 4,
+                            p: 2,
+                            mt: 4,
+                            textAlign: 'center'
+                        }}
+                    >
+                        <Typography variant="body1" color="error" fontWeight="bold">
+                            Your subscription is currently inactive.
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                            Subscribe now to continue enjoying premium features.
+                        </Typography>
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            size="small"
+                            sx={{ mt: 2, fontWeight: 'bold' }}
+                            onClick={() => {
+                                window.location.href = '/subscribe';
                             }}
                         >
-                            {plan?.PaymentStatus}
-                        </Box>
-                    </Typography>
-                </Stack>
+                            Subscribe Now
+                        </Button>
+                    </Box>
+                )}
             </CardContent>
         </Card>
     );

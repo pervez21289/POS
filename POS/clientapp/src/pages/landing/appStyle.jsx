@@ -73,6 +73,11 @@ body {
     text-align: center;
 }
 
+.section_pricing {
+    padding: 30px 0;
+    text-align: center;
+}
+
 .section-heading {
     font-size: 2.5rem;
     color: var(--primary-blue);

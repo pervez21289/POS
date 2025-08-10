@@ -23,6 +23,22 @@ class PaymentService {
         return res.data;
     };
 
+    SubscribeFreePlan = async () => {
+
+        const res = await axios.get(`${url}Payment/SubscribeFreePlan`, {
+            headers: Auth.getHeader()
+        });
+        return res.data;
+    };
+
+    GetCurrentActivePlan = async () => {
+
+        const res = await axios.get(`${url}Payment/GetCurrentActivePlan`, {
+            headers: Auth.getHeader()
+        });
+        return res.data;
+    };
+
 }
 
 export default new PaymentService();

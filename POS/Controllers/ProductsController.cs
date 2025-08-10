@@ -28,7 +28,6 @@ namespace LMS.Controllers
         {
             try
             {
-   
                 return Ok(await _repo.GetAllAsync(search, _userContext.CompanyID));
             }
             catch (Exception ex)

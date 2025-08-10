@@ -26,12 +26,15 @@ namespace LMS.ChatHub
             {
                 sw.Stop();
 
+                var ipAddress = context.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+                    ?? context.Connection.RemoteIpAddress?.ToString();
+
                 var log = new ApiLogEntry
                 {
                     Timestamp = DateTime.UtcNow,
                     Path = context.Request.Path,
                     Method = context.Request.Method,
-                    IpAddress = context.Connection.RemoteIpAddress?.ToString(),
+                    IpAddress = ipAddress,
                     StatusCode = context.Response.StatusCode,
                     DurationMs = sw.ElapsedMilliseconds,
                     UserId= Convert.ToInt64(context.User.FindFirst(ClaimTypes.Name)?.Value)

@@ -1,13 +1,14 @@
 ﻿import React, { useRef } from 'react';
 import { useIntersectionObserver, pricingTiers } from '../../hooks/useIntersectionObserver';
 import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import AppStyles from './appStyle';
 
 const Pricing = () => {
     const { userDetails } = useSelector((state) => state.users);
     const pricingGridRef = useRef(null);
     const navigate = useNavigate();
-
+    const location = useLocation();
     useIntersectionObserver(pricingGridRef, { threshold: 0.15 }, (entry) => {
         if (entry.isIntersecting) {
             entry.target.querySelectorAll('.pricing-card').forEach((card, index) => {
@@ -27,7 +28,9 @@ const Pricing = () => {
     };
 
     return (
-        <section id="pricing" className="section">
+        <>
+        {(location.pathname === "/subscribe") && <style>{AppStyles}</style>}
+        <section id="pricing" className="section_pricing">
             <div className="container">
                 <h2 className="section-heading">Simple Pricing, Powerful Features</h2>
                 <div className="pricing-grid" ref={pricingGridRef}>
@@ -51,7 +54,8 @@ const Pricing = () => {
                     ))}
                 </div>
             </div>
-        </section>
+            </section>
+        </>
     );
 };
 

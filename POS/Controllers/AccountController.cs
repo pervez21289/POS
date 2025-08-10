@@ -67,9 +67,11 @@ public class AccountController : ControllerBase
                     token = new JwtSecurityTokenHandler().WriteToken(token),
                     expiration = token.ValidTo,
                     email = request.Email,
+                    mobile = userData.Mobile,
                     menus = userData.menuItemDtos,
                     name=userData.FirstName,
                     Role = userData.RoleNames,
+                    plan=userData.SubscriptionJson,
                     success = true
                 });
             }

@@ -45,6 +45,7 @@ namespace LMS.Core.Entities
         public string CompanyName { get; set; }
         public string RoleNames { get; set; }
         public string menuItemDtos { get; set; }
+        public string SubscriptionJson { get; set; }
     }
 
 

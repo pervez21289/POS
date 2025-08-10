@@ -15,6 +15,7 @@ import TermCondition from '../pages/landing/TermCondition';
 import Order from '../pages/landing/Order';
 import OrderSuccess from '../pages/landing/OrderSuccess';
 import OrderFailed from '../pages/landing/OrderFailed';
+import Pricing from '../pages/landing/Pricing';
 // ==============================|| AUTH ROUTING ||============================== //
 
 const LoginRoutes = {
@@ -56,6 +57,10 @@ const LoginRoutes = {
                 {
                     path: '/orderfailed',
                     element: <OrderFailed />
+                },
+                {
+                    path: '/subscribe',
+                    element: <Pricing />
                 }
             ]
         }

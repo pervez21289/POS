@@ -14,11 +14,31 @@ import {
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RazorpayCheckout from './RazorpayCheckout';
+import PaymentService from '../../services/PaymentService';
 
 const Order = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const plan = location.state?.plan;
+    debugger;
+
+    useEffect(() => {
+        if (plan?.name === 'Free') {
+            (async () => {
+                try {
+                    await PaymentService.SubscribeFreePlan();
+                    navigate('/sales');
+                } catch (err) {
+                    console.error(err);
+                    navigate('/orderfailed');
+                }
+            })();
+        }
+    }, [plan, navigate]);
+
+    // Don't render anything for free plan
+    
+    if (plan?.name === 'Free') return <p>Loading...</p>;
 
     useEffect(() => {
         if (!plan) {

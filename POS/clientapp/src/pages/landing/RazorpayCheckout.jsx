@@ -1,30 +1,22 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import PaymentService from '../../services/PaymentService';
 import { Button, CircularProgress } from '@mui/material';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 
-const RazorpayCheckout = ({ amount,plan }) => {
+const RazorpayCheckout = ({ amount, plan }) => {
     const [loading, setLoading] = useState(false);
     const { userDetails } = useSelector((state) => state.users);
     const navigate = useNavigate();
 
-
-    if (plan === 'free') {
-        PaymentService.SubscribeFreePlan(); 
-        navigate('/dashboard');
-    }
+    
 
     const loadRazorpayScript = () => {
         return new Promise((resolve) => {
             const script = document.createElement("script");
             script.src = "https://checkout.razorpay.com/v1/checkout.js";
-            script.onload = () => {
-                resolve(true);
-            };
-            script.onerror = () => {
-                resolve(false);
-            };
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
             document.body.appendChild(script);
         });
     };
@@ -34,12 +26,12 @@ const RazorpayCheckout = ({ amount,plan }) => {
         const res = await loadRazorpayScript();
         if (!res) {
             alert("Razorpay SDK failed to load. Are you online?");
+            setLoading(false);
             return;
         }
 
         try {
-            const data = await PaymentService.CreateOrder({ amount,plan});
-
+            const data = await PaymentService.CreateOrder({ amount, plan });
             const options = {
                 key: data.key,
                 amount: data.amount,
@@ -56,19 +48,17 @@ const RazorpayCheckout = ({ amount,plan }) => {
                         razorpay_payment_id: response.razorpay_payment_id,
                         razorpay_signature: response.razorpay_signature
                     });
-                    if (verifyResponse.status == 'Payment Verified') {
+                    if (verifyResponse.status === 'Payment Verified') {
                         navigate('/ordersuccess');
-                    }
-                    else {
+                    } else {
                         navigate('/orderfailed');
                     }
                 }
             };
-           
+
             const rzp = new window.Razorpay(options);
             rzp.open();
 
-            // Handle when user closes the Razorpay modal
             rzp.on('payment.failed', () => {
                 setLoading(false);
                 navigate('/orderfailed');

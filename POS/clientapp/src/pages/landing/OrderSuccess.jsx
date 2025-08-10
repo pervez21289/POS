@@ -9,9 +9,24 @@ import {
     Divider
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 
 const OrderSuccess = () => {
     const navigate = useNavigate();
+
+    const cleanupRazorpay = () => {
+        // Remove Razorpay script
+        const script = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+        if (script) script.remove();
+
+        // Remove Razorpay iframes
+        const iframes = document.querySelectorAll('iframe[src*="razorpay"]');
+        iframes.forEach((iframe) => iframe.remove());
+    };
+
+    useEffect(() => {
+        cleanupRazorpay();
+    }, []);
 
     return (
         <Container maxWidth="sm" sx={{ mt: 8 }}>
