@@ -14,7 +14,7 @@ import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
@@ -22,14 +22,17 @@ import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 import UserService from '../../services/UserService';
 
+
 export default function AuthRegister() {
     const [level, setLevel] = useState();
     const [showPassword, setShowPassword] = useState(false);
     const [otpSent, setOTPSent] = useState(false);
     const [otp, setOtp] = useState("");
     const [registeredUserId, setRegisteredUserId] = useState(null);
-
+   
+    const [OTPError, setOTPError] = useState("");
     const navigate = useNavigate();
+    const location = useLocation();
     const handleClickShowPassword = () => setShowPassword(!showPassword);
     const handleMouseDownPassword = (event) => event.preventDefault();
 
@@ -46,12 +49,23 @@ export default function AuthRegister() {
     }, []);
 
     const handleVerifyOTP = async () => {
-        debugger;
+        
+        setOTPError('');
         try {
-            await UserService.ValidateOTP({ userId: registeredUserId, otp });
-            navigate('/login');
+            const isValid = await UserService.ValidateOTP({ userId: registeredUserId, otp });
+            debugger;
+            if (isValid?.success) {
+                const redirectTo = location.state?.redirectTo || '/';
+                const plan = location.state?.plan;
+                if (redirectTo && plan) {
+                    navigate('/login', { state: { redirectTo: '/order', plan: plan } });
+                }
+                else {
+                    navigate('/login');
+                }
+            }
         } catch (err) {
-            alert("Invalid OTP, please try again.");
+            setOTPError("Invalid OTP, please try again.");
         }
     };
 
@@ -284,7 +298,12 @@ export default function AuthRegister() {
                     />
                     <Button variant="contained" color="primary" onClick={handleVerifyOTP} fullWidth>
                         Verify OTP
-                    </Button>
+                        </Button>
+                        {OTPError && (
+                            <Grid size={12}>
+                                <FormHelperText error>{OTPError}</FormHelperText>
+                            </Grid>
+                        )}
                 </Box>
             )}
         </>
