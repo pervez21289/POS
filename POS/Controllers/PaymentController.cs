@@ -154,9 +154,10 @@ namespace LMS.Controllers
         public async Task<IActionResult> GetCurrentActivePlan()
         {
             var plan = await _repo.GetCurrentActivePlanAsync(_userContext.CompanyID);
-            if (plan == null)
-                return NotFound(new { message = "No active subscription found." });
-
+            if(plan==null)
+            {
+                plan= new SubscriptionPlan() { PlanStatus = "InActive" };
+            }
             return Ok(plan);
         }
 

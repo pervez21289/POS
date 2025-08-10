@@ -47,7 +47,7 @@ const SubscriptionPlan = () => {
             {/* 🔵 Top header */}
             <Box
                 sx={{
-                    backgroundColor: '#57d465',
+                    backgroundColor: isActive ? '#57d465':'red',
                     color: 'white',
                     px: isMobile ? 2 : 4,
                     py: isMobile ? 2 : 3,
