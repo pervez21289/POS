@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
 import Button from '@mui/material/Button';
@@ -29,6 +29,8 @@ export default function AuthRegister() {
     const [otpSent, setOTPSent] = useState(false);
     const [otp, setOtp] = useState("");
     const [registeredUserId, setRegisteredUserId] = useState(null);
+    const otpRefs = useRef([]);
+
    
     const [OTPError, setOTPError] = useState("");
     const navigate = useNavigate();
@@ -284,27 +286,58 @@ export default function AuthRegister() {
                     )}
                 </Formik>
             ) : (
-                <Box sx={{ mt: 4 }}>
-                    <Typography variant="h5" sx={{ mb: 2 }}>
-                        Enter OTP sent to your mobile
-                    </Typography>
-                    <OutlinedInput
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        placeholder="Enter OTP"
-                        fullWidth
-                        inputProps={{ maxLength: 6 }}
-                        sx={{ mb: 2 }}
-                    />
-                    <Button variant="contained" color="primary" onClick={handleVerifyOTP} fullWidth>
-                        Verify OTP
+                    <Box sx={{ mt: 0 }}>
+                        <Typography variant="h5" sx={{ mb: 2 }}>
+                            Enter OTP sent to your mobile
+                        </Typography>
+
+                        <Grid container spacing={1} justifyContent="center">
+                            {[...Array(4)].map((_, index) => (
+                                <Grid item key={index}>
+                                    <OutlinedInput
+                                        inputRef={(el) => (otpRefs.current[index] = el)}
+                                        value={otp[index] || ""}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            if (/^\d?$/.test(val)) { // allow only one digit
+                                                const newOtp = [...otp];
+                                                newOtp[index] = val;
+                                                setOtp(newOtp.join(""));
+                                                if (val && index < 5) {
+                                                    otpRefs.current[index + 1].focus();
+                                                }
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Backspace" && !otp[index] && index > 0) {
+                                                otpRefs.current[index - 1].focus();
+                                            }
+                                        }}
+                                        inputProps={{
+                                            maxLength: 1,
+                                            style: { textAlign: 'center', fontSize: '1.5rem', width: '50px' }
+                                        }}
+                                    />
+                                </Grid>
+                            ))}
+                        </Grid>
+
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={handleVerifyOTP}
+                            fullWidth
+                            sx={{ mt: 2 }}
+                        >
+                            Verify OTP
                         </Button>
+
                         {OTPError && (
-                            <Grid size={12}>
+                            <Grid item xs={12}>
                                 <FormHelperText error>{OTPError}</FormHelperText>
                             </Grid>
                         )}
-                </Box>
+                    </Box>
             )}
         </>
     );

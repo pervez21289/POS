@@ -44,7 +44,7 @@ const OrderSuccess = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => navigate('/dashboard/default')}
+                    onClick={() => navigate('/sales')}
                 >
                     Go to Dashboard
                 </Button>
