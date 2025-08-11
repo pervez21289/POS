@@ -15,14 +15,14 @@ import {
     setReceiptInfo,
     saveDraftCart,
     loadDraftCart,
-    deleteDraftCart
+    deleteDraftCart,
+    updateDraftCart
 } from './../../store/reducers/sales';
 import { setPlan } from './../../store/reducers/users';
-
 import useIsMobile from './../../components/useIsMobile';
 import ProductService from './../../services/ProductService';
 import PrintIcon from '@mui/icons-material/Print';
-
+import { showAlert } from "./../../store/reducers/alert";
 import ProductCard from './ProductCard';
 
 import { manualProductSync, getProductsSync, getSettingsSync, saveSettingsSync } from '../../hooks/useProductSync';
@@ -47,12 +47,12 @@ const SalesPOSPage = () => {
     const barcodeInputRef = useRef(null);
     const [searchValue, setSearchValue] = useState(null);
   
-    const [searchResults, setSearchResults] = useState([]);
+    const [isKOTUpdate, setKOTUpdate] = useState([]);
     const [loading, setLoading] = useState(false);
     const [draftModalOpen, setDraftModalOpen] = useState(false);
     const [tableNoError, setTableNoError] = useState('');
     const { receiptInfo, isSearch, draftCarts } = useSelector((state) => state.sales);
-    const [tableNo, setTableNo] = useState('');
+    const [tableNo, setTableNo] = useState(null);
     
 
  
@@ -82,58 +82,50 @@ const SalesPOSPage = () => {
         dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
-    const handleBarcodeScan = async (e) => {
-        if (e.key === 'Enter' && barcodeInput.trim()) {
-            try {
-                const results = await ProductService.GetProduct(barcodeInput.trim());
-                const product = Array.isArray(results)
-                    ? results.find(p => p.barcode === barcodeInput.trim())
-                    : null;
+    const handleNewCart = () => {
+       
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
+        setNewToken();
+    }
 
-                if (product) {
-                    addToCart(product);
-                } else {
-                    console.warn('Product not found');
-                }
-            } catch (error) {
-                console.error('Error scanning barcode:', error);
-            }
-            setBarcodeInput('');
-        }
+    const setNewToken = () => {
+        const maxAge = draftCarts.length
+            ? Math.max(...draftCarts.map(item => item.tableNo))
+            : null;
+        setTableNo(maxAge + 1 || '1'); 
     };
-
-
-
 
 
     const cartProductIds = useMemo(() =>
         new Set(receiptInfo?.saleItems?.map(item => item.productID)), [receiptInfo?.saleItems]);
 
     const handleSaveKOT = () => {
-        let hasError = false;
+        const existingDraft = draftCarts.find(d => d.tableNo === tableNo);
 
-        if (!tableNo.trim()) {
-            setTableNoError('Required');
-            hasError = true;
+        if (existingDraft) {
+            dispatch(updateDraftCart({
+                tableNo,
+                saleItems: receiptInfo.saleItems
+            }));
+            handlePrintDraft({ tableNo, saleItems: receiptInfo.saleItems });
         } else {
-            const isAlreadyReserved = draftCarts.some(draft => draft.tableNo === tableNo.trim());
-            if (isAlreadyReserved) {
-                setTableNoError('Table already reserved');
-                hasError = true;
-            } else {
-                setTableNoError('');
+            if (receiptInfo.saleItems) {
+                dispatch(saveDraftCart(tableNo));
+                setTableNo(Number(tableNo) + 1);
+                handlePrintDraft({ tableNo, saleItems: receiptInfo.saleItems });
+            }
+            else {
+                dispatch(showAlert({ open: true, message: 'Cart is empty!', severity: 'warning', vertical: 'top', horizontal:'center' }));
             }
         }
 
-        if (!hasError) {
-            handlePrintDraft({ tableNo: tableNo, saleItems: receiptInfo.saleItems });
-           
-            dispatch(saveDraftCart(tableNo.trim()));
-            setTableNo('');
-        }
+        
     };
 
+
+
     const handlePrintDraft = (draft) => {
+        
         const txtPrint = generateKOTText(draft.tableNo, draft.saleItems || []);
         if (window.ReactNativeWebView) {
             handlePrintMobile(txtPrint);
@@ -156,12 +148,15 @@ const SalesPOSPage = () => {
                 onConfirm: () => {
                     dispatch(loadDraftCart(id));
                     setDraftModalOpen(false);
+                    setKOTUpdate(true);
+                    setTableNo(id);
                 }
             }));
            
         } else {
             dispatch(loadDraftCart(id));
             setDraftModalOpen(false);
+            setTableNo(id);
         }
     };
 
@@ -223,7 +218,7 @@ const SalesPOSPage = () => {
 
         // Header
         lines.push(centerText('*** KITCHEN ORDER ***', maxLine));
-        lines.push(`Table No: ${tableNo}   ${formatDate(new Date())}`);
+        lines.push(`Token No: ${tableNo}   ${formatDate(new Date())}`);
         lines.push('-'.repeat(maxLine));
         lines.push(padRight('Item', 18) + 'Qty');
         lines.push('-'.repeat(maxLine));
@@ -273,6 +268,7 @@ const SalesPOSPage = () => {
                 setOfflineproducts(products);
             });
         }
+        setNewToken();
     }, []);
 
 
@@ -342,27 +338,30 @@ const SalesPOSPage = () => {
 
                             {/* Right Side: Table No + Action Buttons */}
                             <Stack direction="row" spacing={1} alignItems="right" flexShrink={0}>
-                                <TextField
-                                    label="Table No"
-                                    value={tableNo}
-                                    onChange={(e) => setTableNo(e.target.value)}
-                                    error={!!tableNoError}
-                                    helperText={tableNoError || ''}
-                                    size="small"
-                                    sx={{ width: 90 }}
-                                    FormHelperTextProps={{
-                                        sx: {
-                                            minHeight: '10px', // ensures consistent space
-                                            margin: 0,         // removes default extra margin
-                                        },
+                                <Box
+                                    sx={{
+                                        backgroundColor: "#000",  // black background
+                                        color: "#fff",            // white text
+                                        fontWeight: "bold",
+                                        padding: "6px 12px",
+                                        borderRadius: "8px",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        minWidth: 90,
+                                        fontSize: "16px",
+                                        border: "2px solid #fff"  // white border
                                     }}
-                                />
+                                >
+                                    Token No: {tableNo}
+                                </Box>
+
                                 <Button
                                     variant="outlined"
                                     color="warning"
                                     size="small"
                                     onClick={handleSaveKOT}
-                                    sx={{ height: 40 }}
+                                    sx={{ height: 35 }}
                                 >
                                     Print KOT
                                 </Button>
@@ -371,7 +370,7 @@ const SalesPOSPage = () => {
                                     color="warning"
                                     size="small"
                                     onClick={() => setDraftModalOpen(true)}
-                                    sx={{ height: 40 }}
+                                    sx={{ height: 35 }}
                                 >
                                     View KOT
                                 </Button>
@@ -382,19 +381,35 @@ const SalesPOSPage = () => {
 
                         <Box >
                             <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
+                                {/* Left side */}
                                 <Typography variant="subtitle1" fontWeight={600}>
                                     Quick Select
                                 </Typography>
-                                <Button
-                                    variant="contained"
-                                    color="success"
-                                    size="small"
-                                    onClick={handleRefreshProducts}
-                                    sx={{ minWidth: 120, ml: 2 }}
-                                >
-                                    Refresh Products
-                                </Button>
+
+                                {/* Right side buttons */}
+                                <Stack direction="row" spacing={2}>
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        size="small"
+                                        onClick={handleNewCart}
+                                        sx={{ minWidth: 120 }}
+                                    >
+                                        New
+                                    </Button>
+                                    <Button
+                                        variant="contained"
+                                        color="success"
+                                        size="small"
+                                        onClick={handleRefreshProducts}
+                                        sx={{ minWidth: 120 }}
+                                    >
+                                        Refresh
+                                    </Button>
+                                </Stack>
                             </Box>
+
+
                             <Box
                                 sx={{
                                     display: 'grid',
@@ -419,7 +434,7 @@ const SalesPOSPage = () => {
             </Stack>
 
             {/* Draft Modal */}
-            <Dialog open={draftModalOpen} onClose={() => setDraftModalOpen(false)} maxWidth="sm" fullWidth>
+            <Dialog open={draftModalOpen} onClose={() => { setDraftModalOpen(false); setNewToken(); } } maxWidth="sm" fullWidth>
                 <DialogTitle>Saved Orders</DialogTitle>
                 <DialogContent dividers>
                     {receiptInfo?.saleItems?.length > 0 && (
@@ -446,7 +461,7 @@ const SalesPOSPage = () => {
                                     <DeleteIcon />
                                 </IconButton>
                                 <ListItemText
-                                    primary={`Table No: ${draft.tableNo || 'N/A'}`}
+                                    primary={`Token No: ${draft.tableNo || 'N/A'}`}
                                     secondary={`${new Date(draft.savedAt).toLocaleString()}`}
                                 />
                             </ListItem>

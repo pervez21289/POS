@@ -69,6 +69,20 @@ const sales = createSlice({
                 state.receiptInfo = { cart: [] };
             }
         },
+        updateDraftCart(state, action) {
+            const { tableNo, saleItems } = action.payload;
+            const index = state.draftCarts.findIndex(d => d.tableNo === tableNo);
+
+            if (index !== -1) {
+                state.draftCarts[index] = {
+                    ...state.draftCarts[index],
+                    saleItems: JSON.parse(JSON.stringify(saleItems)),
+                    savedAt: new Date().toISOString()
+                };
+                saveDraftsToStorage(state.draftCarts);
+            }
+        }
+        ,
         loadDraftCart(state, action) {
             const draft = state.draftCarts.find(d => d.tableNo === action.payload);
             if (draft) {
@@ -90,5 +104,6 @@ export const {
     resetReceiptInfo,
     saveDraftCart,
     loadDraftCart,
-    deleteDraftCart
+    deleteDraftCart,
+    updateDraftCart
 } = sales.actions;
