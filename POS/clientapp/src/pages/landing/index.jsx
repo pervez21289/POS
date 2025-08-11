@@ -3,8 +3,8 @@ import AppStyles from './appStyle';
 
 import Pricing from './Pricing';    
 import Hero from './Hero';
-import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';  
-
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import PosHero from '../../assets/images/pos-hero.jpg';
 
 // --- Component: Header ---
 function Header() {
@@ -79,8 +79,8 @@ function About() {
                             </div>
                         </div>
                     </div>
-                    <div className="about-image animated">
-                        <img src="/assets/pos-about.png" alt="NexBill Benefits Illustration" />
+                    <div className="about-image animated_img">
+                        <img src={PosHero} alt="NexBill Benefits Illustration" />
                     </div>
                 </div>
             </div>

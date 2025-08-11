@@ -19,7 +19,7 @@ const Hero = () => {
         const tier = pricingTiers.find((p) => p.name === 'Free');
 
         if (!userDetails) {
-            navigate('/login', { state: { redirectTo: '/order', plan: tier } });
+            navigate('/register', { state: { redirectTo: '/order', plan: tier } });
         } else {
             navigate('/order', { state: { plan: tier } });
         }

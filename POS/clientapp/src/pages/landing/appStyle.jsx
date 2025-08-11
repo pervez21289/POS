@@ -102,6 +102,13 @@ body {
     transform: translateY(20px);
     transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
+
+.animated_img {
+  
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
 .animated.fade-in {
     opacity: 1;
     transform: translateY(0);
