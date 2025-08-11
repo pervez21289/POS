@@ -131,7 +131,64 @@ namespace LMS.Repo.Repository
             }
         }
 
+        public async Task<Result> SendResetPasswordEmail(string email,string resetToken)
+        {
+            // Load the HTML template
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Files", "ResetPasswordTemplate.html");
+            string htmlContent = await File.ReadAllTextAsync(templatePath);
+            var resetLink = $"{_appSettings.RedirectUrl}/reset-password?token={resetToken}";
+            // Replace placeholders
+            htmlContent = htmlContent.Replace("{{resetLink}}", resetLink)
+                                     .Replace("{{year}}", DateTime.Now.Year.ToString());
 
+            using (var message = new MailMessage())
+            {
+                message.From = new MailAddress(_appSettings.Email);
+                message.To.Add(email); // TODO: Use user's email
+                message.Subject = "Reset Your Password - NexBillPOS";
+                message.IsBodyHtml = true;
+                message.Body = htmlContent;
+            
+
+                using (var smtp = new SmtpClient("smtp.gmail.com", 587))
+                {
+                    smtp.Credentials = new NetworkCredential(_appSettings.Email, _appSettings.Secret);
+                    smtp.EnableSsl = true;
+
+                    await smtp.SendMailAsync(message);
+                }
+
+                return new Result() { IsSuccess = true, Message = "Password reset link sent successfully" };
+            }
+        }
+
+        public async Task<Result> SentForgotEmail(string resetToken)
+        {
+            try
+            {
+                var resetLink = $"{_appSettings.RedirectUrl}/reset-password?token={resetToken}";
+                MailMessage message = new MailMessage();
+                message.From = new MailAddress(_appSettings.Email);
+                message.To.Add("pervez21289@gmail.com"); // TODO: Use user's email
+                message.Subject = "Password Reset Request";
+                message.IsBodyHtml = true;
+                message.Body = $"<div>Click <a href='{resetLink}'>here</a> to reset your password.</div>";
+
+                SmtpClient client = new SmtpClient("smtp.gmail.com", 587)
+                {
+                    Credentials = new NetworkCredential(_appSettings.Email, _appSettings.Secret),
+                    EnableSsl = true
+                };
+
+                await client.SendMailAsync(message);
+
+                return new Result() { IsSuccess = true, Message = "Password reset link sent successfully" };
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
 
         public async Task<Result> SentEmail(string OTP)
         {
@@ -151,7 +208,7 @@ namespace LMS.Repo.Repository
                 };
 
 
-                client.SendAsync(message, null);
+                await client.SendMailAsync(message);
 
 
                 return new Result() { IsSuccess = true, Message = "Email sent successfully" };
@@ -173,6 +230,45 @@ namespace LMS.Repo.Repository
             );
 
             return logs;
+        }
+
+        public async Task<bool> ForgotPasswordAsync(string email)
+        {
+            try
+            {
+                // Generate a reset token
+                var resetToken = Guid.NewGuid().ToString();
+
+                // Save the token in the database (you can create a new table or column for this purpose)
+                await ExecuteAsync("UpdateUserResetToken", new { Email = email, ResetToken = resetToken }, commandType: CommandType.StoredProcedure);
+
+                // Send the reset token via email
+                var emailResult = await SendResetPasswordEmail(email,resetToken);
+
+                return emailResult.IsSuccess;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
+        public async Task<bool> ResetPasswordAsync(string token, string newPassword)
+        {
+            try
+            {
+                // Hash the new password
+                var passwordHash = ComputeSha256Hash(newPassword);
+
+                // Update the password in the database
+                await ExecuteAsync("ResetUserPassword", new { ResetToken = token, PasswordHash = passwordHash }, commandType: CommandType.StoredProcedure);
+
+                return true;
+            }
+            catch (Exception)
+            {
+                throw;
+            }
         }
 
         private string ComputeSha256Hash(string rawData)

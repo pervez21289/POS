@@ -109,6 +109,42 @@ public class AccountController : ControllerBase
         }
     }
 
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] LoginRequest request)
+    {
+        try
+        {
+            var result = await _accountService.ForgotPasswordAsync(request.Email);
+            if (result)
+            {
+                return Ok(new { Success = true, Message = "Password reset email sent successfully." });
+            }
+            return BadRequest(new { Success = false, Message = "Failed to send password reset email." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error occurred", Error = ex.Message });
+        }
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
+    {
+        try
+        {
+            var result = await _accountService.ResetPasswordAsync(request.Token, request.NewPassword);
+            if (result)
+            {
+                return Ok(new { Success = true, Message = "Password reset successfully." });
+            }
+            return BadRequest(new { Success = false, Message = "Failed to reset password." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Message = "Error occurred", Error = ex.Message });
+        }
+    }
+
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.TSecret));

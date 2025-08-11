@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -18,6 +17,7 @@ namespace LMS.Core.Interfaces
         Task<IEnumerable<User>> GetUsersAsync(int CompanyID);
         Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate);
         Task<bool> ValidateOTP(User user);
-
+        Task<bool> ForgotPasswordAsync(string email);
+        Task<bool> ResetPasswordAsync(string token, string newPassword);
     }
 }

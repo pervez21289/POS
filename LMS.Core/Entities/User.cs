@@ -32,7 +32,7 @@ namespace LMS.Core.Entities
     public class LoginRequest
     {
         public string Email { get; set; }
-        public string Password { get; set; }
+        public string? Password { get; set; }
     }
 
     public class UserLoginDto
@@ -58,5 +58,11 @@ namespace LMS.Core.Entities
         public string Type { get; set; }
         public string Icon { get; set; }
         public int SortOrder { get; set; }
+    }
+
+    public class ResetPasswordRequest
+    {
+        public string Token { get; set; } = string.Empty;
+        public string NewPassword { get; set; } = string.Empty;
     }
 }

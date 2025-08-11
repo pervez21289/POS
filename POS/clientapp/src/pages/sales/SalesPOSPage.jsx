@@ -340,8 +340,7 @@ const SalesPOSPage = () => {
                             <Stack direction="row" spacing={1} alignItems="right" flexShrink={0}>
                                 <Box
                                     sx={{
-                                        backgroundColor: "#000",  // black background
-                                        color: "#fff",            // white text
+                                       
                                         fontWeight: "bold",
                                         padding: "6px 12px",
                                         borderRadius: "8px",
@@ -350,7 +349,10 @@ const SalesPOSPage = () => {
                                         justifyContent: "center",
                                         minWidth: 90,
                                         fontSize: "16px",
-                                        border: "2px solid #fff"  // white border
+                                        background: "linear-gradient(135deg, #2e7d32, #1b5e20)",
+                                        color: "#fff",
+                                        border: "2px solid #1b5e20"
+                                        
                                     }}
                                 >
                                     Token No: {tableNo}

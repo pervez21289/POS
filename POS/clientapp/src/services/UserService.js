@@ -72,12 +72,24 @@ class UserService {
     return res.data;
     };
 
-
     deletePhoto = async (imageUrl) => {
         const res = await axios.get(`${url}DeletePhoto?ImageUrl=${imageUrl}`, {
             headers: Auth.getHeader()
         });
         return res.data;
+    };
+
+    ForgotPassword = async (email) => {
+      //const res = await axios.get(`${url}Account/forgot-password`, { email:email });
+      //  return res.data;
+
+        const res = await axios.post(`${url}Account/forgot-password`, { email: email });
+        return res.data;
+    };
+
+    ResetPassword = async ({ token, newPassword }) => {
+      const res = await axios.post(`${url}Account/reset-password`, { token, newPassword });
+      return res.data;
     };
 }
 

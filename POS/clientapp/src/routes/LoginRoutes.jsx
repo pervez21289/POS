@@ -7,11 +7,11 @@ import Loadable from 'components/Loadable';
 // jwt auth
 import LoginPage from '../pages/auth/Login';
 const RegisterPage = Loadable(lazy(() => import('pages/auth/Register')));
-
+import ForgotPage from '../pages/auth/Forgot';
 import Landing from '../pages/landing';
 import PrivacyPolicy from '../pages/landing/PrivacyPolicy'; 
 import TermCondition from '../pages/landing/TermCondition';
-
+import ResetPassword from '../pages/auth/ResetPassword'
 import Order from '../pages/landing/Order';
 import OrderSuccess from '../pages/landing/OrderSuccess';
 import OrderFailed from '../pages/landing/OrderFailed';
@@ -37,7 +37,16 @@ const LoginRoutes = {
                     path: '/register',
                     element: <RegisterPage />
                 },
-                
+                {
+                    path: '/forgot-password',
+                    element: <ForgotPage />
+                },
+                {
+                    path: '/reset-password',
+                    element: <ResetPassword />
+                },
+
+
                 {
                     path: '/tandc',
                     element: <TermCondition />
