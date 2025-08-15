@@ -11,12 +11,12 @@ namespace LMS.Core.Interfaces
     public interface IUser
     {
         Task<CreateUserResult> RegisterCompanyWithAdminAsync(RegisterRequest request);
-        Task<UserLoginDto?> LoginAsync(string email, string password);
+        Task<LoginResponse?> LoginAsync(string email, string password);
         Task<int> CreateUserAsync(User user);
         Task DeleteUserAsync(int userId);
         Task<IEnumerable<User>> GetUsersAsync(int CompanyID);
         Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate);
-        Task<bool> ValidateOTP(User user);
+        Task<LoginResponse?> ValidateOTP(User user);
         Task<bool> ForgotPasswordAsync(string email);
         Task<bool> ResetPasswordAsync(string token, string newPassword);
     }

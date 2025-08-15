@@ -1,26 +1,28 @@
 import { useEffect, useState, useRef } from 'react';
-import { Link as RouterLink, useSearchParams } from 'react-router-dom';
+import { Link as RouterLink, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
+import {
+    Box,
+    Button,
+    CircularProgress,
+    FormControl,
+    FormHelperText,
+    Grid,
+    IconButton,
+    InputAdornment,
+    Link,
+    OutlinedInput,
+    Stack,
+    Typography
+} from '@mui/material';
 import LocalPhoneOutlinedIcon from "@mui/icons-material/LocalPhoneOutlined";
-import Button from '@mui/material/Button';
-import FormControl from '@mui/material/FormControl';
-import FormHelperText from '@mui/material/FormHelperText';
-import Grid from '@mui/material/Grid';
-import Link from '@mui/material/Link';
-import InputAdornment from '@mui/material/InputAdornment';
-import OutlinedInput from '@mui/material/OutlinedInput';
-import CircularProgress from '@mui/material/CircularProgress';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { useNavigate, useLocation } from 'react-router-dom';
-import IconButton from 'components/@extended/IconButton';
+import * as Yup from 'yup';
 import AnimateButton from 'components/@extended/AnimateButton';
 import { strengthColor, strengthIndicator } from 'utils/password-strength';
 import EyeOutlined from '@ant-design/icons/EyeOutlined';
 import EyeInvisibleOutlined from '@ant-design/icons/EyeInvisibleOutlined';
 import UserService from '../../services/UserService';
+import OTPVerification from './OTPVerification';
 
 
 export default function AuthRegister() {
@@ -50,26 +52,7 @@ export default function AuthRegister() {
         changePassword('');
     }, []);
 
-    const handleVerifyOTP = async () => {
-        
-        setOTPError('');
-        try {
-            const isValid = await UserService.ValidateOTP({ userId: registeredUserId, otp });
-            debugger;
-            if (isValid?.success) {
-                const redirectTo = location.state?.redirectTo || '/';
-                const plan = location.state?.plan;
-                if (redirectTo && plan) {
-                    navigate('/login', { state: { redirectTo: '/order', plan: plan } });
-                }
-                else {
-                    navigate('/login');
-                }
-            }
-        } catch (err) {
-            setOTPError("Invalid OTP, please try again.");
-        }
-    };
+    
 
     return (
         <>
@@ -83,7 +66,7 @@ export default function AuthRegister() {
                         password: ''
                     }}
                     validationSchema={Yup.object().shape({
-                        firstname: Yup.string().max(255).required('First Name is required'),
+                        firstname: Yup.string().max(255).required('Name is required'),
                         email: Yup.string().email('Must be a valid email').max(255).required('Email is required'),
                         mobile: Yup.string().min(10).required("Mobile is required"),
                         password: Yup.string()
@@ -94,10 +77,10 @@ export default function AuthRegister() {
                     onSubmit={async (values, { setSubmitting, setErrors }) => {
                         try {
                             const res = await UserService.SaveUser(values); // register user
-                            setRegisteredUserId(res.createdUserID); // API must return userId
+                            setRegisteredUserId(res.userID); // API must return userId
                             //await UserService.SendOTP(values.mobile); // send OTP
                             debugger;
-                            setOTPSent(true);
+                            navigate('/otpverification', { state: { registeredUserId: res.userID, redirectTo: location.state?.redirectTo, plan: location.state?.plan } });
                         } catch (error) {
                             const msg = error?.response?.data || 'Registration failed';
                             setErrors({ submit: msg });
@@ -286,58 +269,7 @@ export default function AuthRegister() {
                     )}
                 </Formik>
             ) : (
-                    <Box sx={{ mt: 0 }}>
-                        <Typography variant="h5" sx={{ mb: 2 }}>
-                            Enter OTP sent to your mobile
-                        </Typography>
-
-                        <Grid container spacing={1} justifyContent="center">
-                            {[...Array(4)].map((_, index) => (
-                                <Grid item key={index}>
-                                    <OutlinedInput
-                                        inputRef={(el) => (otpRefs.current[index] = el)}
-                                        value={otp[index] || ""}
-                                        onChange={(e) => {
-                                            const val = e.target.value;
-                                            if (/^\d?$/.test(val)) { // allow only one digit
-                                                const newOtp = [...otp];
-                                                newOtp[index] = val;
-                                                setOtp(newOtp.join(""));
-                                                if (val && index < 5) {
-                                                    otpRefs.current[index + 1].focus();
-                                                }
-                                            }
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === "Backspace" && !otp[index] && index > 0) {
-                                                otpRefs.current[index - 1].focus();
-                                            }
-                                        }}
-                                        inputProps={{
-                                            maxLength: 1,
-                                            style: { textAlign: 'center', fontSize: '1.5rem', width: '50px' }
-                                        }}
-                                    />
-                                </Grid>
-                            ))}
-                        </Grid>
-
-                        <Button
-                            variant="contained"
-                            color="primary"
-                            onClick={handleVerifyOTP}
-                            fullWidth
-                            sx={{ mt: 2 }}
-                        >
-                            Verify OTP
-                        </Button>
-
-                        {OTPError && (
-                            <Grid item xs={12}>
-                                <FormHelperText error>{OTPError}</FormHelperText>
-                            </Grid>
-                        )}
-                    </Box>
+                    <OTPVerification></OTPVerification>
             )}
         </>
     );

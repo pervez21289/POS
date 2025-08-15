@@ -16,6 +16,8 @@ import Order from '../pages/landing/Order';
 import OrderSuccess from '../pages/landing/OrderSuccess';
 import OrderFailed from '../pages/landing/OrderFailed';
 import Pricing from '../pages/landing/Pricing';
+import OTPVer from '../pages/auth/OTPVer';
+
 // ==============================|| AUTH ROUTING ||============================== //
 
 const LoginRoutes = {
@@ -70,7 +72,12 @@ const LoginRoutes = {
                 {
                     path: '/subscribe',
                     element: <Pricing />
+                },
+                {
+                    path: '/otpverification',
+                    element: <OTPVer />
                 }
+                
             ]
         }
         

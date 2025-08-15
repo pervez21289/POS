@@ -8,9 +8,9 @@ namespace LMS.Core.Entities
 {
     public class CreateUserResult
     {
-        public int Success { get; set; }        
+        public bool Success { get; set; }        
         public string Message { get; set; }      
-        public int? CreatedUserID { get; set; }  
+        public int? UserID { get; set; }  
         public string? OTP { get; set; } 
     }
 }

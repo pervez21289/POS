@@ -3,6 +3,7 @@ using LMS.Core.Interfaces;
 using LMS.Repo.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Razorpay.Api;
 using System.IdentityModel.Tokens.Jwt;
 using System.Reflection;
 using System.Security.Claims;
@@ -32,7 +33,7 @@ public class AccountController : ControllerBase
         {
             CreateUserResult result = await _accountService.RegisterCompanyWithAdminAsync(request);
 
-            if (result.Success == 1)
+            if (result.Success)
                 return Ok(result);
             else
                 return BadRequest(result.Message);
@@ -51,29 +52,7 @@ public class AccountController : ControllerBase
             var userData = await _accountService.LoginAsync(request.Email, request.Password);
             if (userData != null)
             {
-                var authClaims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, Convert.ToString(userData.UserID)),
-                    new Claim(ClaimTypes.Role, Convert.ToString(userData.RoleNames)),
-                    new Claim(ClaimTypes.NameIdentifier, Convert.ToString(userData.CompanyID)),
-                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                };
-
-                authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleNames));
-                var token = GetToken(authClaims);
-
-                return Ok(new
-                {
-                    token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo,
-                    email = request.Email,
-                    mobile = userData.Mobile,
-                    menus = userData.menuItemDtos,
-                    name=userData.FirstName,
-                    Role = userData.RoleNames,
-                    plan=userData.SubscriptionJson,
-                    success = true
-                });
+                return Ok(userData);
             }
             return Unauthorized(new { Success = false, Message = "Invalid email or password" });
         }
@@ -94,9 +73,10 @@ public class AccountController : ControllerBase
     {
         try
         {
-            if (await _accountService.ValidateOTP(user))
+            LoginResponse response = await _accountService.ValidateOTP(user);
+            if (response!=null)
             {
-                return Ok(new { Success = true, Message = "OTP validated successfully" });
+                return Ok(response);
             }
             else
             {
@@ -145,18 +125,5 @@ public class AccountController : ControllerBase
         }
     }
 
-    private JwtSecurityToken GetToken(List<Claim> authClaims)
-    {
-        var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.TSecret));
-
-        var token = new JwtSecurityToken(
-            issuer: _appSettings.ValidIssuer,
-            audience: _appSettings.ValidAudience,
-            expires: DateTime.Now.AddYears(3),
-            claims: authClaims,
-            signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
-            );
-
-        return token;
-    }
+    
 }

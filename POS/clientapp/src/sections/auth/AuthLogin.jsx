@@ -49,20 +49,26 @@ export default function AuthLogin({ isDemo = false }) {
         setSubmitError('');
         try {
             const response = await UserService.LoginUser(values);
+            const redirectTo = location.state?.redirectTo || '/';
+            const plan = location.state?.plan;
 
             if (response.success) {
-                window.localStorage.setItem('userDetails', JSON.stringify(response));
-                dispatch(setUserDetails({ userDetails: response }));
+                if (response.isOTPVerified) {
+                    window.localStorage.setItem('userDetails', JSON.stringify(response));
+                    dispatch(setUserDetails({ userDetails: response }));
 
-                /*navigate('/dashboard/default'); // Redirect to dashboard*/
-               
-                const redirectTo = location.state?.redirectTo || '/';
-                const plan = location.state?.plan;
-                if (redirectTo && plan) {
-                    navigate(redirectTo, { state: plan ? { plan } : undefined });
+                    /*navigate('/dashboard/default'); // Redirect to dashboard*/
+
+                    
+                    if (redirectTo && plan) {
+                        navigate(redirectTo, { state: plan ? { plan } : undefined });
+                    }
+                    else {
+                        navigate('/dashboard/default');
+                    }
                 }
                 else {
-                    navigate('/dashboard/default');
+                    navigate('/otpverification', { state: { registeredUserId: response.userID, redirectTo: location.state?.redirectTo, plan: location.state?.plan } });
                 }
 
             } else {

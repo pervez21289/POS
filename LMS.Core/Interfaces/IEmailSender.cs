@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -9,10 +8,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace LMS.Core.Interfaces
 {
-    public interface IApiLogQueue
+    public interface IEmailSender
     {
-        void Enqueue(ApiLogEntry logEntry);
-        bool TryDequeue(out ApiLogEntry logEntry);
+        Task SendEmailAsync(string toEmail, string otp);
+        Task<Result> SentOTPSync(string email, string OTP);
     }
 
 }

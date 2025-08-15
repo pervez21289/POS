@@ -1,18 +1,23 @@
 ﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
+using Azure.Core;
 using Dapper;
 using LMS.Core.Entities;
 using LMS.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.IdentityModel.Tokens;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Net.Mail;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -22,9 +27,11 @@ namespace LMS.Repo.Repository
     public class UserRepo : BaseRepository, IUser
     {
         public readonly AppSettings _appSettings;
-        public UserRepo(AppSettings appSettings)
+        private readonly IBackgroundJobQueue _jobQueue;
+        public UserRepo(AppSettings appSettings, IBackgroundJobQueue jobQueue   )
         {
             _appSettings = appSettings;
+            _jobQueue = jobQueue;
         }
 
         public async Task<int> CreateUserAsync(User user)
@@ -75,7 +82,7 @@ namespace LMS.Repo.Repository
             {
                 var passwordHash = ComputeSha256Hash(request.Password);
 
-                var result = await QueryFirstOrDefaultAsync<CreateUserResult>(
+                CreateUserResult result = await QueryFirstOrDefaultAsync<CreateUserResult>(
                     "CreateCompanyWithAdmin",
                     new
                     {
@@ -88,7 +95,14 @@ namespace LMS.Repo.Repository
                     commandType: CommandType.StoredProcedure
                 );
 
-                var taskEmail = await SentEmail(result.OTP);
+                if (result.Success)
+                {
+                    _jobQueue.Enqueue(new BackgroundJob
+                    {
+                        JobType = BackgroundJobType.SendEmail,
+                        Payload = (request.Email, result.OTP)
+                    });
+                }
                 //Task taskSMS = SendSMS(result.OTP, request.Mobile);
                 
             
@@ -101,29 +115,40 @@ namespace LMS.Repo.Repository
             }
         }
 
-        public async Task<UserLoginDto?> LoginAsync(string email, string password)
+        public async Task<LoginResponse?> LoginAsync(string email, string password)
         {
             var passwordHash = ComputeSha256Hash(password);
+            LoginResponse? loginResponse = null;
 
-            var (userDto, menuItems) = await QueryMultipleStringAsync<UserLoginDto, string>(
-                   "UserLogin",
-                  new { Email = email, Password = passwordHash },
-                   commandType: CommandType.StoredProcedure
-               );
+            var (userDto, menuItems) = await QueryMultipleStringAsync<UserLoginDto, string>("UserLogin", new { Email = email, Password = passwordHash }, commandType: CommandType.StoredProcedure);
 
-            if(userDto!=null)
-               userDto.menuItemDtos = menuItems;
+            if (userDto != null)
+            {
+                loginResponse = GetUserLoginDto(userDto);
+                loginResponse.Menus = menuItems;
+            }
            
-            return userDto;
+            return loginResponse;
 
         }
 
-        public async Task<bool> ValidateOTP(User user)
+        public async Task<LoginResponse?> ValidateOTP(User user)
         {
             try
             {
-                bool IsValid= await QueryFirstOrDefaultAsync<bool>("SP_ValidateOTP", new { UserId = user.UserId, OTP = user.OTP });
-                return IsValid;
+                //bool IsValid= await QueryFirstOrDefaultAsync<bool>("SP_ValidateOTP", new { UserId = user.UserId, OTP = user.OTP });
+                //return IsValid;
+                LoginResponse? loginResponse = null;
+                var (userDto, menuItems) = await QueryMultipleStringAsync<UserLoginDto, string>("SP_ValidateOTP", new { UserId = user.UserId, OTP = user.OTP });
+
+                if (userDto != null)
+                {
+                    loginResponse = GetUserLoginDto(userDto);
+                    loginResponse.Menus = menuItems;
+                }
+
+                return loginResponse;
+
             }
             catch (Exception)
             {
@@ -190,13 +215,13 @@ namespace LMS.Repo.Repository
             }
         }
 
-        public async Task<Result> SentEmail(string OTP)
+        public async Task<Result> SentEmail(string email,string OTP)
         {
             try
             {
                 MailMessage message = new MailMessage();
                 message.From = new MailAddress("aliusman9760@gmail.com");
-                message.To.Add("pervez21289@gmail.com");
+                message.To.Add(email);
                 message.Subject = "OTP Verification #";
                 message.IsBodyHtml = true;
                 message.Body = "<div>" + OTP + "</div>";
@@ -282,5 +307,81 @@ namespace LMS.Repo.Repository
 
             return builder.ToString();
         }
+
+        private JwtSecurityToken GetToken(List<Claim> authClaims)
+        {
+            var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_appSettings.TSecret));
+
+            var token = new JwtSecurityToken(
+                issuer: _appSettings.ValidIssuer,
+                audience: _appSettings.ValidAudience,
+                expires: DateTime.Now.AddYears(3),
+                claims: authClaims,
+                signingCredentials: new SigningCredentials(authSigningKey, SecurityAlgorithms.HmacSha256)
+                );
+
+            return token;
+        }
+
+        public LoginResponse GetUserLoginDto(UserLoginDto userData)
+        {
+            if (userData != null)
+            {
+                if (userData.IsOTPVerified)
+                {
+                    var authClaims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, Convert.ToString(userData.UserID)),
+                        new Claim(ClaimTypes.Role, Convert.ToString(userData.RoleNames)),
+                        new Claim(ClaimTypes.NameIdentifier, Convert.ToString(userData.CompanyID)),
+                        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    };
+
+                    authClaims.Add(new Claim(ClaimTypes.Role, userData.RoleNames));
+                    var token = GetToken(authClaims);
+                    return new LoginResponse()
+                    {
+                        Token = new JwtSecurityTokenHandler().WriteToken(token),
+                        Expiration = token.ValidTo,
+                        Email = userData?.Email,
+                        Mobile = userData?.Mobile,
+                        Name = userData?.FirstName,
+                        Role = userData?.RoleNames,
+                        Plan = userData?.SubscriptionJson,
+                        Success = true,
+                        UserID = userData.UserID,
+                        IsOTPVerified = userData.IsOTPVerified
+                    };
+                }
+                else
+                {
+
+                    _jobQueue.Enqueue(new BackgroundJob
+                    {
+                        JobType = BackgroundJobType.SendEmail,
+                        Payload = (userData.Email, userData.OTP)
+                    });
+                    return new LoginResponse()
+                    {
+                        Success = true,
+                        UserID = userData.UserID,
+                        IsOTPVerified = userData.IsOTPVerified
+                    };
+                }
+            }
+            else
+            {
+                return new LoginResponse()
+                {
+                    Success = false,
+                    UserID = 0,
+                    IsOTPVerified = false
+                };
+            }
+
+
+        }
     }
+
+   
 }

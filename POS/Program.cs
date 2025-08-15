@@ -36,11 +36,13 @@ builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IErrorLogger, ErrorLogger>();
 builder.Services.AddScoped<ISaleRepository,SaleRepository>();
 builder.Services.AddScoped<IUser, UserRepo>();
+
 builder.Services.AddScoped<ITicketRepository, TicketRepository>();
 builder.Services.AddScoped<IBasicSettingRepository, BasicSettingRepository>();
 builder.Services.AddScoped<ISubscriptionRepository, SubscriptionRepository>();
 builder.Services.AddSingleton<BaseRepository>();
-builder.Services.AddSingleton<IApiLogQueue, ApiLogQueue>();
+builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+builder.Services.AddSingleton<IBackgroundJobQueue, BackgroundJobQueue>();
 builder.Services.AddHostedService<ApiLogBackgroundService>();
 
 builder.Services.AddControllers();

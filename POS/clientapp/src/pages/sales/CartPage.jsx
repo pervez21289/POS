@@ -156,7 +156,7 @@ const CartPage = () => {
     );
 
     return (
-        <Card sx={{ p: isMobile ? 1.5 : 3, boxShadow: 3 }}>
+        <Card sx={{ p: isMobile ? 1.5 : 3 }}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <ShoppingCartIcon color="warning" />

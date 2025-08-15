@@ -8,13 +8,15 @@ namespace LMS.ChatHub
     public class ActivityLoggingMiddleware
     {
         private readonly RequestDelegate _next;
-      
-        public ActivityLoggingMiddleware(RequestDelegate next)
+        private readonly IBackgroundJobQueue _jobQueue;
+
+        public ActivityLoggingMiddleware(RequestDelegate next, IBackgroundJobQueue jobQueue)
         {
             _next = next;
+            _jobQueue = jobQueue;
         }
 
-        public async Task InvokeAsync(HttpContext context, IApiLogQueue logQueue)
+        public async Task InvokeAsync(HttpContext context )
         {
             var sw = Stopwatch.StartNew();
            
@@ -40,7 +42,11 @@ namespace LMS.ChatHub
                     UserId= Convert.ToInt64(context.User.FindFirst(ClaimTypes.Name)?.Value)
                 };
 
-                logQueue.Enqueue(log);
+                _jobQueue.Enqueue(new BackgroundJob
+                {
+                    JobType = BackgroundJobType.ApiLog,
+                    Payload = log
+                });
             }
         }
     }

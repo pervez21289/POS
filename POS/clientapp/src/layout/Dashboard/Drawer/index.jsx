@@ -17,7 +17,7 @@ import { handlerDrawerOpen, useGetMenuMaster } from 'api/menu';
 
 export default function MainDrawer({ window }) {
   const { menuMaster } = useGetMenuMaster();
-  const drawerOpen = menuMaster.isDashboardDrawerOpened;
+    const drawerOpen =  menuMaster.isDashboardDrawerOpened;
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
   // responsive drawer container

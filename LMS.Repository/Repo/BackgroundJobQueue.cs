@@ -20,18 +20,21 @@ using System.Threading.Tasks;
 
 namespace LMS.Repo.Repository
 {
-    public class ApiLogQueue : IApiLogQueue
+    public class BackgroundJobQueue : IBackgroundJobQueue
     {
-        private readonly ConcurrentQueue<ApiLogEntry> _queue = new();
+        private readonly ConcurrentQueue<BackgroundJob> _jobs = new();
 
-        public void Enqueue(ApiLogEntry logEntry)
+        public void Enqueue(BackgroundJob job)
         {
-            _queue.Enqueue(logEntry);
+            if (job == null)
+                throw new ArgumentNullException(nameof(job));
+
+            _jobs.Enqueue(job);
         }
 
-        public bool TryDequeue(out ApiLogEntry logEntry)
+        public bool TryDequeue(out BackgroundJob job)
         {
-            return _queue.TryDequeue(out logEntry);
+            return _jobs.TryDequeue(out job!);
         }
     }
 
