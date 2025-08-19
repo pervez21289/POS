@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Utility": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "App_MasterKey": "nexbillposhighlevelsecurity007"
+      }
+    }
+  }
+}

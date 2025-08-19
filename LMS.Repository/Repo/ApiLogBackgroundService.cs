@@ -1,23 +1,9 @@
-﻿using Amazon.Runtime.Internal.Endpoints.StandardLibrary;
-using Dapper;
-using LMS.Core.Entities;
+﻿using LMS.Core.Entities;
 using LMS.Core.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.Net;
-using System.Net.Mail;
-using System.Reflection;
-using System.Reflection.Metadata;
-using System.Security.Cryptography;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace LMS.Repo.Repository
@@ -27,7 +13,7 @@ namespace LMS.Repo.Repository
         private readonly IBackgroundJobQueue _jobQueue;
         private readonly BaseRepository _repository;
         private readonly ILogger<ApiLogBackgroundService> _logger;
-        private readonly IEmailSender _emailSender; // Your email sending helper/service
+        private readonly IEmailSender _emailSender;
 
         public ApiLogBackgroundService(
             IBackgroundJobQueue jobQueue,
@@ -43,42 +29,39 @@ namespace LMS.Repo.Repository
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            while (!stoppingToken.IsCancellationRequested)
+            await foreach (var job in ReadJobsAsync(stoppingToken))
             {
-                if (_jobQueue.TryDequeue(out var job))
+                try
                 {
-                    try
+                    switch (job.JobType)
                     {
-                        switch (job.JobType)
-                        {
-                            case BackgroundJobType.ApiLog:
-                                var logEntry = (ApiLogEntry)job.Payload;
-                                const string sql = @"
+                        case BackgroundJobType.ApiLog:
+                            var logEntry = (ApiLogEntry)job.Payload;
+                            const string sql = @"
                                 INSERT INTO ApiLogs (Timestamp, Path, Method, IpAddress, StatusCode, DurationMs, UserId)
                                 VALUES (@Timestamp, @Path, @Method, @IpAddress, @StatusCode, @DurationMs, @UserId)";
-                                await _repository.ExecuteAsync(sql, logEntry, CommandType.Text);
-                                break;
+                            await _repository.ExecuteAsync(sql, logEntry, CommandType.Text);
+                            break;
 
-                            case BackgroundJobType.SendEmail:
-                                var emailData = ((string Email, string Otp))job.Payload;
-                                await _emailSender.SentOTPSync(emailData.Email, emailData.Otp);
-                                break;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error processing {job.JobType} job");
+                        case BackgroundJobType.SendEmail:
+                            var (email, otp) = ((string Email, string Otp))job.Payload;
+                            await _emailSender.SentOTPSync(email, otp);
+                            break;
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    await Task.Delay(1000, stoppingToken);
+                    _logger.LogError(ex, $"Error processing {job.JobType} job");
                 }
             }
         }
+
+        private async IAsyncEnumerable<BackgroundJob> ReadJobsAsync([System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken)
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                yield return await _jobQueue.DequeueAsync(cancellationToken);
+            }
+        }
     }
-
-
-
-
 }

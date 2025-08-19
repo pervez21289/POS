@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -9,10 +8,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace LMS.Core.Interfaces
 {
-    public interface IBackgroundJobQueue
+    public interface IHelper
     {
-        ValueTask EnqueueAsync(BackgroundJob job);
-        ValueTask<BackgroundJob> DequeueAsync(CancellationToken cancellationToken);
+        public string Encrypt(string plainText, string key);
+        public string Decrypt(string encrypted, string key);
     }
-
 }

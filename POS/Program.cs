@@ -1,16 +1,17 @@
 
+using LMS.ChatHub;
 using LMS.Core.Entities;
 using LMS.Core.Interfaces;
 using LMS.Repo.Repository;
 using LMS.Repository.Repo;
+using LMS.Repository.Utilities;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Microsoft.AspNetCore.SignalR;
-using LMS.ChatHub;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,8 +51,11 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var appSettingsSection = builder.Configuration.GetSection("AppSettings");
-var appSettings = appSettingsSection.Get<AppSettings>();
+AppSettings appSettings = appSettingsSection.Get<AppSettings>();
 builder.Services.AddSingleton(appSettings);
+
+var razorpayOptions = RazorpayConfigLoader.Load(appSettings);
+builder.Services.AddSingleton(razorpayOptions);
 
 builder.Services.AddAuthentication(options =>
 {

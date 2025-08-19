@@ -97,7 +97,7 @@ namespace LMS.Repo.Repository
 
                 if (result.Success)
                 {
-                    _jobQueue.Enqueue(new BackgroundJob
+                    await _jobQueue.EnqueueAsync(new BackgroundJob
                     {
                         JobType = BackgroundJobType.SendEmail,
                         Payload = (request.Email, result.OTP)
@@ -124,7 +124,7 @@ namespace LMS.Repo.Repository
 
             if (userDto != null)
             {
-                loginResponse = GetUserLoginDto(userDto);
+                loginResponse = await GetUserLoginDto(userDto);
                 loginResponse.Menus = menuItems;
             }
            
@@ -143,7 +143,7 @@ namespace LMS.Repo.Repository
 
                 if (userDto != null)
                 {
-                    loginResponse = GetUserLoginDto(userDto);
+                    loginResponse = await GetUserLoginDto(userDto);
                     loginResponse.Menus = menuItems;
                 }
 
@@ -323,7 +323,7 @@ namespace LMS.Repo.Repository
             return token;
         }
 
-        public LoginResponse GetUserLoginDto(UserLoginDto userData)
+        public async Task<LoginResponse> GetUserLoginDto(UserLoginDto userData)
         {
             if (userData != null)
             {
@@ -356,7 +356,7 @@ namespace LMS.Repo.Repository
                 else
                 {
 
-                    _jobQueue.Enqueue(new BackgroundJob
+                    await _jobQueue.EnqueueAsync(new BackgroundJob
                     {
                         JobType = BackgroundJobType.SendEmail,
                         Payload = (userData.Email, userData.OTP)

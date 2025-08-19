@@ -18,14 +18,14 @@ namespace LMS.Controllers
         protected readonly IUserContext _userContext;
         protected readonly ISubscriptionRepository _repo;
         private readonly IErrorLogger _logger;
-        protected string k_Id= "rzp_test_ZSfW1efmHkQHZc";
-        protected string k_Secret= "f27N2MF4q0Vmbwp4aTT9s2JC";
-        
-        public PaymentController( IUserContext userContext, ISubscriptionRepository repo,IErrorLogger errorLogger)
+        private readonly RazorpayOptions _razorpay;
+
+        public PaymentController( IUserContext userContext, ISubscriptionRepository repo,IErrorLogger errorLogger, RazorpayOptions razorpay)
         {
             _userContext = userContext;
             _repo = repo;
-            _logger = errorLogger;  
+            _logger = errorLogger;
+            _razorpay = razorpay;
         }
 
 
@@ -33,7 +33,7 @@ namespace LMS.Controllers
         [HttpPost("create-order")]
         public IActionResult CreateOrder([FromBody] PaymentRequest request)
         {
-            RazorpayClient client = new RazorpayClient(k_Id, k_Secret);
+            RazorpayClient client = new RazorpayClient(_razorpay.KeyId, _razorpay.KeySecret);
 
             Dictionary<string, object> options = new Dictionary<string, object>();
             options.Add("amount", request.Amount * 100); // Razorpay works with paise
@@ -59,7 +59,7 @@ namespace LMS.Controllers
                 orderId = orderId,
                 amount = amount,
                 currency = currency,
-                key= k_Id
+                key= _razorpay.KeyId
             });
         }
 
@@ -72,7 +72,7 @@ namespace LMS.Controllers
 
                 string payload = $"{request.razorpay_order_id}|{request.razorpay_payment_id}";
 
-                using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(k_Secret)))
+                using (HMACSHA256 hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_razorpay.KeySecret)))
                 {
                     byte[] hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
                     generatedSignature = BitConverter.ToString(hash).Replace("-", "").ToLower();
@@ -80,7 +80,7 @@ namespace LMS.Controllers
 
                 if (generatedSignature == request.razorpay_signature)
                 {
-                    RazorpayClient client = new RazorpayClient(k_Id, k_Secret);
+                    RazorpayClient client = new RazorpayClient(_razorpay.KeyId, _razorpay.KeySecret);
                     var order = client.Order.Fetch(request.razorpay_order_id);
 
                     string customerId = order["notes"]["customer_id"];

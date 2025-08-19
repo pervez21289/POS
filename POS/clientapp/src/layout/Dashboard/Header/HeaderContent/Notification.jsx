@@ -68,7 +68,7 @@ export default function Notification() {
                     drawerOpen: true
                 })
             );
-        dispatch(setIsSearch(true));
+       
   };
 
   const handleClose = (event) => {
