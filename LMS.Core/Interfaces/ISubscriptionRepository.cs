@@ -1,12 +1,6 @@
 ﻿
 using LMS.Core.Entities;
-using Microsoft.AspNetCore.Http;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
+using Razorpay.Api;
 
 namespace LMS.Core.Interfaces
 {
@@ -14,5 +8,6 @@ namespace LMS.Core.Interfaces
     {
         Task<bool> InsertSubscriptionAsync(SubscriptionPlan subscription);
         Task<SubscriptionPlan> GetCurrentActivePlanAsync(int customerId);
+        
     }
 }

@@ -53,6 +53,13 @@ const RazorpayCheckout = ({ amount, plan }) => {
                     } else {
                         navigate('/orderfailed');
                     }
+                },
+                modal: {
+                    ondismiss: function () {
+                        // User closed the payment popup (cancel)
+                        setLoading(false);
+                        navigate('/orderfailed');
+                    }
                 }
             };
 

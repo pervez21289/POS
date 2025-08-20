@@ -1,25 +1,28 @@
-﻿using Dapper;
+﻿using Amazon.Runtime.Internal;
+using Azure.Core;
+using Dapper;
 using LMS.Core.Entities;
 using LMS.Core.Interfaces;
 using LMS.Repo.Repository;
 using Microsoft.Extensions.Configuration;
+using Org.BouncyCastle.Asn1.Ocsp;
+
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
-using System.Linq;
-using System.Net.Sockets;
-using System.Text;
-using System.Threading.Tasks;
 namespace LMS.Repository.Repo
 {
     public class SubscriptionRepository :BaseRepository, ISubscriptionRepository
     {
         private readonly IConfiguration _configuration;
-
-        public SubscriptionRepository(IConfiguration configuration)
+        private readonly RazorpayOptions _razorpay;
+        private readonly IBackgroundJobQueue _jobQueue;
+        public SubscriptionRepository(IConfiguration configuration,  IBackgroundJobQueue jobQueue)
         {
             _configuration = configuration;
+           
+            _jobQueue = jobQueue;
+
         }
 
         public async Task<bool> InsertSubscriptionAsync(SubscriptionPlan subscription)
@@ -41,6 +44,12 @@ namespace LMS.Repository.Repo
 
             var result = await ExecuteAsync("InsertSubscription", parameters, commandType: CommandType.StoredProcedure);
 
+            await _jobQueue.EnqueueAsync(new BackgroundJob
+            {
+                JobType = BackgroundJobType.SendInvoiceEmail,
+                Payload = (subscription.CustomerId)
+            });
+
             return result > 0;
         }
 
@@ -53,5 +62,7 @@ namespace LMS.Repository.Repo
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        
     }
 }

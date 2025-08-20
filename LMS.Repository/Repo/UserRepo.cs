@@ -268,9 +268,15 @@ namespace LMS.Repo.Repository
                 await ExecuteAsync("UpdateUserResetToken", new { Email = email, ResetToken = resetToken }, commandType: CommandType.StoredProcedure);
 
                 // Send the reset token via email
-                var emailResult = await SendResetPasswordEmail(email,resetToken);
+                //var emailResult = await SendResetPasswordEmail(email,resetToken);
 
-                return emailResult.IsSuccess;
+                await _jobQueue.EnqueueAsync(new BackgroundJob
+                {
+                    JobType = BackgroundJobType.SendResetPasswordEmail,
+                    Payload = (email, resetToken)
+                });
+
+                return true;
             }
             catch (Exception)
             {

@@ -38,7 +38,7 @@ export default function ForgotPassword() {
     };
 
     return (
-        <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: '60vh' }}>
+        <Grid container justifyContent="center" alignItems="center" sx={{ minHeight: '50vh' }}>
             <Grid item xs={12} sm={8} md={5}>
                 <Paper elevation={2} sx={{ p: 4, borderRadius: 3 }}>
                     <Stack spacing={2} alignItems="center" textAlign="center">

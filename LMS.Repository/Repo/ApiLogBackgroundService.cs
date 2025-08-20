@@ -47,6 +47,14 @@ namespace LMS.Repo.Repository
                             var (email, otp) = ((string Email, string Otp))job.Payload;
                             await _emailSender.SentOTPSync(email, otp);
                             break;
+                        case BackgroundJobType.SendResetPasswordEmail:
+                            var (resetEmail, resetToken) = ((string Email, string ResetToken))job.Payload;
+                            await _emailSender.SendResetPasswordEmail(resetEmail, resetToken);
+                            break;
+                        case BackgroundJobType.SendInvoiceEmail:
+                            var customerId = (int)job.Payload;
+                            await _emailSender.SentInvoiceDetails(customerId);
+                            break;
                     }
                 }
                 catch (Exception ex)

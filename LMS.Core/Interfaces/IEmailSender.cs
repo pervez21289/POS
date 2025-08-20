@@ -12,6 +12,8 @@ namespace LMS.Core.Interfaces
     {
         Task SendEmailAsync(string toEmail, string otp);
         Task<Result> SentOTPSync(string email, string OTP);
+        Task<Result> SendResetPasswordEmail(string email, string resetToken);
+        Task<Result> SentInvoiceDetails(int CustomerId);
     }
 
 }

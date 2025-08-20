@@ -29,13 +29,13 @@ const OrderFailed = () => {
                 <Button
                     variant="contained"
                     color="primary"
-                    onClick={() => navigate('/pricing')} // or your payment/retry page
+                    onClick={() => navigate('/subscribe')} // or your payment/retry page
                 >
                     Try Again
                 </Button>
 
                 <Box mt={2}>
-                    <Button variant="text" onClick={() => navigate('/')}>
+                    <Button variant="text" onClick={() => navigate('/sales')}>
                         Back to Home
                     </Button>
                 </Box>

@@ -9,7 +9,9 @@ namespace LMS.Core.Entities
     public enum BackgroundJobType
     {
         ApiLog,
-        SendEmail
+        SendEmail,
+        SendResetPasswordEmail,
+        SendInvoiceEmail,
     }
     public class BackgroundJob
     {

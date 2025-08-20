@@ -21,6 +21,9 @@ namespace LMS.Core.Entities
         public DateTime PlanEndDate { get; set; }
         public DateTime CreatedAt { get; set; }
         public string? PlanStatus { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Email { get; set; }
+
     }
 
 

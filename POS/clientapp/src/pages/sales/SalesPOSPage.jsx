@@ -349,9 +349,9 @@ const SalesPOSPage = () => {
                                         justifyContent: "center",
                                         minWidth: 90,
                                         fontSize: "16px",
-                                        background: "linear-gradient(135deg, #2e7d32, #1b5e20)",
+                                        background: "#faad14",
                                         color: "#fff",
-                                        border: "2px solid #1b5e20"
+                                        border: "2px solid #faad14"
                                         
                                     }}
                                 >
