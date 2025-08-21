@@ -2,10 +2,13 @@
 using LMS.Core.Interfaces;
 using LMS.Repo.Repository;
 using Microsoft.Extensions.Logging;
+
 using Razorpay.Api;
 using System.Data;
 using System.Net;
 using System.Net.Mail;
+using System.Text;
+using System.Text.Json;
 
 
 namespace LMS.Repository.Repo
@@ -122,13 +125,16 @@ namespace LMS.Repository.Repo
                    .Replace("{{planName}}", subscriptionPlan.PlanName)
                    .Replace("{{amount}}", Convert.ToString(subscriptionPlan.AmountPaid))
                    .Replace("{{invoiceNumber}}",Convert.ToString(subscriptionPlan.SubscriptionId))
+                    .Replace("{{{invoiceNumber}}}", Convert.ToString(subscriptionPlan.SubscriptionId))
                    .Replace("{{invoiceUrl}}", "invoiceUrl")
                    .Replace("{{billingDate}}", subscriptionPlan.CreatedAt.ToString("dd/MMM/yyyy"))
                    .Replace("{{paymentMethod}}",Convert.ToString(payment["method"]))
                    .Replace("{{supportEmail}}", "info@nexbillpos")
-                   .Replace("{{manageSubscriptionUrl}}", "manageSubscriptionUrl")
+                   .Replace("{{manageSubscriptionUrl}}", "https://nexbillpos.com/subscriptionplan")
                    .Replace("{{unsubscribeUrl}}", "unsubscribeUrl");
-           
+
+            byte[] pdfBytes = await GetIncvoicePDF(subscriptionPlan);
+
 
             using (var message = new MailMessage())
             {
@@ -137,6 +143,11 @@ namespace LMS.Repository.Repo
                 message.Subject = "Reset Your Password - NexBillPOS";
                 message.IsBodyHtml = true;
                 message.Body = htmlContent;
+
+                // Step 3: Attach PDF from memory (no need to save on disk)
+                using var ms = new MemoryStream(pdfBytes);
+                ms.Position = 0; // reset pointer
+                message.Attachments.Add(new Attachment(ms, "invoice.pdf", "application/pdf"));
 
 
                 using (var smtp = new SmtpClient("smtp.gmail.com", 587))
@@ -168,6 +179,49 @@ namespace LMS.Repository.Repo
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
+        }
+
+
+        public async Task<byte[]> GetIncvoicePDF(SubscriptionPlan plan)
+        {
+            var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Files", "SubscriptionInvoice.html");
+            string htmlContent = await File.ReadAllTextAsync(templatePath);
+            // Replace placeholders with values
+            string finalHtml = htmlContent
+                .Replace("{{InvoiceNumber}}", plan.SubscriptionId.ToString())
+                .Replace("{{InvoiceDate}}", plan.CreatedAt.ToString("dd-MMM-yyyy"))
+                .Replace("{{PlanName}}", plan.PlanName)
+                .Replace("{{BillingPeriod}}", plan.PlanStartDate.ToString("MMM yyyy") + "-" + plan.PlanStartDate.ToString("MMM yyyy"))
+                .Replace("{{CustomerName}}", plan.CompanyName)
+                .Replace("{{CustomerEmail}}",plan.Email)
+                .Replace("{{Currency}}", "₹")
+                .Replace("{{UnitPrice}}", plan.AmountPaid.ToString())
+                .Replace("{{Subtotal}}", plan.AmountPaid.ToString())
+                .Replace("{{TaxRate}}", "18")
+                .Replace("{{TaxAmount}}", "89.82")
+                .Replace("{{TotalAmount}}", plan.AmountPaid.ToString());
+
+
+            using var httpClient = new HttpClient();
+            string url = "http://myapp.local/api/PDF/generate";
+
+            var payload = new
+            {
+                html = finalHtml
+            };
+
+
+            // Serialize as JSON
+            string json = JsonSerializer.Serialize(payload);
+
+            // Send as application/json
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            HttpResponseMessage response = await httpClient.PostAsync(url, content);
+
+            byte[] pdfBytes = await response.Content.ReadAsByteArrayAsync();
+
+            return pdfBytes;
         }
     }
 }
