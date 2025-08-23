@@ -50,7 +50,7 @@ export const pricingTiers = [
     },
     {
         name: "Pro",
-        price: "\u20B9499",
+        price: "\u20B9100",
         period: "/month",
         isPopular: true,
         features: [

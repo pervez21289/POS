@@ -20,14 +20,14 @@ const Index = () => {
     });
 
     const columns = [
-        { field: "id", headerName: "ID", width: 70 },
-        { field: "timestamp", headerName: "Timestamp", width: 180 },
-        { field: "path", headerName: "Path", width: 200 },
+        { field: "name", headerName: "User", width: 100 },
+        { field: "path", headerName: "Action", width: 200 },
         { field: "method", headerName: "Method", width: 100 },
         { field: "ipAddress", headerName: "IP", width: 150 },
         { field: "statusCode", headerName: "Status", width: 100 },
         { field: "durationMs", headerName: "Duration (ms)", width: 130 },
-        { field: "userId", headerName: "User ID", width: 100 },
+        
+        { field: "timestamp", headerName: "Timestamp", width: 180 },
     ];
 
     
