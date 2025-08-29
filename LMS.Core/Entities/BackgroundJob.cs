@@ -12,6 +12,7 @@ namespace LMS.Core.Entities
         SendEmail,
         SendResetPasswordEmail,
         SendInvoiceEmail,
+        SentOTPMobile
     }
     public class BackgroundJob
     {

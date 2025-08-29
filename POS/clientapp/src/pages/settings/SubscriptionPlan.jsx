@@ -22,13 +22,13 @@ import { useSelector } from 'react-redux';
 
 const SubscriptionPlan = () => {
     const { SubscriptionPlan } = useSelector((state) => state.users);
-
+    debugger;
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-    if (!SubscriptionPlan) return null;
+    
 
-    const isActive = SubscriptionPlan?.planStatus === 'Active';
+    const isActive = SubscriptionPlan&&SubscriptionPlan?.planStatus === 'Active';
     const isPaid = SubscriptionPlan?.paymentStatus === 'Success';
 
     return (

@@ -44,8 +44,12 @@ namespace LMS.Repo.Repository
                             break;
 
                         case BackgroundJobType.SendEmail:
-                            var (email, otp) = ((string Email, string Otp))job.Payload;
+                            var (email,otp) = ((string Email, string Otp))job.Payload;
                             await _emailSender.SentOTPSync(email, otp);
+                            break;
+                        case BackgroundJobType.SentOTPMobile:
+                            var (mobile, mobileotp) = ((string mobile, string mobileotp))job.Payload;
+                            await _emailSender.SentOTPMobileSync(mobile, mobileotp);
                             break;
                         case BackgroundJobType.SendResetPasswordEmail:
                             var (resetEmail, resetToken) = ((string Email, string ResetToken))job.Payload;

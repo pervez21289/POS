@@ -384,9 +384,9 @@ const SalesPOSPage = () => {
                         <Box >
                             <Box display="flex" alignItems="center" justifyContent="space-between" mb={1}>
                                 {/* Left side */}
-                                <Typography variant="subtitle1" fontWeight={600}>
-                                    Quick Select
-                                </Typography>
+                                {/*<Typography variant="subtitle1" fontWeight={600}>*/}
+                                {/*    Quick Select*/}
+                                {/*</Typography>*/}
 
                                 {/* Right side buttons */}
                                 <Stack direction="row" spacing={2}>

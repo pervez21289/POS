@@ -97,10 +97,17 @@ namespace LMS.Repo.Repository
 
                 if (result.Success)
                 {
+                    
                     await _jobQueue.EnqueueAsync(new BackgroundJob
                     {
                         JobType = BackgroundJobType.SendEmail,
                         Payload = (request.Email, result.OTP)
+                    });
+
+                    await _jobQueue.EnqueueAsync(new BackgroundJob
+                    {
+                        JobType = BackgroundJobType.SentOTPMobile,
+                        Payload = ( request.Mobile, result.OTP)
                     });
                 }
                 //Task taskSMS = SendSMS(result.OTP, request.Mobile);
@@ -367,6 +374,13 @@ namespace LMS.Repo.Repository
                         JobType = BackgroundJobType.SendEmail,
                         Payload = (userData.Email, userData.OTP)
                     });
+
+                    await _jobQueue.EnqueueAsync(new BackgroundJob
+                    {
+                        JobType = BackgroundJobType.SentOTPMobile,
+                        Payload = (userData.Mobile, userData.OTP)
+                    });
+
                     return new LoginResponse()
                     {
                         Success = true,

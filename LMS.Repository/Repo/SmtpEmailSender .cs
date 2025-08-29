@@ -7,6 +7,7 @@ using Razorpay.Api;
 using System.Data;
 using System.Net;
 using System.Net.Mail;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
@@ -70,7 +71,7 @@ namespace LMS.Repository.Repo
                     EnableSsl = true
                 };
 
-
+               
                 await client.SendMailAsync(message);
 
 
@@ -94,22 +95,48 @@ namespace LMS.Repository.Repo
 
             using (var message = new MailMessage())
             {
-                message.From = new MailAddress(_appSettings.Email);
-                message.To.Add(email); // TODO: Use user's email
-                message.Subject = "Reset Your Password - NexBillPOS";
-                message.IsBodyHtml = true;
-                message.Body = htmlContent;
-
-
-                using (var smtp = new SmtpClient("smtp.gmail.com", 587))
+                try
                 {
-                    smtp.Credentials = new NetworkCredential(_appSettings.Email, _appSettings.Secret);
-                    smtp.EnableSsl = true;
+                    message.From = new MailAddress(_appSettings.Email,"NexBillPos");
+                    message.To.Add(email); // TODO: Use user's email
+                    message.Subject = "Reset Your Password - NexBillPOS";
+                    message.IsBodyHtml = true;
+                    message.Body = htmlContent;
 
-                    await smtp.SendMailAsync(message);
+
+                    using (var smtp = new SmtpClient("smtp.gmail.com", 587))
+                    {
+                        smtp.Credentials = new NetworkCredential(_appSettings.Email, _appSettings.Secret);
+                        smtp.EnableSsl = true;
+                        message.ReplyToList.Add(new MailAddress("info@nexbillpos.com", "Support Team"));
+
+                        await smtp.SendMailAsync(message);
+                    }
+
+                    return new Result() { IsSuccess = true, Message = "Password reset link sent successfully" };
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send password reset email to {Email}", email);
+                    return new Result() { IsSuccess = false, Message = "Failed to send email" };
+                }
+            }
+        }
+
+        public async Task SentOTPMobileSync(string mobile, string OTP)
+        {
+            try
+            {
+                using (HttpClient client = new HttpClient())
+                {
+                    string url = string.Format("https://www.fast2sms.com/dev/bulkV2?authorization={0}&route=otp&variables_values={1}&flash=0&numbers={2}", "Qx7ZkSVpfemUTbNuJ9Hrh2LXPn3OF1cW0gDtjodGEsi4az8MCYPvrS4fYJ7kslEnaAFLTm0ZXcqg6oGN", OTP, mobile);
+                    HttpResponseMessage response = await client.GetAsync(url);
                 }
 
-                return new Result() { IsSuccess = true, Message = "Password reset link sent successfully" };
+            }
+            catch
+            {
+
             }
         }
 
@@ -138,9 +165,9 @@ namespace LMS.Repository.Repo
 
             using (var message = new MailMessage())
             {
-                message.From = new MailAddress(_appSettings.Email);
+                message.From = new MailAddress(_appSettings.Email, "NexBillPos");
                 message.To.Add(subscriptionPlan.Email); // TODO: Use user's email
-                message.Subject = "Reset Your Password - NexBillPOS";
+                message.Subject = "Invoice - NexBillPOS";
                 message.IsBodyHtml = true;
                 message.Body = htmlContent;
 

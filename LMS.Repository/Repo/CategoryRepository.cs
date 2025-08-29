@@ -27,7 +27,7 @@ public class CategoryRepository :BaseRepository, ICategoryRepository
 
     public async Task<bool> UpdateAsync(Category category)
     {
-        return (await   ExecuteAsync("UpdateCategory", category, commandType: CommandType.StoredProcedure)) > 0;
+        return (await   ExecuteAsync("UpdateCategory", new { CategoryID=category.CategoryID, CategoryName=category.CategoryName }, commandType: CommandType.StoredProcedure)) > 0;
     }
 
     public async Task<bool> DeleteAsync(int id)
