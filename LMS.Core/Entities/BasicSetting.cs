@@ -14,6 +14,7 @@ namespace LMS.Core.Entities
         public string ContactEmail { get; set; }
         public string GSTIN { get; set; }
         public int? CompanyID { get; set; } 
+        public decimal? GST { get; set; }
     }
 
 }

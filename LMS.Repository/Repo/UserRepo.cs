@@ -101,7 +101,7 @@ namespace LMS.Repo.Repository
                     await _jobQueue.EnqueueAsync(new BackgroundJob
                     {
                         JobType = BackgroundJobType.SendEmail,
-                        Payload = (request.Email, result.OTP)
+                        Payload = (request.Email,request.FirstName, result.OTP)
                     });
 
                     await _jobQueue.EnqueueAsync(new BackgroundJob
@@ -253,11 +253,11 @@ namespace LMS.Repo.Repository
 
 
 
-        public async Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate)
+        public async Task<IEnumerable<ApiLog>> GetApiLogsAsync(int CompanyId,string search, DateTime? startDate, DateTime? endDate)
         {
             IEnumerable<ApiLog> logs = await QueryAsync<ApiLog>(
                 "sp_GetApiLogs",
-                new { Search = search, StartDate = startDate, EndDate = endDate },
+                new { CompanyID= CompanyId, Search = search, StartDate = startDate, EndDate = endDate },
                 commandType: CommandType.StoredProcedure
             );
 

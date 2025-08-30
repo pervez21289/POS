@@ -54,16 +54,29 @@ namespace LMS.Repository.Repo
             }
         }
 
-        public async Task<Result> SentOTPSync(string email, string OTP)
+        public async Task<Result> SentOTPSync(string email, string Name, string OTP)
         {
             try
             {
+                var templatePath = Path.Combine(Directory.GetCurrentDirectory(), "Files", "OtpTemplate.html");
+   
+                string htmlBody = await File.ReadAllTextAsync(templatePath);
+
+                // Replace placeholders
+                htmlBody = htmlBody.Replace("{{Name}}", Name)
+                                   .Replace("{{OTP}}", OTP)
+                                   .Replace("{{VerifyUrl}}", "https://nexbillpos.com/") // optional
+                                   .Replace("{{SupportUrl}}", "https://nexbillpos.com/");
+                                   
+        
+
+
                 MailMessage message = new MailMessage();
-                message.From = new MailAddress("aliusman9760@gmail.com");
+                message.From = new MailAddress(_appSettings.Email, "NexbillPOS");
                 message.To.Add(email);
-                message.Subject = "OTP Verification #";
+                message.Subject = "Your NexbillPOS OTP Code";
                 message.IsBodyHtml = true;
-                message.Body = "<div>" + OTP + "</div>";
+                message.Body = htmlBody;
 
                 SmtpClient client = new SmtpClient("smtp.gmail.com", 587)
                 {

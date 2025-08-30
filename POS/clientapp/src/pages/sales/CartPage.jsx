@@ -56,7 +56,7 @@ const CartPage = () => {
                             <Typography fontWeight="bold">{item.name}</Typography>
                             <Typography variant="body2" color="text.secondary">Barcode: {item.barcode}</Typography>
                             <Typography variant="body2">Price: ₹{item.costPrice.toFixed(2)}</Typography>
-                            <Typography variant="body2">Discount: ₹ {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}</Typography>
+                            
                             <Typography variant="body2">Subtotal: ₹{(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}</Typography>
                         </Box>
                         <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
@@ -91,7 +91,7 @@ const CartPage = () => {
                     <TableRow>
                         <TableCell sx={{ fontSize }}>Barcode</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Price</TableCell>
-                        <TableCell sx={{ fontSize }} align="right">Discount</TableCell>
+                       
                         <TableCell sx={{ fontSize }} align="center">Qty</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Action</TableCell>
@@ -108,9 +108,7 @@ const CartPage = () => {
                             <TableRow>
                                 <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode}</TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.costPrice?.toFixed(2)}</TableCell>
-                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                    {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
-                                </TableCell>
+                             
                                 <TableCell align="center" sx={{ fontSize }}>
                                     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
                                         <IconButton
@@ -196,9 +194,7 @@ const CartPage = () => {
                             {receiptInfo?.totalItems}
                         </Typography>
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Discount: ₹{receiptInfo?.discountAmount?.toFixed(2)} | Tax: ₹{receiptInfo?.taxAmount?.toFixed(2)}
-                    </Typography>
+                    
                 </Box>
                 <Button
                     variant="contained"

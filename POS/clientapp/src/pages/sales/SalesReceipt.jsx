@@ -106,18 +106,18 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
 
             const qty = padLeft(item.quantity?.toString() || '0', 2);
             const rate = padLeft(item.price?.toFixed(0) || '0', 3);
-            const disc = padLeft((item.discountAmount * item.quantity)?.toFixed(0) || '0', 3);
+      
             const total = padLeft((item.quantity * (item.price - (item.discount || 0))).toFixed(0), 5);
             const barcode = padRight(item.barcode || '-', 10);
 
-            lines.push(`${barcode} ${qty} ${rate} ${disc} ${total}`);
+            lines.push(`${barcode} ${qty} ${rate} ${total}`);
         });
 
         lines.push('-'.repeat(LINE_WIDTH));
 
         // Summary
         lines.push(`${padRight('Subtotal:', 16)}${padLeft(receiptInfo?.totalAmount?.toFixed(2) || '0.00', 14)}`);
-        lines.push(`${padRight('Discount:', 16)}${padLeft(receiptInfo?.discountAmount?.toFixed(2) || '0.00', 14)}`);
+       
         lines.push(`${padRight('Tax:', 16)}${padLeft(receiptInfo?.taxAmount?.toFixed(2) || '0.00', 14)}`);
         lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${receiptInfo?.net?.toFixed(2) || '0.00'}`, 14)}`);
         lines.push(`${padRight('Total Items:', 16)}${padLeft(receiptInfo?.saleItems?.reduce((s, i) => s + i.quantity, 0) || '0', 14)}`);
@@ -186,7 +186,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                 <th style={{ fontSize, textAlign: 'left' }}>Barcode</th>
                                 <th style={{ fontSize, textAlign: 'center' }}>Qty</th>
                                 <th style={{ fontSize, textAlign: 'right' }}>Rate</th>
-                                <th style={{ fontSize, textAlign: 'right' }}>Discount</th>
+                              
                                 <th style={{ fontSize, textAlign: 'right' }}>Total</th>
                             </tr>
                         </thead>
@@ -202,7 +202,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                         <td style={{ fontSize, fontWeight: 'bold' }}>{item.barcode || '-'}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'center' }}>{item.quantity}</td>
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{item.costPrice?.toFixed(2)}</td>
-                                        <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>{(item?.quantity * item?.discountAmount)?.toFixed(2)}</td>
+                                      
                                         <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>
                                             {(item?.quantity * item?.price).toFixed(2)}
                                         </td>
@@ -220,10 +220,7 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                                 <td colSpan="3" style={{ fontSize, fontWeight: 'bold' }}>Subtotal</td>
                                 <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>₹{receiptInfo?.totalAmount?.toFixed(2)}</td>
                             </tr>
-                            <tr>
-                                <td colSpan="3" style={{ fontSize, fontWeight: 'bold' }}>Discount</td>
-                                <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>₹{receiptInfo?.discountAmount?.toFixed(2)}</td>
-                            </tr>
+                         
                             <tr>
                                 <td colSpan="3" style={{ fontSize, fontWeight: 'bold' }}>Tax</td>
                                 <td style={{ fontSize, fontWeight: 'bold', textAlign: 'right' }}>₹{receiptInfo?.taxAmount?.toFixed(2)}</td>

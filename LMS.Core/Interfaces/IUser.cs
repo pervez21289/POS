@@ -15,7 +15,7 @@ namespace LMS.Core.Interfaces
         Task<int> CreateUserAsync(User user);
         Task DeleteUserAsync(int userId);
         Task<IEnumerable<User>> GetUsersAsync(int CompanyID);
-        Task<IEnumerable<ApiLog>> GetApiLogsAsync(string search, DateTime? startDate, DateTime? endDate);
+        Task<IEnumerable<ApiLog>> GetApiLogsAsync(int CompanyId,string search, DateTime? startDate, DateTime? endDate);
         Task<LoginResponse?> ValidateOTP(User user);
         Task<bool> ForgotPasswordAsync(string email);
         Task<bool> ResetPasswordAsync(string token, string newPassword);

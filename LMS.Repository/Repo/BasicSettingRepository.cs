@@ -45,6 +45,7 @@ namespace LMS.Repository.Repo
                     setting.Address,
                     setting.ContactEmail,
                     setting.GSTIN,
+                    setting.GST,
                     setting.CompanyID
                 },
                 commandType: CommandType.StoredProcedure
@@ -62,6 +63,7 @@ namespace LMS.Repository.Repo
                     setting.StoreName,
                     setting.Address,
                     setting.ContactEmail,
+                    setting.GST,
                     setting.GSTIN
                 },
                 commandType: CommandType.StoredProcedure

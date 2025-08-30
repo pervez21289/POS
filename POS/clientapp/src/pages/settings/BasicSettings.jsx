@@ -121,6 +121,16 @@ export default function BasicSettingForm() {
                             helperText={errors.gstin}
                         />
 
+                        <TextField
+                            label="GST%"
+                            name="gst"
+                            fullWidth
+                            value={formData.gst}
+                            onChange={handleChange}
+                            error={!!errors.gst}
+                            helperText={errors.gst}
+                        />
+
                         <Button type="submit" variant="contained" fullWidth size="large">
                             {formData.id === 0 ? 'Save' : 'Update'}
                         </Button>
