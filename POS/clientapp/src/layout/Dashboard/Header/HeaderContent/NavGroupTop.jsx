@@ -12,7 +12,7 @@ const NavGroupTop = ({item })=>{
                         </Typography>
                     );
                 case 'item':
-                    return <NavItemsTop key={menuItem.id} item={menuItem}></NavItemsTop>;
+                    return (menuItem.title == "Help")?<></>:< NavItemsTop key = { menuItem.id } item = { menuItem } ></NavItemsTop >;
                 default:
                     return (
                         <Typography key={menuItem.id} variant="h6" color="error" align="center">

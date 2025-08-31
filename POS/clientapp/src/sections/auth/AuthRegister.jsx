@@ -79,7 +79,7 @@ export default function AuthRegister() {
                             const res = await UserService.SaveUser(values); // register user
                             setRegisteredUserId(res.userID); // API must return userId
                             //await UserService.SendOTP(values.mobile); // send OTP
-                            debugger;
+                            
                             navigate('/otpverification', { state: { registeredUserId: res.userID, redirectTo: location.state?.redirectTo, plan: location.state?.plan } });
                         } catch (error) {
                             const msg = error?.response?.data || 'Registration failed';

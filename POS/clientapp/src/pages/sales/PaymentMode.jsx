@@ -1,51 +1,32 @@
-﻿import * as React from 'react';
-import {
-    Box,
-    List,
-    ListItem,
-    Divider,
-    Typography,
-    RadioGroup,
-    FormControlLabel,
-    Radio,
-} from '@mui/material';
+﻿import * as React from "react";
+import { Box, Typography, Chip, Stack } from "@mui/material";
 
 export default function PaymentMode({ setPaymentModeID, PaymentModeID }) {
-    return (
-        <Box sx={{ minWidth: 50 }}>
-            <Box
-                sx={{
-                    mb: 2,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
-                <Typography
-                    id="example-payment-channel-label"
-                    textColor={'text.secondary'}
-                    sx={{ fontWeight: 'bold' }}
-                >
-                    Pay with
-                </Typography>
-            </Box>
+    const options = [
+        { value: "1", label: "UPI" },
+        { value: "2", label: "Cash" },
+        { value: "3", label: "Card" },
+    ];
 
-            <RadioGroup
-                aria-labelledby="example-payment-channel-label"
-                value={PaymentModeID}
-                name="example-payment-channel"
-                onChange={(e) => setPaymentModeID(e.target.value)}
-                row // Makes it horizontal
-            >
-                {[{ value: '1', label: 'UPI' }, { value: '2', label: 'Cash' }, { value: '3', label: 'Card' }].map((item, index) => (
-                    <FormControlLabel
+    return (
+        <Box>
+            <Typography sx={{ fontWeight: "bold", mb: 1 }} color="text.secondary">
+                Pay with
+            </Typography>
+
+            <Stack direction="row" spacing={2}>
+                {options.map((item) => (
+                    <Chip
                         key={item.value}
-                        value={item.value}
-                        control={<Radio />}
                         label={item.label}
+                        clickable
+                        variant={PaymentModeID === item.value ? "filled" : "outlined"}
+                        color={PaymentModeID === item.value ? "primary" : "default"}
+                        onClick={() => setPaymentModeID(item.value)}
+                        sx={{ px: 2, py: 1, fontWeight: "bold" }}
                     />
                 ))}
-            </RadioGroup>
+            </Stack>
         </Box>
     );
 }

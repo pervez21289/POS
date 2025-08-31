@@ -28,7 +28,7 @@ export default function SalesChart({ TillDateCompanySale,MonthlySummary }) {
 
     // Fetch chart data from API
     useEffect(() => {
-        debugger;
+      
         
         if (MonthlySummary) {
             const labels = MonthlySummary?.map(d => d.Month);

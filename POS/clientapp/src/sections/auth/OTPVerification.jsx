@@ -22,12 +22,12 @@ export default function OTPVerification() {
     const location = useLocation();
     const dispatch = useDispatch();
     const handleVerifyOTP = async () => {
-        debugger;
+       
         setOTPError('');
         const registeredUserId = location.state?.registeredUserId;
         try {
             const response = await UserService.ValidateOTP({ userId: registeredUserId, otp });
-            debugger;
+            
             if (response.success) {
                 window.localStorage.setItem('userDetails', JSON.stringify(response));
                 dispatch(setUserDetails({ userDetails: response }));

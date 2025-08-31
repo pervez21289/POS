@@ -22,7 +22,7 @@ import { useSelector } from 'react-redux';
 
 const SubscriptionPlan = () => {
     const { SubscriptionPlan } = useSelector((state) => state.users);
-    debugger;
+   
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 

@@ -19,7 +19,7 @@ const Pricing = () => {
     });
 
     const handlePayment = (tier) => {
-        debugger;
+      
         if (!userDetails) {
             navigate('/register', { state: { redirectTo: '/order', plan: tier } });
         } else {
