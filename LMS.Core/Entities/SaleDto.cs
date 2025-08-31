@@ -26,7 +26,7 @@ namespace LMS.Core.Entities
         public int UserID { get; set; }
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; }
-        public decimal TaxAmount { get; set; }
+        public decimal? TaxAmount { get; set; }
         public int PaymentStatus { get; set; }
         public string? Notes { get; set; }
         public string CustomerName { get; set; }
@@ -51,6 +51,7 @@ namespace LMS.Core.Entities
         public string CustomerName { get; set; }
         public string BillNo { get; set; }  
         public long TotalCount { get; set; }
+        
     }
 
     public class BillNoDto
@@ -68,11 +69,15 @@ namespace LMS.Core.Entities
         public decimal TotalAmount { get; set; }
         public decimal DiscountAmount { get; set; }
         public decimal TaxAmount { get; set; }
-        public decimal Net { get; set; }
+        public decimal NetAmount { get; set; }
         public string CustomerName { get; set; }
         public string MobileNumber { get; set; }
         public string UserName { get; set; }
         public string CompanyName { get; set; }
+        public decimal? SGST { get; set; }
+        public decimal? CGST { get; set; }
+        public decimal? halfGstRate { get; set; }
+        public int TotalItems { get; set; }
         public List<SaleItemListDto> saleItems { get; set; } = new();
     }
 

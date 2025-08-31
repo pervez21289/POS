@@ -4,13 +4,13 @@ import {
     Box, Button, Dialog, DialogTitle, DialogContent, DialogActions, List, Grid, MenuItem, Select, TextField, Typography, Table, TableBody, TableCell, TableRow, TableHead,
     RadioGroup, FormControlLabel, Radio
 } from '@mui/material';
-import { useReactToPrint } from "react-to-print";
+import { setDrawerComponent } from "./../../store/reducers/drawer";
 import SaleService from './../../services/SaleService';
 import { useDispatch, useSelector } from 'react-redux';
 import { useCreateSaleMutation } from './../../services/salesApi';
 import { setReceiptInfo } from "./../../store/reducers/sales";
 import Snackbar from '@mui/material/Snackbar';
-import MuiAlert from '@mui/material/Alert';
+import CartPage from './CartPage';
 import { useMediaQuery, useTheme } from '@mui/material';
 import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import SalesReceipt from './SalesReceipt';
@@ -119,6 +119,17 @@ const ReceiptPrintWrapper = () => {
         return `INV${datePart}${lastSyncedId}`;
     };
 
+    const gotoCart = () => {
+
+        dispatch(
+            setDrawerComponent({
+                DrawerComponentChild: CartPage,
+                drawerOpen: true
+            })
+        );
+
+    };
+
     return (
         <>
             <Box sx={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -143,7 +154,11 @@ const ReceiptPrintWrapper = () => {
 
                     <Button variant="contained" onClick={() => { setPaymentModeID(null); setMobileNumber(''); setCustomerName(''); setOpenDialog(true); }}>
                            Payment
-                        </Button>
+                    </Button>
+                    <Button variant="contained" onClick={gotoCart}>
+                        Go To Cart
+                        
+                    </Button>
                  
                 </Box>)}
 

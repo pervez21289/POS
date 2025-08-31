@@ -1,7 +1,16 @@
 // store/reducers/sales.js
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { getSettingsSync } from '../../hooks/useProductSync';
 
-// Load from localStorage (on first load)
+let basicSettings = 0;
+
+// Async thunk to load GST
+export const loadBasicSettings = createAsyncThunk('sales/loadBasicSettings', async () => {
+    const data = await getSettingsSync();
+    return data;
+});
+
+// Load from localStorage
 const loadDraftsFromStorage = () => {
     try {
         const data = localStorage.getItem('draftCarts');
@@ -20,36 +29,52 @@ const saveDraftsToStorage = (draftCarts) => {
     }
 };
 
-const computeReceiptInfo = (receiptInfo) => {
-    const totalAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + i.costPrice * i.quantity, 0);
-    const discountAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + (i.discountAmount || 0) * i.quantity, 0);
-    const taxAmount = receiptInfo?.saleItems.reduce((sum, i) => sum + (i.tax || 0), 0);
-    const net = totalAmount - discountAmount + taxAmount;
-    const totalItems = receiptInfo?.saleItems.reduce((sum, i) => sum + i.quantity, 0);
+// Compute receipt info including GST
+const computeReceiptInfo = (receiptInfo, taxAmount = 0) => {
+    const totalAmount = receiptInfo?.saleItems?.reduce(
+        (sum, i) => sum + i.costPrice * i.quantity,
+        0
+    ) || 0;
+
+    const discountAmount = receiptInfo?.saleItems?.reduce(
+        (sum, i) => sum + (i.discountAmount || 0) * i.quantity,
+        0
+    ) || 0;
+
+    
+
+    const halfGstRate = taxAmount / 2;
+    const cgst = (totalAmount * halfGstRate) / 100;
+    const sgst = (totalAmount * halfGstRate) / 100;
+
+    const netAmount = totalAmount + cgst + sgst;
+    const totalItems = receiptInfo?.saleItems?.reduce((sum, i) => sum + i.quantity, 0) || 0;
 
     return {
         ...receiptInfo,
+        halfGstRate,
         totalAmount,
-        discountAmount,
         taxAmount,
-        net,
-        totalItems,
+        cgst,
+        sgst,
+        netAmount,
+        totalItems
     };
 };
 
 const initialState = {
     receiptInfo: { cart: [], saleID: null },
     isSearch: true,
-    draftCarts: loadDraftsFromStorage()
+    draftCarts: loadDraftsFromStorage(),
+    basicSettings:null // default GST, will update from settings API
 };
 
 const sales = createSlice({
-    name: 'drawer',
+    name: 'sales',
     initialState,
     reducers: {
         setReceiptInfo(state, action) {
-         
-            state.receiptInfo = computeReceiptInfo(action.payload.receiptInfo);
+            state.receiptInfo = computeReceiptInfo(action.payload.receiptInfo, state?.basicSettings?.gst);
         },
         resetReceiptInfo(state) {
             state.receiptInfo = { cart: [] };
@@ -57,15 +82,22 @@ const sales = createSlice({
         setIsSearch(state, action) {
             state.isSearch = action.payload;
         },
+        setGstRate(state, action) {
+            state.gstRate = action.payload || 0;
+            // recompute if we already have saleItems
+            if (state.receiptInfo?.saleItems?.length > 0) {
+                state.receiptInfo = computeReceiptInfo(state.receiptInfo, state.gstRate);
+            }
+        },
         saveDraftCart(state, action) {
-            if (state.receiptInfo.saleItems.length > 0) {
+            if (state.receiptInfo.saleItems?.length > 0) {
                 const newDraft = {
                     tableNo: action.payload,
                     saleItems: JSON.parse(JSON.stringify(state.receiptInfo.saleItems)),
                     savedAt: new Date().toISOString()
                 };
                 state.draftCarts.push(newDraft);
-                saveDraftsToStorage(state.draftCarts); 
+                saveDraftsToStorage(state.draftCarts);
                 state.receiptInfo = { cart: [] };
             }
         },
@@ -81,19 +113,23 @@ const sales = createSlice({
                 };
                 saveDraftsToStorage(state.draftCarts);
             }
-        }
-        ,
+        },
         loadDraftCart(state, action) {
             const draft = state.draftCarts.find(d => d.tableNo === action.payload);
             if (draft) {
                 const receiptInfo = { saleItems: draft.saleItems };
-                state.receiptInfo = computeReceiptInfo(receiptInfo);
+                state.receiptInfo = computeReceiptInfo(receiptInfo, state.gstRate);
             }
         },
         deleteDraftCart(state, action) {
             state.draftCarts = state.draftCarts.filter(d => d.tableNo !== action.payload);
-            saveDraftsToStorage(state.draftCarts); 
+            saveDraftsToStorage(state.draftCarts);
         }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(loadBasicSettings.fulfilled, (state, action) => {
+            state.basicSettings = action.payload;
+        });
     }
 });
 
@@ -105,5 +141,6 @@ export const {
     saveDraftCart,
     loadDraftCart,
     deleteDraftCart,
-    updateDraftCart
+    updateDraftCart,
+    setGstRate
 } = sales.actions;

@@ -84,6 +84,7 @@ public class SaleRepository : BaseRepository,ISaleRepository
             );
 
            saleItem.saleItems = saleItems.ToList();
+            saleItem.TotalItems = saleItem.saleItems.Count;
            return saleItem;
         }
         catch (Exception ex)

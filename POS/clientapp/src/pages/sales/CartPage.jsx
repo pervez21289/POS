@@ -185,9 +185,12 @@ const CartPage = () => {
             <Stack direction={isMobile ? 'column' : 'row'} spacing={2} justifyContent="space-between" alignItems={isMobile ? 'flex-start' : 'center'}>
                 <Box>
                     <Typography variant="subtitle2" color="text.secondary">
-                        Total:{' '}
-                        <Typography component="span" variant="h6" color="primary.main">
-                            ₹{receiptInfo?.net?.toFixed(2)}
+                      
+                        <Typography component="span" variant="h4" >
+                            Total:&nbsp;
+                        </Typography>
+                        <Typography component="span" variant="h4" color="primary.main">
+                            ₹{receiptInfo?.totalAmount?.toFixed(2)}
                         </Typography><br />
                         Items:{' '}
                         <Typography component="span" fontWeight={600}>

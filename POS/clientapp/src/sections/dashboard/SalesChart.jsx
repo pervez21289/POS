@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import axios from 'axios';
 
 // material-ui
@@ -14,7 +14,7 @@ import { BarChart } from '@mui/x-charts/BarChart';
 import MainCard from 'components/MainCard';
 
 
-export default function SalesChart({ MonthlySummary }) {
+export default function SalesChart({ TillDateCompanySale,MonthlySummary }) {
     const theme = useTheme();
 
     const [labels, setLabels] = useState([]);
@@ -28,7 +28,8 @@ export default function SalesChart({ MonthlySummary }) {
 
     // Fetch chart data from API
     useEffect(() => {
-
+        debugger;
+        
         if (MonthlySummary) {
             const labels = MonthlySummary?.map(d => d.Month);
             const income = MonthlySummary?.map(d => d.IncomeInThousands);
@@ -46,7 +47,7 @@ export default function SalesChart({ MonthlySummary }) {
                 result.series.map(series => ({
                     ...series,
                     color: series.label === 'Income' ? warningColor : primaryColor,
-                    valueFormatter: (value) => `$ ${value} Thousands`
+                    valueFormatter: (value) => `₹ ${value} Thousands`
                 }))
             );
 
@@ -62,7 +63,7 @@ export default function SalesChart({ MonthlySummary }) {
                         <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
                             Net Profit
                         </Typography>
-                        <Typography variant="h4">$1560</Typography>
+                        <Typography variant="h4">&#8377; {TillDateCompanySale}</Typography>
                     </Box>
 
                     <FormGroup>

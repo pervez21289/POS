@@ -16,7 +16,8 @@ import {
     saveDraftCart,
     loadDraftCart,
     deleteDraftCart,
-    updateDraftCart
+    updateDraftCart,
+    loadBasicSettings
 } from './../../store/reducers/sales';
 import { setPlan } from './../../store/reducers/users';
 import useIsMobile from './../../components/useIsMobile';
@@ -240,6 +241,7 @@ const SalesPOSPage = () => {
         await manualProductSync().then(() => {
             getProductsSync().then((products) => {
                 setOfflineproducts(products);
+                dispatch(loadBasicSettings()); 
             });
         });
     };
@@ -252,6 +254,7 @@ const SalesPOSPage = () => {
             dispatch(setPlan(plan));
             if (plan?.planStatus === 'Active') {
                 setIsLoading(false);
+               
             }
             else {
                 Navigate('/subscriptionplan');
@@ -268,6 +271,7 @@ const SalesPOSPage = () => {
                 setOfflineproducts(products);
             });
         }
+        
         setNewToken();
     }, []);
 

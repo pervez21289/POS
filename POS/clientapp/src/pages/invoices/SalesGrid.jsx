@@ -79,7 +79,7 @@ const SalesGrid = () => {
         { field: 'customerName', headerName: 'Customer Name', width: 140 },
         { field: 'saleTime', headerName: 'Sale Time', width: 180 },
         { field: 'totalAmount', headerName: 'Total Amount', width: 130 },
-        { field: 'discountAmount', headerName: 'Discount', width: 120 },
+        { field: 'taxAmount', headerName: 'Tax', width: 120 },
         { field: 'netAmount', headerName: 'Net Amount', width: 130 },
         {
             field: 'p_Status',
