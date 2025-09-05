@@ -6,13 +6,15 @@ import Hero from './Hero';
 import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
 import PosHero from '../../assets/images/pos-hero.jpg';
 
+import Logo from '../../components/logo/LogoMain';
+
 // --- Component: Header ---
 function Header() {
     return (
         <header>
             <div className="container">
                 <nav>
-                    <a href="#" className="logo">NexBill</a>
+                    <Logo></Logo>
                     <div className="nav-links">
                         <a href="#about">Why NexBill?</a>
                         <a href="#features">Features</a>

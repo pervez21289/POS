@@ -6,3 +6,25 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
+
+.logo {
+    font-size: 2rem;
+    font-weight: 600;
+    font-family: "font-sans", sans-serif;
+    color: #1976d2;
+}
+
+    /* Highlight Bill */
+    .logo .highlight {
+        color: #1976d2;
+        font-weight: 700;
+    }
+
+    /* POS style */
+    .logo .pos {
+        font-family: "font-sans", sans-serif;
+        font-weight: 700;
+        color: #1976d2;
+        font-style: italic;
+        text-transform: uppercase;
+    }
