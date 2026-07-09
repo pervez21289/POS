@@ -24,7 +24,7 @@ namespace LMS.Controllers
 
         [HttpGet]
         public async Task<IActionResult> Get() =>
-            Ok(await _tciketRepo.GetTicketsAsync());
+            Ok(await _tciketRepo.GetTicketsAsync(_useContext.CompanyID));
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Ticket ticket)
