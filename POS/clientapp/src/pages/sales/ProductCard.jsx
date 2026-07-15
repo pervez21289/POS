@@ -16,11 +16,7 @@ const ProductCard = React.memo(({ product, isInCart, onClick }) => {
                 border: isInCart
                     ? `2px solid ${theme.palette.warning.main}`
                     : '1px solid #e0e0e0',
-                transition: 'transform 0.2s, box-shadow 0.2s',
-                '&:hover': {
-                    boxShadow: 6,
-                    transform: 'scale(1.02)',
-                },
+                transition: 'transform 0.2s, box-shadow 0.9s'
             }}
             onClick={() => onClick(product)}
         >

@@ -73,7 +73,10 @@ namespace LMS.Controllers
             {
                 return await _repo.DeleteAsync(id) ? NoContent() : NotFound();
             }
-            catch (Exception ex) { _logger.Log(ex); return StatusCode(500); }
+            catch (Exception ex) { 
+                _logger.Log(ex); return StatusCode(500);
+            
+            }
         }
     }
 

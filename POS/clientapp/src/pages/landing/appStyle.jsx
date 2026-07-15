@@ -73,6 +73,11 @@ body {
     text-align: center;
 }
 
+.section_pricing {
+    padding: 30px 0;
+    text-align: center;
+}
+
 .section-heading {
     font-size: 2.5rem;
     color: var(--primary-blue);
@@ -97,6 +102,13 @@ body {
     transform: translateY(20px);
     transition: opacity 0.6s ease-out, transform 0.6s ease-out;
 }
+
+.animated_img {
+  
+    transform: translateY(20px);
+    transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
 .animated.fade-in {
     opacity: 1;
     transform: translateY(0);

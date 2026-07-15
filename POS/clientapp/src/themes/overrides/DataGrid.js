@@ -13,7 +13,7 @@ export default function DataGrid(theme) {
                 },
                 columnHeaders: {
                     backgroundColor: theme.palette.common.black,
-                    color: theme.palette.common.black,
+                    color: theme.palette.common.primary,
                     '& .MuiDataGrid-columnSeparator': {
                         color: theme.palette.grey[600]
                     }

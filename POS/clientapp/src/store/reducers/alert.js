@@ -13,9 +13,7 @@ const alert = createSlice({
         showAlert(state, action) {
             state.alertData = action.payload;
         },
-       
     }
-   
 });
 
 export default alert.reducer;

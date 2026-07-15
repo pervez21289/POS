@@ -1,36 +1,12 @@
 ﻿import React, { useState, useRef, useEffect } from 'react';
 import AppStyles from './appStyle';
-import POSHERO from '../../assets/images/pos.jpg';
 
+import Pricing from './Pricing';    
+import Hero from './Hero';
+import { useIntersectionObserver } from '../../hooks/useIntersectionObserver';
+import PosHero from '../../assets/images/pos-hero.jpg';
 
-// --- Custom Hook: useIntersectionObserver ---
-const useIntersectionObserver = (ref, options, callback, delay = 0) => {
-    useEffect(() => {
-        const observer = new IntersectionObserver(([entry]) => {
-            if (entry.isIntersecting) {
-                if (delay > 0) {
-                    setTimeout(() => {
-                        callback(entry);
-                    }, delay);
-                } else {
-                    callback(entry);
-                }
-            }
-        }, options);
-
-        const currentRef = ref.current;
-
-        if (currentRef) {
-            observer.observe(currentRef);
-        }
-
-        return () => {
-            if (currentRef) {
-                observer.unobserve(currentRef);
-            }
-        };
-    }, [ref, options, callback, delay]);
-};
+import Logo from '../../components/logo/LogoMain';
 
 // --- Component: Header ---
 function Header() {
@@ -38,7 +14,7 @@ function Header() {
         <header>
             <div className="container">
                 <nav>
-                    <a href="#" className="logo">NexBill</a>
+                    <Logo></Logo>
                     <div className="nav-links">
                         <a href="#about">Why NexBill?</a>
                         <a href="#features">Features</a>
@@ -53,35 +29,7 @@ function Header() {
 }
 
 // --- Component: Hero ---
-function Hero() {
-    const contentRef = useRef(null);
-    const imageRef = useRef(null);
-
-    useIntersectionObserver(contentRef, { threshold: 0.1 }, (entry) => {
-        if (entry.isIntersecting) entry.target.classList.add('fade-in');
-    });
-    useIntersectionObserver(imageRef, { threshold: 0.1 }, (entry) => {
-        if (entry.isIntersecting) entry.target.classList.add('fade-in');
-    }, 200);
-
-    return (
-        <section className="hero-section">
-            <div className="container">
-                <div className="hero-content animated" ref={contentRef}>
-                    <h1>Smart POS System for Modern Businesses</h1>
-                    <p>Simplify billing, manage inventory, and grow your business with NexBill.</p>
-                    <div className="cta-buttons">
-                        <a href="/register" className="btn btn-primary">Get Started Free</a>
-                        <a href="/register" className="btn btn-secondary">Schedule a Demo</a>
-                    </div>
-                </div>
-                <div className="hero-image animated" ref={imageRef}>
-                    <img src={POSHERO} alt="NexBill POS Dashboard" />
-                </div>
-            </div>
-        </section>
-    );
-}
+<Hero></Hero>
 
 // --- Component: About ---
 function About() {
@@ -125,16 +73,16 @@ function About() {
                                 <p>Manage all your business locations from a single, centralized dashboard with ease.</p>
                             </div>
                         </div>
-                        {/*<div className="benefit-item animated">*/}
-                        {/*    <i className="fas fa-cloud-download-alt"></i>*/}
-                        {/*    <div>*/}
-                        {/*        <h3>Offline mode support</h3>*/}
-                        {/*        <p>Continue making sales even when your internet connection is down, syncing automatically later.</p>*/}
-                        {/*    </div>*/}
-                        {/*</div>*/}
+                        <div className="benefit-item animated">
+                            <i className="fas fa-cloud-download-alt"></i>
+                            <div>
+                                <h3>Offline mode support</h3>
+                                <p>Continue making sales even when your internet connection is down, syncing automatically later.</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="about-image animated">
-                        <img src="/assets/pos-about.png" alt="NexBill Benefits Illustration" />
+                    <div className="about-image animated_img">
+                        <img src={PosHero} alt="NexBill Benefits Illustration" />
                     </div>
                 </div>
             </div>
@@ -238,87 +186,7 @@ function Testimonials() {
 }
 
 // --- Component: Pricing ---
-const pricingTiers = [
-    {
-        name: "Free",
-        price: "\u20B90",
-        period: "/month",
-        isPopular: false,
-        features: [
-            "Basic billing features",
-            "Single user",
-            "Limited reports",
-            "Email support"
-        ],
-        buttonText: "Get Started Free",
-        buttonClass: "btn-secondary"
-    },
-    {
-        name: "Pro",
-        price: "\u20B9499",
-        period: "/month",
-        isPopular: true,
-        features: [
-            "All Free features",
-            "Real-time inventory",
-            "Multi-user access",
-            "Advanced reports",
-            "Priority support"
-        ],
-        buttonText: "Choose Pro Plan",
-        buttonClass: "btn-primary"
-    },
-    {
-        name: "Enterprise",
-        price: "\u20B9999",
-        period: "",
-        isPopular: false,
-        features: [
-            "All Pro features",
-            "Multi-store management",
-            "Custom integrations",
-            "Dedicated account manager",
-            "24/7 Premium support"
-        ],
-        buttonText: "Contact Sales",
-        buttonClass: "btn-secondary"
-    },
-];
-
-function Pricing() {
-    const pricingGridRef = useRef(null);
-    useIntersectionObserver(pricingGridRef, { threshold: 0.15 }, (entry) => {
-        if (entry.isIntersecting) {
-            entry.target.querySelectorAll('.pricing-card').forEach((card, index) => {
-                card.style.animationDelay = `${index * 0.15}s`;
-                card.classList.add('fade-in');
-            });
-        }
-    });
-
-    return (
-        <section id="pricing" className="section">
-            <div className="container">
-                <h2 className="section-heading">Simple Pricing, Powerful Features</h2>
-                <div className="pricing-grid" ref={pricingGridRef}>
-                    {pricingTiers.map((tier, index) => (
-                        <div className={`pricing-card animated ${tier.isPopular ? 'popular' : ''}`} key={index}>
-                            {tier.isPopular && <span className="popular-badge">Popular Choice</span>}
-                            <h3>{tier.name}</h3>
-                            <p className="price">{tier.price}<span>{tier.period}</span></p>
-                            <ul>
-                                {tier.features.map((feature, idx) => (
-                                    <li key={idx}>{feature}</li>
-                                ))}
-                            </ul>
-                            <a href="#" className={`btn ${tier.buttonClass}`}>{tier.buttonText}</a>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </section>
-    );
-}
+<Pricing></Pricing>
 
 // --- Component: FAQ ---
 const faqData = [

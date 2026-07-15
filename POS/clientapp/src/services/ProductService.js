@@ -15,6 +15,13 @@ class ProductService {
         return res.data;
     };
 
+    GetBasicSettings = async () => {
+        const res = await axios.get(`${url}BasicSettings`, {
+            headers: Auth.getHeader()
+        });
+        return res.data;
+    };
+
     SaveLocation = async (contact) => {
         const res = await axios.post(`${url}SaveLocation`, contact,{
             headers: Auth.getHeader()

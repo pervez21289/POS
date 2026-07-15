@@ -14,69 +14,82 @@ const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const CategoryPage = Loadable(lazy(() => import('pages/categories/CategoryPage')));
 import ProductPage from './../pages/product/ProductPage';
 import Sales from './../pages/sales/SalesPOSPage';
-import SalesGrid from './../pages/sales/SalesGrid';
+import SalesGrid from './../pages/invoices/SalesGrid';
 import BasicSettings from '../pages/settings/BasicSettings';
+import SubscriptionPlan from '../pages/settings/SubscriptionPlan';
 import UsersGrid from '../pages/users/UsersGrid';
 import Support from '../pages/support';
 import History from '../pages/history';
+
 // render - sample page
 const SamplePage = Loadable(lazy(() => import('pages/extra-pages/sample-page')));
 import Landing from '../pages/landing';
+import Order from '../pages/landing/Order';
 // ==============================|| MAIN ROUTING ||============================== //
 
 const MainRoutes = {
-  path: '/',
-  element: <DashboardLayout />,
+    path: '/',
+    element: <DashboardLayout />,
     children: [
-        
-    {
-        path: '/Dashboard',
-      element: <DashboardDefault />
-    },
-    {
-      path: 'dashboard',
-      children: [
+
         {
-          path: 'default',
-          element: <DashboardDefault />
+            path: '/Dashboard',
+            element: <DashboardDefault />
+        },
+        {
+            path: 'dashboard',
+            children: [
+                {
+                    path: 'default',
+                    element: <DashboardDefault />
+                }
+            ]
+        },
+        {
+            path: 'category',
+            element: <CategoryPage />
+        },
+        {
+            path: 'product',
+            element: <ProductPage />
+        },
+        {
+            path: 'sales',
+            element: <Sales />
+        },
+        {
+            path: 'invoice',
+            element: <SalesGrid />
+        },
+        {
+            path: 'settings',
+            element: <BasicSettings />
+        },
+        {
+            path: 'usermanagement',
+            element: <UsersGrid />
         }
-      ]
-      },
-      {
-          path: 'category',
-          element: <CategoryPage />
-      },
-      {
-          path: 'product',
-          element: <ProductPage />
-      },
-    {
-        path: 'sales',
-        element: <Sales />
-    },
-    {
-      path: 'invoice',
-        element: <SalesGrid />
-    },
-    {
-      path: 'settings',
-        element: <BasicSettings />
-    },
-    {
-        path: 'usermanagement',
-        element: <UsersGrid />
-      }
-      ,
-      {
-          path: 'support',
-          element: <Support />
-      }
-      ,
-      {
-          path: 'history',
-          element: <History />
-      }
-  ]
+        ,
+        {
+            path: 'support',
+            element: <Support />
+        }
+        ,
+        {
+            path: 'history',
+            element: <History />
+        }
+        ,
+        {
+            path: '/order',
+            element: <Order />
+        },
+        {
+            path: '/subscriptionplan',
+            element: <SubscriptionPlan />
+        }
+      
+    ]
 };
 
 export default MainRoutes;

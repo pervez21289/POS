@@ -24,17 +24,17 @@ const CartPage = () => {
 
 
     const updateQty = (productID, qty) => {
-        const currentCart = receiptInfo?.cart ?? [];
+        const currentCart = receiptInfo?.saleItems ?? [];
         const updatedCart = currentCart.map((i) =>
             i.productID === productID ? { ...i, quantity: Math.max(1, Number(qty)) } : i
         );
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
     const removeFromCart = (productID) => {
-        const currentCart = receiptInfo?.cart ?? [];
+        const currentCart = receiptInfo?.saleItems ?? [];
         const updatedCart = currentCart.filter((i) => i.productID !== productID);
-        dispatch(setReceiptInfo({ receiptInfo: { cart: updatedCart } }));
+        dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
     };
 
     const handleCheckout = () => {
@@ -49,14 +49,14 @@ const CartPage = () => {
 
     const renderMobileCart = () => (
         <Stack spacing={2}>
-            {receiptInfo?.cart?.map((item) => (
+            {receiptInfo?.saleItems?.map((item) => (
                 <Paper key={item.productID} variant="outlined" sx={{ p: 2, borderRadius: 2 }}>
                     <Stack direction="row" justifyContent="space-between" alignItems="center">
                         <Box>
                             <Typography fontWeight="bold">{item.name}</Typography>
                             <Typography variant="body2" color="text.secondary">Barcode: {item.barcode}</Typography>
                             <Typography variant="body2">Price: ₹{item.costPrice.toFixed(2)}</Typography>
-                            <Typography variant="body2">Discount: ₹ {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}</Typography>
+                            
                             <Typography variant="body2">Subtotal: ₹{(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}</Typography>
                         </Box>
                         <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
@@ -91,14 +91,14 @@ const CartPage = () => {
                     <TableRow>
                         <TableCell sx={{ fontSize }}>Barcode</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Price</TableCell>
-                        <TableCell sx={{ fontSize }} align="right">Discount</TableCell>
+                       
                         <TableCell sx={{ fontSize }} align="center">Qty</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Action</TableCell>
                     </TableRow>
                 </TableHead>
                 <TableBody>
-                    {receiptInfo?.cart?.map((item) => (
+                    {receiptInfo?.saleItems?.map((item) => (
                         <React.Fragment key={item.productID}>
                             <TableRow>
                                 <TableCell colSpan={6} sx={{ p: 0.5, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
@@ -108,9 +108,7 @@ const CartPage = () => {
                             <TableRow>
                                 <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode}</TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.costPrice?.toFixed(2)}</TableCell>
-                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                    {item.discountAmount?.toFixed(2)}{item.discountPercent ? ` (${item.discountPercent}%)` : ''}
-                                </TableCell>
+                             
                                 <TableCell align="center" sx={{ fontSize }}>
                                     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
                                         <IconButton
@@ -156,7 +154,7 @@ const CartPage = () => {
     );
 
     return (
-        <Card sx={{ p: isMobile ? 1.5 : 3, boxShadow: 3 }}>
+        <Card sx={{ p: isMobile ? 1.5 : 3 }} elevation={0}>
             <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
                 <Stack direction="row" alignItems="center" spacing={1}>
                     <ShoppingCartIcon color="warning" />
@@ -172,7 +170,7 @@ const CartPage = () => {
                
             </Stack>
 
-            {receiptInfo?.cart?.length === 0 ? (
+            {receiptInfo?.saleItems?.length === 0 ? (
                 <Typography variant="body1" color="text.secondary">
                     Cart is empty
                 </Typography>
@@ -187,25 +185,26 @@ const CartPage = () => {
             <Stack direction={isMobile ? 'column' : 'row'} spacing={2} justifyContent="space-between" alignItems={isMobile ? 'flex-start' : 'center'}>
                 <Box>
                     <Typography variant="subtitle2" color="text.secondary">
-                        Total:{' '}
-                        <Typography component="span" variant="h6" color="primary.main">
-                            ₹{receiptInfo?.net?.toFixed(2)}
+                      
+                        <Typography component="span" variant="h4" >
+                            Total:&nbsp;
+                        </Typography>
+                        <Typography component="span" variant="h4" color="primary.main">
+                            ₹{receiptInfo?.totalAmount?.toFixed(2)}
                         </Typography><br />
                         Items:{' '}
                         <Typography component="span" fontWeight={600}>
                             {receiptInfo?.totalItems}
                         </Typography>
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                        Discount: ₹{receiptInfo?.discountAmount?.toFixed(2)} | Tax: ₹{receiptInfo?.taxAmount?.toFixed(2)}
-                    </Typography>
+                    
                 </Box>
                 <Button
                     variant="contained"
                     color="primary"
                     size="large"
                     fullWidth={isMobile}
-                    disabled={receiptInfo?.cart?.length === 0}
+                    disabled={receiptInfo?.saleItems?.length === 0}
                     onClick={handleCheckout}
                     sx={{ minWidth: isMobile ? '100%' : 140, fontWeight: 600 }}
                 >

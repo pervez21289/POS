@@ -39,7 +39,7 @@ export default function BasicSettingForm() {
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        if (data?.length > 0) setFormData(data[0]);
+        if (data) setFormData(data);
     }, [data]);
 
     const validate = () => {
@@ -119,6 +119,16 @@ export default function BasicSettingForm() {
                             onChange={handleChange}
                             error={!!errors.gstin}
                             helperText={errors.gstin}
+                        />
+
+                        <TextField
+                            label="GST%"
+                            name="gst"
+                            fullWidth
+                            value={formData.gst}
+                            onChange={handleChange}
+                            error={!!errors.gst}
+                            helperText={errors.gst}
                         />
 
                         <Button type="submit" variant="contained" fullWidth size="large">

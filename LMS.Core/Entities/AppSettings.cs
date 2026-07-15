@@ -14,5 +14,6 @@ namespace LMS.Core.Entities
         public string ValidIssuer { get; set; }
         public string TSecret { get; set; }
         public string RedirectUrl { get; set; }
+        public string NexBill { get; set; }
     }
 }

@@ -24,12 +24,12 @@ namespace LMS.Repository.Repo
             );
         }
 
-        public async Task<BasicSetting?> GetByIdAsync(int id)
+        public async Task<BasicSetting?> GetByIdAsync(int id, int CompanyID)
         {
             
             return await QueryFirstOrDefaultAsync<BasicSetting>(
                 "GetBasicSettingById",
-                new { Id = id },
+                new { Id = id,CompanyID=CompanyID },
                 commandType: CommandType.StoredProcedure
             );
         }
@@ -44,7 +44,9 @@ namespace LMS.Repository.Repo
                     setting.StoreName,
                     setting.Address,
                     setting.ContactEmail,
-                    setting.GSTIN
+                    setting.GSTIN,
+                    setting.GST,
+                    setting.CompanyID
                 },
                 commandType: CommandType.StoredProcedure
             );
@@ -61,6 +63,7 @@ namespace LMS.Repository.Repo
                     setting.StoreName,
                     setting.Address,
                     setting.ContactEmail,
+                    setting.GST,
                     setting.GSTIN
                 },
                 commandType: CommandType.StoredProcedure

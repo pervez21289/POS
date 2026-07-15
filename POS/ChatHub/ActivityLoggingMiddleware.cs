@@ -8,16 +8,16 @@ namespace LMS.ChatHub
     public class ActivityLoggingMiddleware
     {
         private readonly RequestDelegate _next;
-      
+
         public ActivityLoggingMiddleware(RequestDelegate next)
         {
             _next = next;
         }
 
-        public async Task InvokeAsync(HttpContext context, IApiLogQueue logQueue)
+        public async Task InvokeAsync(HttpContext context, IBackgroundJobQueue jobQueue)
         {
             var sw = Stopwatch.StartNew();
-           
+
             try
             {
                 await _next(context);
@@ -26,21 +26,26 @@ namespace LMS.ChatHub
             {
                 sw.Stop();
 
+                var ipAddress = context.Request.Headers["CF-Connecting-IP"].FirstOrDefault()
+                    ?? context.Connection.RemoteIpAddress?.ToString();
+
                 var log = new ApiLogEntry
                 {
                     Timestamp = DateTime.UtcNow,
                     Path = context.Request.Path,
                     Method = context.Request.Method,
-                    IpAddress = context.Connection.RemoteIpAddress?.ToString(),
+                    IpAddress = ipAddress,
                     StatusCode = context.Response.StatusCode,
                     DurationMs = sw.ElapsedMilliseconds,
-                    UserId= Convert.ToInt64(context.User.FindFirst(ClaimTypes.Name)?.Value)
+                    UserId = Convert.ToInt64(context.User.FindFirst(ClaimTypes.Name)?.Value ?? "0")
                 };
 
-                logQueue.Enqueue(log);
+                await jobQueue.EnqueueAsync(new BackgroundJob
+                {
+                    JobType = BackgroundJobType.ApiLog,
+                    Payload = log
+                });
             }
         }
     }
-
-
 }

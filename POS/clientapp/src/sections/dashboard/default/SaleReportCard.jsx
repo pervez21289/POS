@@ -27,7 +27,7 @@ const status = [
 
 // ==============================|| DEFAULT - SALES REPORT ||============================== //
 
-export default function SaleReportCard({ MonthlySummary }) {
+export default function SaleReportCard({ res }) {
   const [value, setValue] = useState('today');
 
   return (
@@ -53,7 +53,7 @@ export default function SaleReportCard({ MonthlySummary }) {
           </TextField>
         </Grid>
       </Grid>
-          <SalesChart MonthlySummary={MonthlySummary} />
+          <SalesChart {...res} />
     </>
   );
 }

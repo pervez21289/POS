@@ -74,7 +74,7 @@ namespace LMS.Controllers
         [HttpGet("ApiLogs")]
         public async Task<IActionResult> ApiLogs([FromQuery] string? search, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
         {
-            var logs = await _user.GetApiLogsAsync(search, startDate, endDate);
+            var logs = await _user.GetApiLogsAsync(_userContext.CompanyID,search, startDate, endDate);
             return Ok(logs);
         }
     }

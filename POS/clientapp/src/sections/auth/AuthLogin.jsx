@@ -16,7 +16,7 @@ import Typography from '@mui/material/Typography';
 // third-party
 import * as Yup from 'yup';
 import { Formik } from 'formik';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 // project imports
 import IconButton from 'components/@extended/IconButton';
 import AnimateButton from 'components/@extended/AnimateButton';
@@ -33,6 +33,7 @@ export default function AuthLogin({ isDemo = false }) {
     const [checked, setChecked] = React.useState(false);
     const [submitError, setSubmitError] = React.useState('');
     const navigate = useNavigate();
+    const location = useLocation();
     const [showPassword, setShowPassword] = React.useState(false);
     const dispatch = useDispatch();
   const handleClickShowPassword = () => {
@@ -48,12 +49,28 @@ export default function AuthLogin({ isDemo = false }) {
         setSubmitError('');
         try {
             const response = await UserService.LoginUser(values);
+            const redirectTo = location.state?.redirectTo || '/';
+            const plan = location.state?.plan;
 
             if (response.success) {
-                window.localStorage.setItem('userDetails', JSON.stringify(response));
-                dispatch(setUserDetails({ userDetails: response }));
+                if (response.isOTPVerified) {
+                    window.localStorage.setItem('userDetails', JSON.stringify(response));
+                    dispatch(setUserDetails({ userDetails: response }));
 
-                navigate('/dashboard/default'); // Redirect to dashboard
+                    /*navigate('/dashboard/default'); // Redirect to dashboard*/
+
+                    
+                    if (redirectTo && plan) {
+                        navigate(redirectTo, { state: plan ? { plan } : undefined });
+                    }
+                    else {
+                        navigate('/dashboard/default');
+                    }
+                }
+                else {
+                    navigate('/otpverification', { state: { registeredUserId: response.userID, redirectTo: location.state?.redirectTo, plan: location.state?.plan } });
+                }
+
             } else {
                 setSubmitError(response.data.message || 'Login failed');
             }
@@ -151,7 +168,7 @@ export default function AuthLogin({ isDemo = false }) {
                     }
                     label={<Typography variant="h6">Keep me sign in</Typography>}
                   />
-                  <Link variant="h6" component={RouterLink} to="#" color="text.primary">
+                  <Link variant="h6" component={RouterLink} to="/forgot-password" color="text.primary">
                     Forgot Password?
                   </Link>
                 </Stack>

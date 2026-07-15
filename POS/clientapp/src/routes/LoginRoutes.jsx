@@ -5,10 +5,19 @@ import AuthLayout from 'layout/Auth';
 import Loadable from 'components/Loadable';
 
 // jwt auth
-const LoginPage = Loadable(lazy(() => import('pages/auth/Login')));
+import LoginPage from '../pages/auth/Login';
 const RegisterPage = Loadable(lazy(() => import('pages/auth/Register')));
-
+import ForgotPage from '../pages/auth/Forgot';
 import Landing from '../pages/landing';
+import PrivacyPolicy from '../pages/landing/PrivacyPolicy'; 
+import TermCondition from '../pages/landing/TermCondition';
+import ResetPassword from '../pages/auth/ResetPassword'
+import Order from '../pages/landing/Order';
+import OrderSuccess from '../pages/landing/OrderSuccess';
+import OrderFailed from '../pages/landing/OrderFailed';
+import Pricing from '../pages/landing/Pricing';
+import OTPVer from '../pages/auth/OTPVer';
+
 // ==============================|| AUTH ROUTING ||============================== //
 
 const LoginRoutes = {
@@ -29,7 +38,46 @@ const LoginRoutes = {
                 {
                     path: '/register',
                     element: <RegisterPage />
+                },
+                {
+                    path: '/forgot-password',
+                    element: <ForgotPage />
+                },
+                {
+                    path: '/reset-password',
+                    element: <ResetPassword />
+                },
+
+
+                {
+                    path: '/tandc',
+                    element: <TermCondition />
+                },
+                {
+                    path: '/privacypolicy',
+                    element: <PrivacyPolicy />
+                },
+                {
+                    path: '/order',
+                    element: <Order />
+                },
+                {
+                    path: '/ordersuccess',
+                    element: <OrderSuccess />
+                },
+                {
+                    path: '/orderfailed',
+                    element: <OrderFailed />
+                },
+                {
+                    path: '/subscribe',
+                    element: <Pricing />
+                },
+                {
+                    path: '/otpverification',
+                    element: <OTPVer />
                 }
+                
             ]
         }
         

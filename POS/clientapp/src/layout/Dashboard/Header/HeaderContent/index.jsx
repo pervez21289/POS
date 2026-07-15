@@ -9,6 +9,7 @@ import Search from './Search';
 import Profile from './Profile';
 import Notification from './Notification';
 import MobileSection from './MobileSection';
+import AppBarNav from '../HeaderContent/AppBarNav';
 
 // project import
 import { GithubOutlined } from '@ant-design/icons';
@@ -19,10 +20,10 @@ export default function HeaderContent() {
   const downLG = useMediaQuery((theme) => theme.breakpoints.down('lg'));
 
   return (
-    <>
-      {!downLG && <Search />}
-      {downLG && <Box sx={{ width: '100%', ml: 1 }} />}
-
+      <>
+          {!downLG && <Search />}
+          {downLG && <AppBarNav></AppBarNav>}
+     
       <Notification />
       {!downLG && <Profile />}
       {downLG && <MobileSection />}

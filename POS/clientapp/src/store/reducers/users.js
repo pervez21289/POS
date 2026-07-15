@@ -4,9 +4,11 @@ import { useDispatch } from 'react-redux';
 import UserService from './../../services/UserService';
 
 const userData = JSON.parse(window.localStorage.getItem('userDetails'));
+const parsedPlan = userData?JSON.parse(userData?.plan):null;
 // initial state
 const initialState = {
   userDetails: userData,
+  SubscriptionPlan: parsedPlan,
   showLocation: false,
   search: '',
   selectedLocation: '',
@@ -48,7 +50,10 @@ const users = createSlice({
   reducers: {
       setUserDetails(state, action) {
      
-      if (action.payload.userDetails) state.userDetails = action.payload.userDetails;
+          if (action.payload.userDetails) {
+              state.userDetails = action.payload.userDetails;
+              state.SubscriptionPlan = action.payload.userDetails.plan ? JSON.parse(action.payload.userDetails.plan) : null;
+          }
       else state.userDetails = null;
     },
     setShowContact(state, action) {
@@ -80,6 +85,10 @@ const users = createSlice({
     },
     setShowLoginModal(state, action) {
       state.showLoginModal = action.payload.showLoginModal;
+      },
+      setPlan(state, action) {
+       
+          state.SubscriptionPlan = action.payload;
       }
       
   },
@@ -102,4 +111,4 @@ const users = createSlice({
 
 export default users.reducer;
 
-export const { setUserDetails, setShowContact, setShowMessageBox, setShowAlertBox, setShowContactBox, setShowLoginModal } = users.actions;
+export const { setUserDetails, setShowContact, setShowMessageBox, setShowAlertBox, setShowContactBox, setShowLoginModal, setPlan } = users.actions;

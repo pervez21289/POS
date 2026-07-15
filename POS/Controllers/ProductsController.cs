@@ -28,7 +28,6 @@ namespace LMS.Controllers
         {
             try
             {
-   
                 return Ok(await _repo.GetAllAsync(search, _userContext.CompanyID));
             }
             catch (Exception ex)
@@ -102,7 +101,7 @@ namespace LMS.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<IActionResult> Search(string q)
+        public async Task<IActionResult> Search(string? q)
         {
     
             IEnumerable<Product> result = await _repo.SearchProductsAsync(q ?? "", _userContext.CompanyID);
@@ -115,7 +114,8 @@ namespace LMS.Controllers
         {
             try
             {
-                var success = await _repo.AdjustStockAsync(id, dto.Quantity, dto.Reason, dto.UserID);
+                dto.UserID = _userContext.UserId;
+                var success = await _repo.AdjustStockAsync(id, dto.Quantity, dto.Reason, dto.UserID.Value);
                 return success ? Ok() : BadRequest();
             }
             catch (Exception ex)

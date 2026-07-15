@@ -3,35 +3,19 @@ import Avatar from '@mui/material/Avatar';
 import AvatarGroup from '@mui/material/AvatarGroup';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Grid';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemAvatar from '@mui/material/ListItemAvatar';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-
 // project imports
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
-import MonthlyBarChart from 'sections/dashboard/default/MonthlyBarChart';
-import ReportAreaChart from 'sections/dashboard/default/ReportAreaChart';
-import UniqueVisitorCard from 'sections/dashboard/default/UniqueVisitorCard';
 import SaleReportCard from 'sections/dashboard/default/SaleReportCard';
-import OrdersTable from 'sections/dashboard/default/OrdersTable';
-
-// assets
-import GiftOutlined from '@ant-design/icons/GiftOutlined';
-import MessageOutlined from '@ant-design/icons/MessageOutlined';
-import SettingOutlined from '@ant-design/icons/SettingOutlined';
-
 import avatar1 from 'assets/images/users/avatar-1.png';
 import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
 import avatar4 from 'assets/images/users/avatar-4.png';
 import SaleService from '../../services/SaleService';
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 // avatar style
 const avatarSX = {
   width: 36,
@@ -53,7 +37,8 @@ const actionSX = {
 
 export default function DashboardDefault() {
 
-    const [res, setRes] = useState(null);
+    const [res, setRes] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
 
@@ -89,7 +74,7 @@ export default function DashboardDefault() {
      
       {/* row 4 */}
           <Grid size={{ xs: 12, md: 7, lg: 12 }}>
-          <SaleReportCard MonthlySummary={res?.MonthlySummary} />
+              <SaleReportCard res={res} />
       </Grid>
           <Grid alignItems="center" justifyContent="space-between" size={{ xs: 12, md: 5, lg: 4 }}>
         <Grid container alignItems="center" justifyContent="space-between">
@@ -121,7 +106,7 @@ export default function DashboardDefault() {
                 </AvatarGroup>
               </Grid>
             </Grid>
-            <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }}>
+                      <Button size="small" variant="contained" sx={{ textTransform: 'capitalize' }} onClick={() => navigate('/support')}>
               Need Help?
             </Button>
           </Stack>

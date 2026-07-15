@@ -18,8 +18,9 @@ import SaleService from './../../services/SaleService';
 import debounce from 'lodash.debounce';
 import { useDispatch } from 'react-redux';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
-import SalesReceipt from './SalesReceipt';
+import SalesReceipt from './../sales/SalesReceipt';
 import { DataGrid } from '@mui/x-data-grid';
+import renderMobileCards from './renderMobileCards'; 
 
 const SalesGrid = () => {
     const [rows, setRows] = useState([]);
@@ -30,6 +31,11 @@ const SalesGrid = () => {
     const [pageSize, setPageSize] = useState(10);
     const [rowCount, setRowCount] = useState(0);
     const dispatch = useDispatch();
+
+    const [paginationModel, setPaginationModel] = React.useState({
+        page: 0,       // zero-based page index
+        pageSize: 8,  // default rows per page
+    });
 
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -48,10 +54,12 @@ const SalesGrid = () => {
     };
 
     useEffect(() => {
+     
         const debouncedFetch = debounce(async () => {
+          
             setLoading(true);
             try {
-                const response = await SaleService.GetSales({ search, date, page: page + 1, pageSize });
+                const response = await SaleService.GetSales({ search, date, page: paginationModel.page + 1, pageSize:paginationModel.pageSize });
                 setRows(response.rows);
                 setRowCount(response.total);
             } catch (err) {
@@ -60,18 +68,18 @@ const SalesGrid = () => {
             } finally {
                 setLoading(false);
             }
-        }, 300);
+        }, 10);
 
         debouncedFetch();
         return () => debouncedFetch.cancel();
-    }, [search, date, page, pageSize]);
+    }, [search, date, paginationModel]);
 
     const columns = [
-        { field: 'billNo', headerName: 'Bill No.', width: 120 },
+        { field: 'billNo', headerName: 'Bill No.', width: 200 },
         { field: 'customerName', headerName: 'Customer Name', width: 140 },
         { field: 'saleTime', headerName: 'Sale Time', width: 180 },
         { field: 'totalAmount', headerName: 'Total Amount', width: 130 },
-        { field: 'discountAmount', headerName: 'Discount', width: 120 },
+        { field: 'taxAmount', headerName: 'Tax', width: 120 },
         { field: 'netAmount', headerName: 'Net Amount', width: 130 },
         {
             field: 'p_Status',
@@ -107,116 +115,77 @@ const SalesGrid = () => {
         },
     ];
 
-    const renderMobileCards = () => (
-        <Stack spacing={2}>
-            {rows.map((row) => {
-                const isPaid = row.p_Status?.toLowerCase() === 'paid';
-                return (
-                    <Card key={row.saleID} variant="outlined">
-                        <CardContent>
-                            <Typography variant="subtitle2" gutterBottom>
-                                <strong>Bill No:</strong> {row.billNo}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Customer:</strong> {row.customerName}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Sale Time:</strong> {row.saleTime}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Total:</strong> ₹{row.totalAmount}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Discount:</strong> ₹{row.discountAmount}
-                            </Typography>
-                            <Typography variant="body2">
-                                <strong>Net:</strong> ₹{row.netAmount}
-                            </Typography>
-                            <Chip
-                                label={isPaid ? 'Paid' : 'Not Paid'}
-                                color={isPaid ? 'success' : 'error'}
-                                variant="outlined"
-                                sx={{ mt: 1 }}
-                            />
-                        </CardContent>
-                        <Divider />
-                        <CardActions sx={{ justifyContent: 'flex-end', p: 1 }}>
-                            <Button
-                                variant="outlined"
-                                size="small"
-                                onClick={() => handleViewInvoice(row)}
-                            >
-                                View Invoice
-                            </Button>
-                        </CardActions>
-                    </Card>
-                );
-            })}
-        </Stack>
-    );
-
+    
     return (
         // Inside SalesGrid return JSX
         <Paper
             elevation={2}
             sx={{ p: { xs: 2, sm: 3 }, width: '100%', boxSizing: 'border-box' }}
         >
-            <Typography
-                variant="h6"
-                sx={{ mb: 2, fontWeight: 600, fontSize: { xs: '1rem', sm: '1.25rem' } }}
-            >
-                Sales Transactions
-            </Typography>
-
-            {/* 🔁 Common Search + Date Fields */}
+            {/* 🔁 Title + Filters in Same Row */}
             <Stack
                 direction={{ xs: 'column', sm: 'row' }}
                 spacing={2}
-                sx={{ mb: 2 }}
+                sx={{ mb: 2, alignItems: 'center' }}
             >
+                <Typography
+                    variant="h6"
+                    sx={{
+                        fontWeight: 600,
+                        fontSize: { xs: '1rem', sm: '1.25rem' },
+                        whiteSpace: 'nowrap'
+                    }}
+                >
+                    Sales Transactions
+                </Typography>
+
+                {/* Flexible Spacer */}
+                <Box sx={{ flex: 1 }} />
+
                 <TextField
-                    fullWidth
                     label="Search"
                     variant="outlined"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     size="small"
+                    sx={{ minWidth: { xs: '100%', sm: 200 } }}
                 />
                 <TextField
-                    fullWidth
                     label="Date"
                     type="date"
                     InputLabelProps={{ shrink: true }}
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     size="small"
+                    sx={{ minWidth: { xs: '100%', sm: 160 } }}
                 />
             </Stack>
 
             {/* 🔁 Grid or Card View Based on Screen Size */}
             <Box sx={{ width: '100%' }}>
                 {isMobile ? (
-                    renderMobileCards()
+                    renderMobileCards(handleViewInvoice, rows)
                 ) : (
-                    <Box sx={{ height: 600, width: '100%' }}>
+                    <Box sx={{ width: '100%' }}>
                         <DataGrid
                             rows={rows}
                             columns={columns}
-                            pagination
                             paginationMode="server"
                             rowCount={rowCount}
-                            page={page}
-                            pageSize={pageSize}
-                            onPageChange={(newPage) => setPage(newPage)}
-                            onPageSizeChange={(newSize) => setPageSize(newSize)}
+                            paginationModel={paginationModel}
+                            onPaginationModelChange={(newModel) => {
+                                console.log("Pagination changed:", newModel);
+                                setPaginationModel(newModel);
+                            }}
                             loading={loading}
                             getRowId={(row) => row.saleID}
-                            disableSelectionOnClick
+                            pageSizeOptions={[8,25, 50]}
                         />
                     </Box>
                 )}
             </Box>
         </Paper>
+
 
     );
 };

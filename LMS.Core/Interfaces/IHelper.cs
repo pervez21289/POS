@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Text;
@@ -9,10 +8,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace LMS.Core.Interfaces
 {
-    public interface IApiLogQueue
+    public interface IHelper
     {
-        void Enqueue(ApiLogEntry logEntry);
-        bool TryDequeue(out ApiLogEntry logEntry);
+        public string Encrypt(string plainText, string key);
+        public string Decrypt(string encrypted, string key);
     }
-
 }

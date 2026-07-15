@@ -8,8 +8,9 @@ namespace LMS.Core.Entities
 {
     public class CreateUserResult
     {
-        public int Success { get; set; }         // 1 = success, 0 = failure
-        public string Message { get; set; }      // Status or error message
-        public int? CreatedUserID { get; set; }  // User ID (only if success)
+        public bool Success { get; set; }        
+        public string Message { get; set; }      
+        public int? UserID { get; set; }  
+        public string? OTP { get; set; } 
     }
 }

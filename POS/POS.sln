@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LMS.Core", "..\LMS.Core\LMS
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LMS.Repository", "..\LMS.Repository\LMS.Repository.csproj", "{6B93F764-4ABA-438D-A856-2A0D86165500}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utility", "..\Utility\Utility.csproj", "{CDE223E7-E639-4869-94B5-B7801D4FEAB2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{6B93F764-4ABA-438D-A856-2A0D86165500}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6B93F764-4ABA-438D-A856-2A0D86165500}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6B93F764-4ABA-438D-A856-2A0D86165500}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDE223E7-E639-4869-94B5-B7801D4FEAB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDE223E7-E639-4869-94B5-B7801D4FEAB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDE223E7-E639-4869-94B5-B7801D4FEAB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDE223E7-E639-4869-94B5-B7801D4FEAB2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
