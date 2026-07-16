@@ -4,6 +4,7 @@ import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import { openDrawer } from "./../../store/reducers/drawer";
 import { setReceiptInfo } from "./../../store/reducers/sales";
+import { printReceipt, isElectron } from '../../utils/electronPrint';
 
 
 const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
@@ -27,12 +28,13 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
         window.ReactNativeWebView?.postMessage(receiptHTML);
     };
 
-    const handlePrintWeb = () => {
+    const handlePrintWeb = async () => {
         const textToPrint = generateTextReceipt();
-        const printWindow = window.open('', '_blank', 'width=320,height=600');
-        if (!printWindow) return;
-
-        printWindow.document.write(`
+        
+        // Check if running in Electron to determine HTML format
+        const isInElectron = window.electronPOS !== undefined;
+        
+        const htmlContent = `
         <html>
         <head>
             <title>Receipt</title>
@@ -44,12 +46,14 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
                 body { font-family: monospace; white-space: pre; font-size: 12px; }
             </style>
         </head>
-        <body onload="window.print(); window.close();">
+        <body${isInElectron ? '' : ' onload="window.print(); window.close();"'}>
             <pre>${textToPrint}</pre>
         </body>
         </html>
-    `);
-        printWindow.document.close();
+    `;
+        
+        // Use Electron print if available, otherwise fallback to browser popup
+        await printReceipt(htmlContent);
     };
 
     const generateTextReceipt = () => {

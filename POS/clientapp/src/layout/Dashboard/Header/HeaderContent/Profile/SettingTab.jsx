@@ -15,6 +15,7 @@ import QuestionCircleOutlined from '@ant-design/icons/QuestionCircleOutlined';
 import UserOutlined from '@ant-design/icons/UserOutlined';
 import UnorderedListOutlined from '@ant-design/icons/UnorderedListOutlined';
 import ManageAccountsOutlinedIcon from '@mui/icons-material/ManageAccountsOutlined';
+import PrintIcon from '@mui/icons-material/Print';
 import { useDispatch, useSelector } from "react-redux";
 import { setUserDetails } from "./../../../../../store/reducers/users";
 // ==============================|| HEADER PROFILE - SETTING TAB ||============================== //
@@ -39,7 +40,14 @@ export default function SettingTab() {
     };
 
     const handlePrinter = () => {
-        window.ReactNativeWebView?.postMessage('OPEN_SETTINGS');
+        // Check if running in Electron
+        if (window.electronPOS) {
+            // Navigate to printer settings page
+            navigate('/printer-settings');
+        } else {
+            // For React Native WebView
+            window.ReactNativeWebView?.postMessage('OPEN_SETTINGS');
+        }
     }
 
     return (
@@ -85,9 +93,9 @@ export default function SettingTab() {
 
             <ListItemButton selected={selectedIndex === 4} onClick={handlePrinter}>
                 <ListItemIcon>
-                    <UnorderedListOutlined />
+                    <PrintIcon />
                 </ListItemIcon>
-                <ListItemText primary="Printer" />
+                <ListItemText primary="Printer Settings" />
             </ListItemButton>
             <ListItemButton onClick={handleLogout}>
                 <ListItemIcon>

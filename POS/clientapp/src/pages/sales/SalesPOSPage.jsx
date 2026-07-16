@@ -29,6 +29,7 @@ import ProductCard from './ProductCard';
 import { manualProductSync, getProductsSync, getSettingsSync, saveSettingsSync } from '../../hooks/useProductSync';
 import { useNavigate } from 'react-router-dom';
 import PaymentService from '../../services/PaymentService';
+import { printReceipt, isElectron } from '../../utils/electronPrint';
 
 
 const SalesPOSPage = () => {
@@ -172,14 +173,11 @@ const SalesPOSPage = () => {
     };
 
 
-    const handlePrintWeb = (txtPrint) => {
-     
-
-        const printWindow = window.open('', '_blank', 'width=320,height=600');
-
-        if (!printWindow) return;
-
-        printWindow.document.write(`
+    const handlePrintWeb = async (txtPrint) => {
+        // Check if running in Electron to determine HTML format
+        const isInElectron = window.electronPOS !== undefined;
+        
+        const htmlContent = `
         <html>
         <head>
             <title>Receipt</title>
@@ -191,12 +189,14 @@ const SalesPOSPage = () => {
                 body { font-family: monospace; white-space: pre; font-size: 12px; }
             </style>
         </head>
-        <body onload="window.print(); window.close();">
+        <body${isInElectron ? '' : ' onload="window.print(); window.close();"'}>
             <pre>${txtPrint}</pre>
         </body>
         </html>
-    `);
-        printWindow.document.close();
+    `;
+        
+        // Use Electron print if available, otherwise fallback to browser popup
+        await printReceipt(htmlContent);
     };
 
     function centerText(text, width) {

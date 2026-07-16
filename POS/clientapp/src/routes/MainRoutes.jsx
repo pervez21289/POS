@@ -17,6 +17,7 @@ import Sales from './../pages/restaurant/SalesPOSPage';
 import SalesGrid from './../pages/invoices/SalesGrid';
 import BasicSettings from '../pages/settings/BasicSettings';
 import SubscriptionPlan from '../pages/settings/SubscriptionPlan';
+import PrinterSettings from '../pages/settings/PrinterSettings';
 import UsersGrid from '../pages/users/UsersGrid';
 import Support from '../pages/support';
 import History from '../pages/history';
@@ -64,6 +65,10 @@ const MainRoutes = {
         {
             path: 'settings',
             element: <BasicSettings />
+        },
+        {
+            path: 'printer-settings',
+            element: <PrinterSettings />
         },
         {
             path: 'usermanagement',
