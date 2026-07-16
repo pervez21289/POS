@@ -13,7 +13,7 @@ const Typography = Loadable(lazy(() => import('pages/component-overview/typograp
 const Shadow = Loadable(lazy(() => import('pages/component-overview/shadows')));
 const CategoryPage = Loadable(lazy(() => import('pages/categories/CategoryPage')));
 import ProductPage from './../pages/product/ProductPage';
-import Sales from './../pages/sales/SalesPOSPage';
+import Sales from './../pages/restaurant/SalesPOSPage';
 import SalesGrid from './../pages/invoices/SalesGrid';
 import BasicSettings from '../pages/settings/BasicSettings';
 import SubscriptionPlan from '../pages/settings/SubscriptionPlan';
