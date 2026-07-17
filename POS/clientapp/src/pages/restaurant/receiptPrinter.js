@@ -1,7 +1,8 @@
 /**
- * Universal receipt printer.
- * Single API: printReceipt({ type, items, storeInfo, ... })
+ * Universal receipt printer - uses HTTP API
  */
+
+const SERVICE_URL = 'http://localhost:3001';
 
 // ---------- Text formatting helpers ----------
 const LINE_WIDTH = 32;
@@ -37,7 +38,7 @@ const generateReceiptText = (params) => {
 
     // Type‑specific details
     if (type === 'summary') {
-        const { tableNo, subtotal } = params;
+        const { tableNo } = params;
         lines.push(center('ORDER SUMMARY'));
         lines.push('-'.repeat(LINE_WIDTH));
         lines.push(`Date: ${new Date().toLocaleString()}`);
@@ -58,12 +59,12 @@ const generateReceiptText = (params) => {
         lines.push(`Date: ${sale.saleTime || ''}`);
         lines.push(`Cashier: ${sale.userName || ''}`);
         if (sale.customerName) lines.push(`Name: ${sale.customerName}`);
-        lines.push(`Mobile: ${sale.mobileNumber || ''}`);
+        if (sale.mobileNumber) lines.push(`Mobile: ${sale.mobileNumber}`);
         lines.push('-'.repeat(LINE_WIDTH));
     }
 
     // Items
-    lines.push('Item       Qty   Rt     Tot');
+    lines.push('Item       Qty   Rt  Total');
     (items || []).forEach(item => {
         lines.push(safeText(item.name));
         const qty = padLeft(item.quantity?.toString() || '0', 2);
@@ -77,27 +78,40 @@ const generateReceiptText = (params) => {
 
     // Totals
     let subtotal = 0, cgst = 0, sgst = 0, halfGstRate = 0, netAmount = 0;
+
     if (type === 'summary' || type === 'kot') {
-        subtotal = params.subtotal || 0;
+        // Use the subtotal passed in params, or calculate from items
+        subtotal = params.subtotal || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
         netAmount = subtotal;
-    } else {
+
+        // Use itemCount from params or calculate
+        const itemCount = params.itemCount || items?.length || 0;
+        lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
+
+    } else if (type === 'sale') {
         const sale = params.sale;
-        subtotal = sale.totalAmount || 0;
+        subtotal = sale.totalAmount || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
         cgst = sale.cgst || 0;
         sgst = sale.sgst || 0;
         halfGstRate = sale.halfGstRate || 0;
-        netAmount = sale.netAmount || sale.totalAmount || 0;
+        netAmount = sale.netAmount || subtotal;
+               
+        // Use itemCount from params or calculate
+        const itemCount = params.itemCount || items?.length || 0;
+        lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
     }
 
-    lines.push(`${padRight('Subtotal:', 16)}${padLeft(subtotal.toFixed(2), 14)}`);
+    // Show subtotal
+    lines.push(`${padRight('Subtotal:', 14)}${padLeft(subtotal.toFixed(2), 12)}`);
+
+    // Show GST if sale type
     if (type === 'sale' && (cgst > 0 || sgst > 0)) {
         lines.push(`${padRight(`CGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(cgst.toFixed(2), 14)}`);
         lines.push(`${padRight(`SGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(sgst.toFixed(2), 14)}`);
     }
-    const itemCount = (items || []).length;
-    lines.push(`${padRight('Items:', 16)}${padLeft(itemCount.toString(), 14)}`);
+
     lines.push('-'.repeat(LINE_WIDTH));
-    
+
     // Footer based on type
     if (type === 'kot') {
         lines.push(center('=== FOR KITCHEN ==='));
@@ -111,91 +125,160 @@ const generateReceiptText = (params) => {
 
     return lines.join('\n');
 };
+// ---------- HTTP API Calls ----------
+async function callApi(endpoint, data) {
+    const response = await fetch(`${SERVICE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+    });
 
-// ---------- Low-level print function ----------
-const printText = (text, title = 'Receipt', useIframe = false) => {
-    // React Native WebView
-    if (window.ReactNativeWebView) {
-        window.ReactNativeWebView.postMessage(text);
-        return;
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
 
-    // Iframe mode: no new window, just a hidden iframe
-    if (useIframe) {
-        const iframe = document.createElement('iframe');
-        iframe.style.display = 'none';
-        document.body.appendChild(iframe);
-        const iframeDoc = iframe.contentWindow?.document;
-        if (iframeDoc) {
-            iframeDoc.write(`
-                <html>
-                    <head>
-                        <title>${title}</title>
-                        <style>
-                            @media print { @page { margin: 0; } body { margin: 0; font-family: monospace; font-size: 12px; } }
-                            body { font-family: monospace; white-space: pre; font-size: 12px; }
-                        </style>
-                    </head>
-                    <body onload="window.print();">
-                        <pre>${text}</pre>
-                    </body>
-                </html>
-            `);
-            iframeDoc.close();
-            setTimeout(() => document.body.removeChild(iframe), 3000);
-        }
-        return;
-    }
+    return response.json();
+}
 
-    // Default: open a new window
+// ---------- Public API ----------
+
+// Add at the top after SERVICE_URL
+const getDefaultPrinterFromStorage = () => {
+    return localStorage.getItem('pos_default_printer') || null;
+};
+
+// Update printReceipt to use stored printer if not provided
+
+// Similarly update printRawText and testPrinter
+export const printRawText = async (text, printerName = null) => {
     try {
-        const printWindow = window.open('', '_blank', 'width=320,height=600');
-        if (!printWindow) {
-            // fallback to iframe if popup is blocked
-            printText(text, title, true);
-            return;
+        const finalPrinter = printerName || getDefaultPrinterFromStorage();
+        const result = await callApi('/api/print-text', { text, printerName: finalPrinter });
+        if (result.success) {
+            console.log('✅ Raw text printed');
+            return result;
+        } else {
+            throw new Error(result.error || 'Print failed');
         }
-        printWindow.document.write(`
-            <html>
-                <head>
-                    <title>${title}</title>
-                    <style>
-                        @media print { @page { margin: 0; } body { margin: 0; font-family: monospace; font-size: 12px; } }
-                        body { font-family: monospace; white-space: pre; font-size: 12px; }
-                    </style>
-                </head>
-                <body onload="window.print(); window.close();">
-                    <pre>${text}</pre>
-                </body>
-            </html>
-        `);
-        printWindow.document.close();
     } catch (error) {
-        console.error('Print error:', error);
-        alert('Unable to print. Please check your browser settings.');
+        console.error('❌ Raw text print error:', error);
+        throw error;
     }
 };
 
-// ---------- Public API ----------
-/**
- * Print a receipt (KOT, order summary or final sale receipt).
- *
- * @param {Object} params
- * @param {string} params.type - 'kot', 'summary' or 'sale'
- * @param {Array}  params.items - Array of items { name, barcode, quantity, price }
- * @param {Object} params.storeInfo - { storeName, address, gstin }
- * @param {string|number} [params.tableNo] - Required for 'summary' and 'kot'
- * @param {string|number} [params.kotNo] - Required for 'kot'
- * @param {number} [params.subtotal] - Required for 'summary' and 'kot'
- * @param {Object} [params.sale] - Required for 'sale' (billNo, saleTime, userName, customerName, mobileNumber, totalAmount, cgst, sgst, netAmount, halfGstRate)
- * @param {string} [params.title] - Window title (defaults to 'KOT', 'Order Summary' or 'Receipt')
- * @param {boolean} [params.useIframe] - If true, prints from a hidden iframe (no popup). Default false.
- */
-export const printReceipt = (params) => {
-    const { type, title, useIframe = false } = params;
-    const defaultTitle = type === 'kot' ? 'KOT' : type === 'summary' ? 'Order Summary' : 'Receipt';
-    const finalTitle = title || defaultTitle;
+export const testPrinter = async (printerName = null) => {
+    const finalPrinter = printerName || getDefaultPrinterFromStorage();
+    const testData = {
+        data: [{
+            type: 'text',
+            value: '=== POS58 SYSTEM TEST ===\nSilent native print is live.\n\n\n\n',
+            style: { textAlign: 'center', fontSize: '14px' }
+        }],
+        printerName: finalPrinter
+    };
 
-    const text = generateReceiptText(params);
-    printText(text, finalTitle, useIframe);
+    try {
+        const result = await callApi('/api/print', testData);
+        if (result.success) {
+            console.log('✅ Test print successful!');
+            return result;
+        } else {
+            throw new Error(result.error || 'Test failed');
+        }
+    } catch (error) {
+        console.error('❌ Test print error:', error);
+        throw error;
+    }
+};
+
+
+export const listPrinters = async () => {
+    try {
+        const response = await fetch(`${SERVICE_URL}/api/printers`);
+        return response.json();
+    } catch (error) {
+        console.error('❌ List printers error:', error);
+        throw error;
+    }
+};
+
+export const setDefaultPrinter = async (printerName) => {
+    try {
+        const response = await fetch(`${SERVICE_URL}/api/printer/default`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ printerName })
+        });
+        return response.json();
+    } catch (error) {
+        console.error('❌ Set default printer error:', error);
+        throw error;
+    }
+};
+
+export const checkService = async () => {
+    try {
+        const response = await fetch(`${SERVICE_URL}/api/health`);
+        return response.ok;
+    } catch {
+        return false;
+    }
+};
+
+// At the top, after SERVICE_URL
+const getStoredPrinter = () => localStorage.getItem('pos_default_printer') || null;
+const getStoredConfig = () => {
+    try {
+        const stored = localStorage.getItem('pos_print_config');
+        return stored ? JSON.parse(stored) : null;
+    } catch {
+        return null;
+    }
+};
+
+// Update printReceipt to send config
+export const printReceipt = async (params) => {
+    const receiptText = generateReceiptText(params);
+    const printerName = params.printerName || getStoredPrinter();
+    const config = getStoredConfig(); // get the config
+
+    const printData = {
+        data: [{
+            type: 'text',
+            value: receiptText,
+            style: {
+                fontSize: '12px',
+                fontFamily: 'monospace',
+                whiteSpace: 'pre'
+            }
+        }],
+        printerName: printerName,
+        config: config // send config along
+    };
+
+    try {
+        const result = await callApi('/api/print', printData);
+        if (result.success) {
+            console.log('✅ Receipt printed successfully');
+            return result;
+        } else {
+            throw new Error(result.error || 'Print failed');
+        }
+    } catch (error) {
+        console.error('❌ Print error:', error);
+        throw error;
+    }
+};
+
+export const setStoredPrinter = (printerName) => {
+    localStorage.setItem('pos_default_printer', printerName);
+};
+
+export default {
+    printReceipt,
+    printRawText,
+    testPrinter,
+    listPrinters,
+    setDefaultPrinter,
+    checkService
 };

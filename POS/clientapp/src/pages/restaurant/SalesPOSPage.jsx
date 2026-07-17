@@ -3,8 +3,9 @@ import {
     Box, Grid, Paper, Typography, TextField, IconButton,
     Button, Stack, Chip, Autocomplete, CircularProgress,
     Drawer, useMediaQuery, useTheme, Avatar, Divider, Badge,
-    Dialog, DialogContent  
+    Dialog, DialogContent
 } from '@mui/material';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { useDispatch, useSelector } from 'react-redux';
 import { setReceiptInfo, saveDraftCart, loadDraftCart, deleteDraftCart, updateDraftCart } from '../../store/reducers/sales';
 import { showAlert } from '../../store/reducers/alert';
@@ -29,31 +30,17 @@ import TableBarIcon from '@mui/icons-material/TableBar';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PrintIcon from '@mui/icons-material/Print';
-import { printReceipt } from './receiptPrinter';
+import { printReceipt, testPrinter, checkService, listPrinters } from './receiptPrinter';
+import PrinterSettings from '../../components/PrinterSettings';
 
 // TableCard Component for displaying saved KOTs
-const TableCard = ({ tableNo, items, isSelected, onSelect, onDelete, storeInfo }) => {
+const TableCard = ({ tableNo, items, isSelected, onSelect, onDelete, storeInfo, onPrintKOT }) => {
     const itemCount = items?.length || 0;
     const totalAmount = items?.reduce((sum, item) => sum + (item.salePrice * item.quantity), 0) || 0;
 
-    const handlePrintKOT = (e) => {
+    const handlePrintKOT = async (e) => {
         e.stopPropagation();
-        const kotNo = `KOT${Date.now().toString().slice(-6)}`;
-        printReceipt({
-            type: 'kot',
-            items: items.map(item => ({
-                name: item.name,
-                barcode: item.barcode || '-',
-                quantity: item.quantity,
-                price: item.salePrice || item.price || 0,
-            })),
-            storeInfo: storeInfo,
-            tableNo: tableNo,
-            kotNo: kotNo,
-            subtotal: totalAmount,
-            title: 'Kitchen Order',
-            useIframe: false,
-        });
+        await onPrintKOT(tableNo, items);
     };
 
     return (
@@ -165,7 +152,6 @@ const TableCard = ({ tableNo, items, isSelected, onSelect, onDelete, storeInfo }
     );
 };
 
-
 const SalesPOSPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -173,7 +159,7 @@ const SalesPOSPage = () => {
     const theme = useTheme();
 
     const { receiptInfo, draftCarts, basicSettings } = useSelector(state => state.sales);
-
+    const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
     const [products, setProducts] = useState([]);
     const [searchInput, setSearchInput] = useState('');
     const [selectedTable, setSelectedTable] = useState(null);
@@ -187,24 +173,7 @@ const SalesPOSPage = () => {
     // Payment modal state
     const [paymentModalOpen, setPaymentModalOpen] = useState(false);
 
-    // ... (rest of the existing state and effects remain the same)
-
-    // Replace handleCheckout with modal opener
-    const handleCheckout = () => {
-        setPaymentModalOpen(true);
-    };
-
-    // Close modal and optionally clear cart on success
-    const handlePaymentSuccess = () => {
-        // Optionally clear cart after payment if needed
-        // dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
-        setPaymentModalOpen(false);
-    };
-
-    const handlePaymentClose = () => {
-        setPaymentModalOpen(false);
-    };
-
+    // Load initial data
     useEffect(() => {
         const loadInitialData = async () => {
             try {
@@ -235,12 +204,29 @@ const SalesPOSPage = () => {
         } else if (!selectedTable) {
             setSelectedTable(1);
         }
+
+        // Check printer service on load (optional)
+        const checkPrinter = async () => {
+            try {
+                const isAvailable = await checkService();
+                if (isAvailable) {
+                    const printerList = await listPrinters();
+                    console.log('✅ Printer service available:', printerList);
+                } else {
+                    console.warn('⚠️ Printer service not available');
+                }
+            } catch (error) {
+                console.error('Printer check failed:', error);
+            }
+        };
+        checkPrinter();
     }, []);
 
     useEffect(() => {
         if (barcodeRef.current) barcodeRef.current.focus();
     }, []);
 
+    // ---------- Cart Functions ----------
     const addToCart = (product) => {
         const currentCart = receiptInfo?.saleItems || [];
         const existing = currentCart.find(i => i.productID === product.productID);
@@ -253,7 +239,6 @@ const SalesPOSPage = () => {
             updatedCart = [...currentCart, { ...product, quantity: 1, discount: 0, tax: 0 }];
         }
         dispatch(setReceiptInfo({ receiptInfo: { saleItems: updatedCart } }));
-        // if (isMobile) setCartDrawerOpen(true);
     };
 
     const updateQuantity = (productID, qty) => {
@@ -282,6 +267,7 @@ const SalesPOSPage = () => {
         }
     };
 
+    // ---------- KOT Functions ----------
     const handleSaveKOT = () => {
         if (!receiptInfo?.saleItems?.length) {
             dispatch(showAlert({ open: true, message: 'Cart is empty!', severity: 'warning' }));
@@ -327,8 +313,20 @@ const SalesPOSPage = () => {
         setSelectedTable(newTable);
     };
 
-   
+    // ---------- Payment Functions ----------
+    const handleCheckout = () => {
+        setPaymentModalOpen(true);
+    };
 
+    const handlePaymentSuccess = () => {
+        setPaymentModalOpen(false);
+    };
+
+    const handlePaymentClose = () => {
+        setPaymentModalOpen(false);
+    };
+
+    // ---------- UI Functions ----------
     const toggleCartDrawer = () => setCartDrawerOpen(!isCartDrawerOpen);
 
     const filteredProducts = useMemo(() => {
@@ -353,32 +351,187 @@ const SalesPOSPage = () => {
         setLoading(false);
     };
 
+    // ---------- PRINT FUNCTIONS ----------
 
-    // Inside SalesPOSPage component
+    // ---------- PRINT FUNCTIONS ----------
 
-    // Print KOT (Kitchen Order Ticket)
-    const handlePrintOrder = () => {
-        if (!receiptInfo?.saleItems?.length) return;
-        const kotNo = `KOT${Date.now().toString().slice(-6)}`;
-        printReceipt({
-            type: 'kot',
-            items: receiptInfo.saleItems.map(item => ({
-                name: item.name,
-                barcode: item.barcode || '-',
-                quantity: item.quantity,
-                price: item.salePrice || item.price || 0,
-            })),
-            storeInfo: basicSettings,
-            tableNo: selectedTable,
-            kotNo: kotNo,
-            subtotal: receiptInfo.totalAmount || 0,
-            title: 'Kitchen Order',
-            useIframe: false,   
-        });
+    // 1. Print KOT for a specific table
+    const handlePrintKOT = async (tableNo, items) => {
+        if (!items?.length) {
+            dispatch(showAlert({
+                open: true,
+                message: 'No items to print!',
+                severity: 'warning'
+            }));
+            return;
+        }
+
+        try {
+            const kotNo = `KOT${Date.now().toString().slice(-6)}`;
+            const totalAmount = items.reduce((sum, item) => sum + ((item.salePrice || item.price || 0) * item.quantity), 0);
+
+            const result = await printReceipt({
+                type: 'kot',
+                storeInfo: {
+                    storeName: basicSettings?.storeName || 'My Store',
+                    address: basicSettings?.address || 'Store Address',
+                    gstin: basicSettings?.gstin || '-'
+                },
+                items: items.map(item => ({
+                    name: item.name,
+                    barcode: item.barcode || '-',
+                    quantity: item.quantity,
+                    price: item.salePrice || item.price || 0,
+                })),
+                tableNo: tableNo,
+                kotNo: kotNo,
+                subtotal: totalAmount,  // Pass subtotal here
+                itemCount: items.length  // Pass item count here
+            });
+
+            if (result.success) {
+                dispatch(showAlert({
+                    open: true,
+                    message: `✅ KOT printed for Table ${tableNo}`,
+                    severity: 'success'
+                }));
+            } else {
+                throw new Error(result.error || 'Print failed');
+            }
+        } catch (error) {
+            dispatch(showAlert({
+                open: true,
+                message: `❌ Print failed: ${error.message}`,
+                severity: 'error'
+            }));
+        }
+    };
+
+    // 2. Print current order (KOT for current cart)
+    const handlePrintOrder = async () => {
+        if (!receiptInfo?.saleItems?.length) {
+            dispatch(showAlert({
+                open: true,
+                message: 'Cart is empty!',
+                severity: 'warning'
+            }));
+            return;
+        }
+
+        try {
+            const kotNo = `KOT${Date.now().toString().slice(-6)}`;
+            const totalAmount = receiptInfo.saleItems.reduce((sum, item) => sum + ((item.salePrice || item.price || 0) * item.quantity), 0);
+
+            const result = await printReceipt({
+                type: 'kot',
+                storeInfo: {
+                    storeName: basicSettings?.storeName || 'My Store',
+                    address: basicSettings?.address || 'Store Address',
+                    gstin: basicSettings?.gstin || '-'
+                },
+                items: receiptInfo.saleItems.map(item => ({
+                    name: item.name,
+                    barcode: item.barcode || '-',
+                    quantity: item.quantity,
+                    price: item.salePrice || item.price || 0,
+                })),
+                tableNo: selectedTable,
+                kotNo: kotNo,
+                subtotal: totalAmount,  // Pass subtotal here
+                itemCount: receiptInfo.saleItems.length  // Pass item count here
+            });
+
+            if (result.success) {
+                dispatch(showAlert({
+                    open: true,
+                    message: `✅ KOT printed for Table ${selectedTable}`,
+                    severity: 'success'
+                }));
+            } else {
+                throw new Error(result.error || 'Print failed');
+            }
+        } catch (error) {
+            dispatch(showAlert({
+                open: true,
+                message: `❌ Print failed: ${error.message}`,
+                severity: 'error'
+            }));
+        }
+    };
+
+    // 3. Print Sale Receipt (called after successful payment)
+    const handlePrintReceipt = async (saleData) => {
+        try {
+            const totalAmount = saleData.items.reduce((sum, item) => sum + ((item.salePrice || item.price || 0) * item.quantity), 0);
+
+            const result = await printReceipt({
+                type: 'sale',
+                storeInfo: {
+                    storeName: basicSettings?.storeName || 'My Store',
+                    address: basicSettings?.address || 'Store Address',
+                    gstin: basicSettings?.gstin || '-'
+                },
+                items: saleData.items.map(item => ({
+                    name: item.name,
+                    barcode: item.barcode || '-',
+                    quantity: item.quantity,
+                    price: item.salePrice || item.price || 0,
+                })),
+                sale: {
+                    billNo: saleData.billNo || `BILL-${Date.now()}`,
+                    saleTime: new Date().toLocaleString(),
+                    userName: saleData.userName || 'Cashier',
+                    customerName: saleData.customerName || '',
+                    mobileNumber: saleData.mobileNumber || '',
+                    totalAmount: totalAmount,
+                    cgst: saleData.cgst || 0,
+                    sgst: saleData.sgst || 0,
+                    halfGstRate: saleData.halfGstRate || 0,
+                    netAmount: saleData.netAmount || totalAmount
+                },
+                itemCount: saleData.items.length  // Pass item count here
+            });
+
+            if (result.success) {
+                console.log('✅ Sale receipt printed successfully');
+                return result;
+            } else {
+                throw new Error(result.error || 'Print failed');
+            }
+        } catch (error) {
+            console.error('❌ Receipt print error:', error);
+            dispatch(showAlert({
+                open: true,
+                message: `❌ Receipt print failed: ${error.message}`,
+                severity: 'error'
+            }));
+            throw error;
+        }
+    };
+
+    // 4. Test Printer
+    const handleTestPrinter = async () => {
+        try {
+            const result = await testPrinter();
+            if (result.success) {
+                dispatch(showAlert({
+                    open: true,
+                    message: '✅ Test print successful!',
+                    severity: 'success'
+                }));
+            } else {
+                throw new Error(result.error || 'Test failed');
+            }
+        } catch (error) {
+            dispatch(showAlert({
+                open: true,
+                message: `❌ Test print failed: ${error.message}`,
+                severity: 'error'
+            }));
+        }
     };
 
     return (
-        // --- OUTER BOX: full width, no horizontal margin ---
         <Box
             sx={{
                 height: 'calc(100vh - 80px)',
@@ -387,10 +540,6 @@ const SalesPOSPage = () => {
                 bgcolor: '#f4f6f8',
                 p: 1,
                 width: 'auto',
-                // Claw back the horizontal padding added upstream by
-                // DashboardLayout's main Box (p: {xs:2, sm:3}) and its
-                // inner content Box (px: {xs:0, sm:2}) so this page can
-                // go edge-to-edge instead of being squeezed on both sides.
                 mx: { xs: -2, sm: -5 },
             }}
         >
@@ -455,6 +604,43 @@ const SalesPOSPage = () => {
                     >
                         New Order
                     </Button>
+
+                    {/* Print Buttons */}
+                    <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<PrintIcon />}
+                        onClick={handlePrintOrder}
+                        sx={{
+                            bgcolor: 'rgba(255,255,255,0.2)',
+                            color: 'white',
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.3)' }
+                        }}
+                    >
+                        Print KOT
+                    </Button>
+
+                    <Button
+                        variant="contained"
+                        size="small"
+                        onClick={handleTestPrinter}
+                        sx={{
+                            bgcolor: 'rgba(255,255,255,0.1)',
+                            color: 'white',
+                            '&:hover': { bgcolor: 'rgba(255,255,255,0.25)' }
+                        }}
+                    >
+                        Test Printer
+                    </Button>
+
+                    <IconButton
+                        size="small"
+                        onClick={() => setPrinterSettingsOpen(true)}
+                        sx={{ color: 'white' }}
+                    >
+                        <SettingsIcon />
+                    </IconButton>
+
                     {isMobile && (
                         <Badge badgeContent={receiptInfo?.saleItems?.length || 0} color="error" sx={{ ml: 'auto' }}>
                             <Button
@@ -518,6 +704,7 @@ const SalesPOSPage = () => {
                                 onSelect={() => handleLoadKOT(draft.tableNo)}
                                 onDelete={() => handleDeleteKOT(draft.tableNo)}
                                 storeInfo={basicSettings}
+                                onPrintKOT={handlePrintKOT}
                             />
                         ))}
                     </Box>
@@ -541,7 +728,7 @@ const SalesPOSPage = () => {
                 </Button>
             )}
 
-            {/* Main Grid - now with no margin and full width */}
+            {/* Main Grid */}
             <Grid container spacing={1} sx={{ flex: 1, minHeight: 0, width: '100%', margin: 0 }}>
                 {/* Product Grid */}
                 <Grid size={{ xs: 12, md: 8, lg: 8 }} sx={{ height: '100%' }}>
@@ -664,7 +851,7 @@ const SalesPOSPage = () => {
                             cartItems={receiptInfo?.saleItems || []}
                             totalAmount={receiptInfo?.totalAmount || 0}
                             totalItems={receiptInfo?.totalItems || 0}
-                            subtotal={receiptInfo?.totalAmount || 0}        // or computed
+                            subtotal={receiptInfo?.totalAmount || 0}
                             cgst={receiptInfo?.cgst || 0}
                             sgst={receiptInfo?.sgst || 0}
                             netAmount={receiptInfo?.netAmount || receiptInfo?.totalAmount || 0}
@@ -678,6 +865,7 @@ const SalesPOSPage = () => {
                 )}
             </Grid>
 
+            {/* Mobile Cart Drawer */}
             {isMobile && (
                 <Drawer
                     anchor="bottom"
@@ -699,10 +887,12 @@ const SalesPOSPage = () => {
                         onCheckout={() => { toggleCartDrawer(); handleCheckout(); }}
                         onUpdateQuantity={updateQuantity}
                         onRemoveItem={removeFromCart}
+                        onPrintOrder={handlePrintOrder}
                     />
                 </Drawer>
             )}
 
+            {/* KOT Manager Modal */}
             <KOTManager
                 open={isKOTModalOpen}
                 onClose={() => setKOTModalOpen(false)}
@@ -711,6 +901,7 @@ const SalesPOSPage = () => {
                 onDelete={handleDeleteKOT}
             />
 
+            {/* Payment Modal */}
             <Dialog
                 open={paymentModalOpen}
                 onClose={handlePaymentClose}
@@ -724,9 +915,14 @@ const SalesPOSPage = () => {
                         onClose={handlePaymentClose}
                         onSuccess={handlePaymentSuccess}
                         tableNo={selectedTable}
+                        onPrintReceipt={handlePrintReceipt}
                     />
                 </DialogContent>
             </Dialog>
+            <PrinterSettings
+                open={printerSettingsOpen}
+                onClose={() => setPrinterSettingsOpen(false)}
+            />
         </Box>
     );
 };

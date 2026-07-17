@@ -18,7 +18,41 @@ export const isElectron = () => {
 export const printReceipt = async (htmlContent, options = {}) => {
   if (isElectron()) {
     // Running in Electron - use direct printing
-    console.log('Printing via Electron (silent)...');
+    console.log('=== ELECTRON PRINT DEBUG ===');
+    console.log('Initial options passed:', options);
+    
+    // Get saved printer configuration
+    const printerConfig = await getDefaultPrinter();
+    console.log('Printer config from getDefaultPrinter():', printerConfig);
+    
+    let configuredPrinter = printerConfig.printerName;
+    console.log('Configured printer name:', configuredPrinter);
+    
+    // FALLBACK: If no printer configured, get first available printer
+    if (!configuredPrinter) {
+      console.warn('No printer configured. Trying to use first available printer...');
+      try {
+        const printers = await window.electronPOS.listPrinters();
+        if (printers.length > 0) {
+          configuredPrinter = printers[0].name;
+          console.warn('Using first available printer:', configuredPrinter);
+          console.warn('Please go to Printer Settings to save your preferred printer.');
+        } else {
+          console.error('ERROR: No printers found at all!');
+        }
+      } catch (error) {
+        console.error('Error getting printers:', error);
+      }
+    }
+    
+    // Combine options: Use provided options OR configured printer
+    const printOptions = {
+      ...options,
+      deviceName: options.deviceName || configuredPrinter
+    };
+    
+    console.log('Final print options to send to Electron:', printOptions);
+    console.log('=======================================');
     
     // Create a hidden iframe to render the content
     const printFrame = document.createElement('iframe');
@@ -39,9 +73,9 @@ export const printReceipt = async (htmlContent, options = {}) => {
       // Wait a moment for content to render
       await new Promise(resolve => setTimeout(resolve, 100));
       
-      // Call the Electron print API directly (no window.print())
-      await window.electronPOS.printNow(options);
-      console.log('Print job sent to printer');
+      // Call the Electron print API with configured printer
+      await window.electronPOS.printNow(printOptions);
+      console.log('Print job sent to printer:', configuredPrinter || 'default');
       
       // Clean up after a short delay
       setTimeout(() => {
