@@ -23,6 +23,7 @@ import {
 import PrintIcon from '@mui/icons-material/Print';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const SERVICE_URL = 'http://localhost:3001';
 
@@ -46,12 +47,15 @@ const PrinterSettings = ({ open, onClose }) => {
     const [saveStatus, setSaveStatus] = useState(null);
     const [serviceOnline, setServiceOnline] = useState(null);
 
-    // Print configuration state
+    // Print configuration state (logo & payment QR only)
     const [printConfig, setPrintConfig] = useState({
         fontSize: 10,
         pageSize: '58mm',
         fontFamily: 'Courier New',
-        bold: true
+        bold: true,
+        logoBase64: null,
+        // Payment QR / Image (static)
+        paymentQRBase64: null
     });
 
     useEffect(() => {
@@ -114,7 +118,9 @@ const PrinterSettings = ({ open, onClose }) => {
                     fontSize: config.fontSize || 10,
                     pageSize: config.pageSize || '58mm',
                     fontFamily: config.fontFamily || 'Courier New',
-                    bold: config.bold !== undefined ? config.bold : true
+                    bold: config.bold !== undefined ? config.bold : true,
+                    logoBase64: config.logoBase64 || null,
+                    paymentQRBase64: config.paymentQRBase64 || null
                 });
             }
         } catch (error) {
@@ -143,6 +149,44 @@ const PrinterSettings = ({ open, onClose }) => {
             setSaveStatus(null);
         }, 2000);
     };
+
+    // ----- Logo Handlers -----
+    const handleLogoUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result.split(',')[1];
+            setPrintConfig({ ...printConfig, logoBase64: base64 });
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    };
+
+    const handleRemoveLogo = () => {
+        setPrintConfig({ ...printConfig, logoBase64: null });
+    };
+
+    // ----- Payment QR / Image Handlers -----
+    const handlePaymentQRUpload = (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const base64 = e.target.result.split(',')[1];
+            setPrintConfig({ ...printConfig, paymentQRBase64: base64 });
+        };
+        reader.readAsDataURL(file);
+        event.target.value = '';
+    };
+
+    const handleRemovePaymentQR = () => {
+        setPrintConfig({ ...printConfig, paymentQRBase64: null });
+    };
+
+    // ------------------------------------------------------------
 
     const handleTestPrint = async () => {
         if (!selectedPrinter) {
@@ -175,7 +219,7 @@ printer is working correctly!
                         style: { fontSize: '12px', fontFamily: 'monospace' }
                     }],
                     printerName: selectedPrinter,
-                    config: printConfig // send current config
+                    config: printConfig // includes logo & payment QR
                 })
             });
 
@@ -322,8 +366,108 @@ printer is working correctly!
                             />
                         </Stack>
 
+                        {/* --- Logo Upload Section --- */}
+                        <Divider sx={{ my: 2 }} />
+
+                        <Typography variant="subtitle2" gutterBottom>
+                            Company Logo
+                        </Typography>
+
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                            <Button
+                                variant="outlined"
+                                component="label"
+                                size="small"
+                                startIcon={<PrintIcon />}
+                            >
+                                Upload Logo
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={handleLogoUpload}
+                                />
+                            </Button>
+
+                            {printConfig.logoBase64 && (
+                                <>
+                                    <Box
+                                        component="img"
+                                        src={`data:image/png;base64,${printConfig.logoBase64}`}
+                                        alt="Logo preview"
+                                        sx={{
+                                            height: 40,
+                                            maxWidth: 100,
+                                            objectFit: 'contain',
+                                            border: '1px solid #ddd',
+                                            borderRadius: 1,
+                                            p: 0.5
+                                        }}
+                                    />
+                                    <Button
+                                        size="small"
+                                        color="error"
+                                        onClick={handleRemoveLogo}
+                                        startIcon={<DeleteIcon />}
+                                    >
+                                        Remove
+                                    </Button>
+                                </>
+                            )}
+                        </Stack>
+
+                        {/* --- PAYMENT QR / IMAGE SECTION --- */}
+                        <Divider sx={{ my: 2 }} />
+
+                        <Typography variant="subtitle2" gutterBottom>
+                            Payment QR / Image (Static)
+                        </Typography>
+
+                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
+                            <Button
+                                variant="outlined"
+                                component="label"
+                                size="small"
+                                startIcon={<PrintIcon />}
+                            >
+                                Upload QR/Image
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    hidden
+                                    onChange={handlePaymentQRUpload}
+                                />
+                            </Button>
+
+                            {printConfig.paymentQRBase64 && (
+                                <>
+                                    <Box
+                                        component="img"
+                                        src={`data:image/png;base64,${printConfig.paymentQRBase64}`}
+                                        alt="Payment QR preview"
+                                        sx={{
+                                            height: 40,
+                                            maxWidth: 100,
+                                            objectFit: 'contain',
+                                            border: '1px solid #ddd',
+                                            borderRadius: 1,
+                                            p: 0.5
+                                        }}
+                                    />
+                                    <Button
+                                        size="small"
+                                        color="error"
+                                        onClick={handleRemovePaymentQR}
+                                        startIcon={<DeleteIcon />}
+                                    >
+                                        Remove
+                                    </Button>
+                                </>
+                            )}
+                        </Stack>
+
                         {selectedPrinter && (
-                            <Box sx={{ mb: 2 }}>
+                            <Box sx={{ mb: 2, mt: 2 }}>
                                 <Typography variant="body2" color="text.secondary">
                                     Selected: <strong>{selectedPrinter}</strong>
                                 </Typography>
