@@ -39,10 +39,11 @@ export default function DashboardLayout() {
                     sx={{
                         width: 'calc(100% - 260px)',
                         flexGrow: 1,
-                        p: { xs: 2, sm: 3 }
+                        p: { xs: 2, sm: 3 },
+                        mt: 4
                     }}
                 >
-                    <Toolbar sx={{ mt: 'inherit' }} />
+                   
                     <Box
                         sx={{
                             px: { xs: 0, sm: 2 },
