@@ -20,7 +20,7 @@ import Box from '@mui/material/Box';
 import MainCard from 'components/MainCard';
 import IconButton from 'components/@extended/IconButton';
 import Transitions from 'components/@extended/Transitions';
-
+import BellOutlined from '@ant-design/icons/BellOutlined';
 import CheckCircleOutlined from '@ant-design/icons/CheckCircleOutlined';
 import GiftOutlined from '@ant-design/icons/GiftOutlined';
 import MessageOutlined from '@ant-design/icons/MessageOutlined';
@@ -94,9 +94,10 @@ export default function Notification() {
         aria-haspopup="true"
         onClick={handleToggle}
           >
-              <Badge badgeContent={receiptInfo?.totalItems} color="primary">
-                  <ShoppingCartIcon color="warning" />
-        </Badge>
+              <Badge badgeContent={read} color="primary">
+                  <BellOutlined />
+              </Badge>
+
       </IconButton>
       <Popper
         placement={downMD ? 'bottom' : 'bottom-end'}

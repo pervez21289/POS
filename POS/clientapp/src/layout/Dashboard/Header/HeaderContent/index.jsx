@@ -13,7 +13,7 @@ import AppBarNav from '../HeaderContent/AppBarNav';
 
 // project import
 import { GithubOutlined } from '@ant-design/icons';
-
+import Logo from '../../../../components/logo/LogoMain';
 // ==============================|| HEADER - CONTENT ||============================== //
 
 export default function HeaderContent() {
@@ -21,8 +21,9 @@ export default function HeaderContent() {
 
   return (
       <>
-          {!downLG && <Search />}
-          {downLG && <AppBarNav></AppBarNav>}
+       
+        {!downLG && <Logo />}
+           <AppBarNav></AppBarNav>
      
       <Notification />
       {!downLG && <Profile />}
