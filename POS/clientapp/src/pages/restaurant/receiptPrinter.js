@@ -25,7 +25,7 @@ const safeText = (text) =>
 const generateReceiptText = (params) => {
     const { type, storeInfo, items } = params;
     const lines = [];
-
+    console.log('Generating receipt text with params:', params);
     const storeName = storeInfo?.storeName || 'Store Name';
     const address = storeInfo?.address || 'Store Address';
     const gst = storeInfo?.gstin || '-';

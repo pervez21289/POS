@@ -1,5 +1,5 @@
 import React from 'react';
-import { Paper, Typography, Stack, IconButton, Box, Button } from '@mui/material';
+import { Paper, Typography, Stack, IconButton, Box } from '@mui/material';
 import TableBarIcon from '@mui/icons-material/TableBar';
 import TableCard from './TableCard';
 
@@ -15,21 +15,11 @@ const ActiveTablesSection = ({
     onDeleteTable,
     onPrintKOT,
 }) => {
+    // If no tables, render nothing
     if (!draftCarts.length) return null;
 
-    if (!showTableLayout) {
-        return (
-            <Button
-                variant="outlined"
-                size="small"
-                startIcon={<TableBarIcon />}
-                onClick={() => onToggleShow(true)}
-                sx={{ mb: 1.5, borderRadius: 2, textTransform: 'none', minHeight: 40 }}
-            >
-                Show Active Tables ({draftCarts.length})
-            </Button>
-        );
-    }
+    // If collapsed, render nothing (the button is removed)
+    if (!showTableLayout) return null;
 
     return (
         <Paper elevation={2} sx={{ p: { xs: 1.5, sm: 2 }, mb: 1.5, borderRadius: 3, bgcolor: 'white' }}>
@@ -55,9 +45,9 @@ const ActiveTablesSection = ({
                     gridAutoFlow: { xs: 'column', sm: 'row' },
                     gridAutoColumns: { xs: '38%', sm: 'unset' },
                     gridTemplateColumns: {
-                        sm: 'repeat(3, 1fr)',
-                        md: 'repeat(4, 1fr)',
-                        lg: 'repeat(6, 1fr)',
+                        sm: 'repeat(2, 1fr)',
+                        md: 'repeat(3, 1fr)',
+                        lg: 'repeat(4, 1fr)',
                     },
                     gap: { xs: 1.25, sm: 2 },
                     overflowX: { xs: 'auto', sm: 'visible' },

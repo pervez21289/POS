@@ -6,8 +6,8 @@ import DeleteIcon from '@mui/icons-material/Delete';
 
 const TableCard = ({ tableNo, items, isSelected, onSelect, onDelete, onPrintKOT }) => {
     const itemCount = items?.length || 0;
-    const totalAmount = items?.reduce((sum, item) => sum + (item.salePrice * item.quantity), 0) || 0;
-
+    const totalAmount = items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+  
     const handlePrintKOT = async (e) => {
         e.stopPropagation();
         await onPrintKOT(tableNo, items);

@@ -71,10 +71,10 @@ const CartPanel = ({
                                 >
                                     <Stack direction="row" justifyContent="space-between" alignItems="flex-start" spacing={1}>
                                         <Box sx={{ minWidth: 0, flex: 1 }}>
-                                            <Typography fontWeight={600} noWrap sx={{ fontSize: '0.9rem' }}>
+                                            <Typography fontWeight={600} noWrap sx={{ fontSize: '0.82rem' }}>
                                                 {item.name}
                                             </Typography>
-                                            <Typography variant="caption" color="text.secondary">
+                                            <Typography sx={{ fontSize: '0.7rem' }} color="text.secondary">
                                                 ₹{item.price.toFixed(2)} each
                                             </Typography>
                                         </Box>
@@ -101,7 +101,7 @@ const CartPanel = ({
                                             >
                                                 <RemoveIcon fontSize="small" />
                                             </IconButton>
-                                            <Typography fontWeight="bold" sx={{ minWidth: 24, textAlign: 'center' }}>
+                                            <Typography fontWeight="bold" sx={{ minWidth: 24, textAlign: 'center', fontSize: '0.85rem' }}>
                                                 {item.quantity}
                                             </Typography>
                                             <IconButton
@@ -115,7 +115,7 @@ const CartPanel = ({
                                                 <AddIcon fontSize="small" />
                                             </IconButton>
                                         </Stack>
-                                        <Typography fontWeight="bold" color="primary.main">
+                                        <Typography fontWeight="bold" color="primary.main" sx={{ fontSize: '0.85rem' }}>
                                             ₹{(item.quantity * item.price).toFixed(2)}
                                         </Typography>
                                     </Stack>
@@ -148,10 +148,10 @@ const CartPanel = ({
                             ) : (
                                 cartItems.map((item) => (
                                     <TableRow key={item.productID} hover>
-                                        <TableCell sx={{ fontSize: '0.75rem', fontFamily: 'monospace' }}>
+                                        <TableCell sx={{ fontSize: '0.7rem', fontFamily: 'monospace' }}>
                                             {item.barcode || '-'}
                                         </TableCell>
-                                        <TableCell sx={{ fontWeight: 500, fontSize: '0.8rem' }}>
+                                        <TableCell sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
                                             {item.name}
                                         </TableCell>
                                         <TableCell align="center">
@@ -184,10 +184,10 @@ const CartPanel = ({
                                                 </IconButton>
                                             </Stack>
                                         </TableCell>
-                                        <TableCell align="right" sx={{ fontSize: '0.75rem' }}>
+                                        <TableCell align="right" sx={{ fontSize: '0.7rem' }}>
                                             ₹{item.price.toFixed(2)}
                                         </TableCell>
-                                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.8rem' }}>
+                                        <TableCell align="right" sx={{ fontWeight: 'bold', fontSize: '0.75rem' }}>
                                             ₹{(item.quantity * item.price).toFixed(2)}
                                         </TableCell>
                                         <TableCell align="center">
@@ -249,29 +249,6 @@ const CartPanel = ({
 
             {/* Footer with Print and Checkout buttons */}
             <Stack spacing={1} sx={{ mt: 2 }}>
-                {onPrintOrder && (
-                    <Button
-                        variant="outlined"
-                        fullWidth
-                        startIcon={<PrintIcon />}
-                        onClick={onPrintOrder}
-                        disabled={cartItems.length === 0}
-                        sx={{
-                            borderRadius: 2,
-                            py: 1.2,
-                            textTransform: 'none',
-                            fontSize: '0.95rem',
-                            borderColor: '#1976d2',
-                            color: '#1976d2',
-                            '&:hover': {
-                                borderColor: '#1565c0',
-                                backgroundColor: 'rgba(25, 118, 210, 0.04)',
-                            },
-                        }}
-                    >
-                        Print Order
-                    </Button>
-                )}
                 <Button
                     variant="contained"
                     color="primary"

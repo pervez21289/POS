@@ -49,6 +49,8 @@ const SalesPOSPage = () => {
     const { handleSaveKOT, handleLoadKOT, handleDeleteKOT, handleNewOrder } = useKOTActions({
         receiptInfo, draftCarts, selectedTable, setSelectedTable, setKOTModalOpen,
     });
+
+    console.log('SalesPOSPage render: receiptInfo:',basicSettings);
     const { handlePrintKOT, handlePrintOrder, handlePrintReceipt, handleTestPrinter } = usePrintActions({
         basicSettings, receiptInfo, selectedTable,
     });
@@ -89,13 +91,22 @@ const SalesPOSPage = () => {
     const cartTotal = receiptInfo?.netAmount || receiptInfo?.totalAmount || 0;
     const showMobileCartBar = isMobile && cartItems.length > 0 && !isCartDrawerOpen;
 
+    const onOpenPrinterSettings = () => {
+        if (window.ReactNativeWebView) {
+            window.ReactNativeWebView?.postMessage('OPEN_SETTINGS');
+        }
+        else {
+            setPrinterSettingsOpen(true);
+        }
+    }
+
     return (
         <Box
             sx={{
                 height: 'calc(100vh - 80px)',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: '#fff',
+                bgcolor: '#f4f6f8',
                 p: 1,
                 width: 'auto',
                 mx: { xs: -2, sm: -5 },
@@ -108,45 +119,54 @@ const SalesPOSPage = () => {
                 isMobile={isMobile}
                 cartItemCount={cartItems.length}
                 onSaveKOT={handleSaveKOT}
-                onViewKOTs={() => setKOTModalOpen(true)}
+                onViewKOTs={() => {
+                    setShowTableLayout(true);   // expand the active tables section
+                   
+                }}
                 onNewOrder={handleNewOrder}
                 onPrintOrder={handlePrintOrder}
                 onTestPrinter={handleTestPrinter}
-                onOpenPrinterSettings={() => setPrinterSettingsOpen(true)}
+                onOpenPrinterSettings={() => onOpenPrinterSettings()}
                 onToggleCartDrawer={toggleCartDrawer}
             />
 
-            <ActiveTablesSection
-                draftCarts={draftCarts}
-                selectedTable={selectedTable}
-                showTableLayout={showTableLayout}
-                onToggleShow={setShowTableLayout}
-                onSelectTable={handleLoadKOT}
-                onDeleteTable={handleDeleteKOT}
-                onPrintKOT={handlePrintKOT}
-            />
-
-            {/* Main Grid */}
+            {/* Main Grid: left column (active tables + products) sits beside a
+                right column that CartPanel fills top-to-bottom, independent of
+                whatever height the active-tables strip takes above the grid. */}
             <Grid container spacing={1} sx={{ flex: 1, minHeight: 0, width: '100%', margin: 0 }}>
-                {/* Product Panel */}
-                <Grid size={{ xs: 12, md: 8, lg: 8 }} sx={{ height: '100%' }}>
-                    <ProductPanel
-                        filteredProducts={filteredProducts}
-                        searchInput={searchInput}
-                        onSearchInputChange={setSearchInput}
-                        onSelectProduct={addToCart}
-                        barcodeRef={barcodeRef}
-                        barcodeValue={barcodeValue}
-                        onBarcodeValueChange={setBarcodeValue}
-                        onBarcodeSubmit={handleBarcodeSubmit}
-                        loading={loading}
-                        onRefresh={refreshProducts}
-                        cartItems={cartItems}
-                        onAddToCart={addToCart}
+                {/* Left column: active tables + product panel */}
+                <Grid
+                    size={{ xs: 12, md: 8, lg: 8 }}
+                    sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}
+                >
+                    <ActiveTablesSection
+                        draftCarts={draftCarts}
+                        selectedTable={selectedTable}
+                        showTableLayout={showTableLayout}
+                        onToggleShow={setShowTableLayout}
+                        onSelectTable={handleLoadKOT}
+                        onDeleteTable={handleDeleteKOT}
+                        onPrintKOT={handlePrintKOT}
                     />
+                    <Box sx={{ flex: 1, minHeight: 0 }}>
+                        <ProductPanel
+                            filteredProducts={filteredProducts}
+                            searchInput={searchInput}
+                            onSearchInputChange={setSearchInput}
+                            onSelectProduct={addToCart}
+                            barcodeRef={barcodeRef}
+                            barcodeValue={barcodeValue}
+                            onBarcodeValueChange={setBarcodeValue}
+                            onBarcodeSubmit={handleBarcodeSubmit}
+                            loading={loading}
+                            onRefresh={refreshProducts}
+                            cartItems={cartItems}
+                            onAddToCart={addToCart}
+                        />
+                    </Box>
                 </Grid>
 
-                {/* Cart Panel (desktop) */}
+                {/* Cart Panel (desktop) — full height of the row */}
                 {!isMobile && (
                     <Grid size={{ md: 4, lg: 4 }} sx={{ height: '100%' }}>
                         <CartPanel

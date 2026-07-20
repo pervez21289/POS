@@ -38,25 +38,25 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
 
     const printReceipts = (sale) => {
         // Print KOT first
-        const kotNo = `KOT${Date.now().toString().slice(-6)}`;
-        printReceipt({
-            type: 'kot',
-            items: sale.saleItems.map(item => ({
-                name: item.name,
-                barcode: item.barcode || '-',
-                quantity: item.quantity,
-                price: item.salePrice || item.price || 0,
-            })),
-            storeInfo: basicSettings,
-            tableNo: sale.tableNo || 'N/A',
-            kotNo: kotNo,
-            subtotal: sale.totalAmount || 0,
-            title: 'Kitchen Order',
-            useIframe: false,
-        });
+        // const kotNo = `KOT${Date.now().toString().slice(-6)}`;
+        // printReceipt({
+        //     type: 'kot',
+        //     items: sale.saleItems.map(item => ({
+        //         name: item.name,
+        //         barcode: item.barcode || '-',
+        //         quantity: item.quantity,
+        //         price: item.salePrice || item.price || 0,
+        //     })),
+        //     storeInfo: basicSettings,
+        //     tableNo: sale.tableNo || 'N/A',
+        //     kotNo: kotNo,
+        //     subtotal: sale.totalAmount || 0,
+        //     title: 'Kitchen Order',
+        //     useIframe: false,
+        // });
 
         // Print Bill after a short delay
-        setTimeout(() => {
+       
             printReceipt({
                 type: 'sale',
                 sale: sale,
@@ -69,7 +69,7 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
                 storeInfo: basicSettings,
                 title: 'Receipt',
             });
-        }, 500);
+       
     };
 
     // Handle checkout (payment)

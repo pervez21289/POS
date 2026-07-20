@@ -30,7 +30,7 @@ export default function usePrintActions({ basicSettings, receiptInfo, selectedTa
         try {
             const kotNo = `KOT${Date.now().toString().slice(-6)}`;
             const totalAmount = sumItems(items);
-
+            console.log('Print result:', basicSettings);
             const result = await printReceipt({
                 type: 'kot',
                 storeInfo: buildStoreInfo(basicSettings),

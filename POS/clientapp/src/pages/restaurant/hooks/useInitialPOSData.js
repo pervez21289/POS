@@ -5,6 +5,7 @@ import { setPlan } from '../../../store/reducers/users';
 import PaymentService from '../../../services/PaymentService';
 import { manualProductSync, getProductsSync } from '../../../hooks/useProductSync';
 import { checkService, listPrinters } from '../receiptPrinter';
+import { loadBasicSettings } from '../../../store/reducers/sales';
 
 // Handles the page's one-time startup work:
 // - verifies the active subscription plan (redirects if not active)
@@ -23,6 +24,7 @@ export default function useInitialPOSData({ draftCarts, selectedTable, setSelect
             try {
                 const plan = await PaymentService.GetCurrentActivePlan();
                 dispatch(setPlan(plan));
+                dispatch(loadBasicSettings());
                 if (plan?.planStatus !== 'Active') {
                     navigate('/subscriptionplan');
                     return;

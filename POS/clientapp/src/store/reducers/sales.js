@@ -2,7 +2,7 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { getSettingsSync } from '../../hooks/useProductSync';
 
-let basicSettings = 0;
+
 
 // Async thunk to load GST
 export const loadBasicSettings = createAsyncThunk('sales/loadBasicSettings', async () => {
