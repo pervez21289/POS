@@ -67,7 +67,7 @@ export default function usePrintActions({ basicSettings, receiptInfo, selectedTa
     const handlePrintReceipt = async (saleData) => {
         try {
             const totalAmount = sumItems(saleData.items);
-
+            debugger;
             const result = await printReceipt({
                 type: 'sale',
                 storeInfo: buildStoreInfo(basicSettings),

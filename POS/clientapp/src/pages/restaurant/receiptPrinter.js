@@ -23,6 +23,7 @@ const safeText = (text) =>
 
 // ---------- Receipt text generator ----------
 const generateReceiptText = (params) => {
+    debugger;
     const { type, storeInfo, items } = params;
     const lines = [];
     console.log('Generating receipt text with params:', params);
@@ -73,27 +74,28 @@ const generateReceiptText = (params) => {
 
     lines.push('-'.repeat(LINE_WIDTH));
 
+    // ---------- Declare variables that will be used later ----------
     let subtotal = 0, cgst = 0, sgst = 0, halfGstRate = 0, netAmount = 0;
+    let itemCount = params.itemCount || items?.length || 0;
 
     if (type === 'summary' || type === 'kot') {
         subtotal = params.subtotal || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
         netAmount = subtotal;
-        const itemCount = params.itemCount || items?.length || 0;
         lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
     } else if (type === 'sale') {
         const sale = params.sale;
-        subtotal = sale.totalAmount || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
-        cgst = sale.cgst || 0;
-        sgst = sale.sgst || 0;
-        halfGstRate = sale.halfGstRate || 0;
-        netAmount = sale.netAmount || subtotal;
-        const itemCount = params.itemCount || items?.length || 0;
+        // Safely convert all monetary values to numbers
+        subtotal = parseFloat(sale.totalAmount) || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+        cgst = parseFloat(sale.cgst) || 0;
+        sgst = parseFloat(sale.sgst) || 0;
+        halfGstRate = parseFloat(sale.halfGstRate) || 0;
+        netAmount = parseFloat(sale.netAmount) || subtotal;
+        const totalAmount = parseFloat(sale.totalAmount) || subtotal;
+
         lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
-    }
+        lines.push(`${padRight('Subtotal:', 14)}${padLeft(totalAmount.toFixed(2), 12)}`);
 
-    lines.push(`${padRight('Subtotal:', 14)}${padLeft(subtotal.toFixed(2), 12)}`);
-
-    if (type === 'sale' && (cgst > 0 || sgst > 0)) {
+        // Always print CGST and SGST lines (even if zero) for clarity
         lines.push(`${padRight(`CGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(cgst.toFixed(2), 14)}`);
         lines.push(`${padRight(`SGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(sgst.toFixed(2), 14)}`);
     }
@@ -104,6 +106,21 @@ const generateReceiptText = (params) => {
         lines.push(center('=== FOR KITCHEN ==='));
         lines.push(center('Please prepare'));
     } else {
+        // For summary and sale, we show the total payable
+        if (type === 'summary') {
+            // In summary mode, subtotal was already set; we need to display it as Total Payable
+            // But we already printed "Subtotal" in the summary block? Actually we didn't.
+            // For summary, we only printed items count, not subtotal. Let's add it.
+            // To keep consistent, we'll add subtotal line if not already printed.
+            // But we have not printed subtotal for summary, so do it now:
+            if (type === 'summary') {
+                // re-add subtotal if not already shown
+                lines.push(`${padRight('Subtotal:', 14)}${padLeft(subtotal.toFixed(2), 12)}`);
+                lines.push('-'.repeat(LINE_WIDTH));
+            }
+            // For summary, netAmount = subtotal
+            netAmount = subtotal;
+        }
         lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${netAmount.toFixed(2)}`, 14)}`);
         lines.push('-'.repeat(LINE_WIDTH));
         lines.push(center('Thank you!'));

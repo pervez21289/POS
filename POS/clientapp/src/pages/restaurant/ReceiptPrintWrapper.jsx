@@ -84,7 +84,7 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
             setMobileError('Invalid mobile number');
             return;
         }
-
+        debugger;
         setLoading(true);
         try {
             const sale = {
@@ -102,6 +102,10 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
                 saleTime: formatDateTime(new Date()),
                 userName: userDetails?.name || '',
                 tableNo: tableNo || 'N/A',
+                cgst: receiptInfo?.cgst || 0,
+                sgst: receiptInfo?.sgst || 0,
+                netAmount: receiptInfo?.netAmount || 0,
+                halfGstRate: receiptInfo?.halfGstRate || 0
             };
 
             await addBill(sale);
@@ -211,7 +215,7 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
                         Total Amount
                     </Typography>
                     <Typography variant="h4" color="primary.main" fontWeight="bold">
-                        ₹{receiptInfo?.totalAmount?.toFixed(2) || '0.00'}
+                        ₹{receiptInfo?.netAmount?.toFixed(2) || '0.00'}
                     </Typography>
                 </Box>
 

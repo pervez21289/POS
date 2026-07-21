@@ -50,7 +50,7 @@ const SalesPOSPage = () => {
         receiptInfo, draftCarts, selectedTable, setSelectedTable, setKOTModalOpen,
     });
 
-    console.log('SalesPOSPage render: receiptInfo:',basicSettings);
+    
     const { handlePrintKOT, handlePrintOrder, handlePrintReceipt, handleTestPrinter } = usePrintActions({
         basicSettings, receiptInfo, selectedTable,
     });
