@@ -39,14 +39,15 @@ export default function DashboardLayout() {
                     sx={{
                         width: 'calc(100% - 260px)',
                         flexGrow: 1,
-                        p: { xs: 2, sm: 3 },
-                        mt:8
+                        p: { xs: 2, sm: 3 },   // sets all sides (top, right, bottom, left)
+                        mt: 7,
+                        px: 1
                     }}
                 >
                    
                     <Box
                         sx={{
-                            px: { xs: 0, sm: 2 },
+                            px: { xs: 0, sm: 2},
                             position: 'relative',
                             minHeight: 'calc(100vh - 110px)',
                             display: 'flex',

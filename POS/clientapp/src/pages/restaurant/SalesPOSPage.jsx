@@ -106,8 +106,8 @@ const SalesPOSPage = () => {
                 height: 'calc(100vh - 80px)',
                 display: 'flex',
                 flexDirection: 'column',
-                bgcolor: '#f4f6f8',
-                p: 1,
+                px: 2,          // left & right padding
+                pt: 0, 
                 width: 'auto',
                 mx: { xs: -2, sm: -5 },
                 // leave room so the sticky bottom cart bar never covers the last product row
@@ -136,7 +136,7 @@ const SalesPOSPage = () => {
             <Grid container spacing={1} sx={{ flex: 1, minHeight: 0, width: '100%', margin: 0 }}>
                 {/* Left column: active tables + product panel */}
                 <Grid
-                    size={{ xs: 12, md: 8, lg: 8 }}
+                    size={{ xs: 12, md: 8, lg: 7 }}
                     sx={{ height: '100%', display: 'flex', flexDirection: 'column', minHeight: 0 }}
                 >
                     <ActiveTablesSection
@@ -168,7 +168,7 @@ const SalesPOSPage = () => {
 
                 {/* Cart Panel (desktop) — full height of the row */}
                 {!isMobile && (
-                    <Grid size={{ md: 4, lg: 4 }} sx={{ height: '100%' }}>
+                    <Grid size={{ md: 4, lg: 5 }} sx={{ height: '100%' }}>
                         <CartPanel
                             cartItems={cartItems}
                             totalAmount={receiptInfo?.totalAmount || 0}

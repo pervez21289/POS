@@ -42,17 +42,6 @@ const CartPanel = ({
             }}
         >
             {/* Header */}
-            <Stack direction="row" alignItems="center" spacing={1} mb={1}>
-                <Badge badgeContent={totalItems} color="primary" showZero>
-                    <ShoppingCartCheckoutIcon color="action" />
-                </Badge>
-                <Typography variant="h6" fontWeight="bold" sx={{ flex: 1 }}>
-                    Cart
-                </Typography>
-                <Chip label={`${totalItems} items`} size="small" variant="outlined" />
-            </Stack>
-
-            <Divider />
 
             {isMobile ? (
                 <Box sx={{ flex: 1, overflow: 'auto', mt: 1 }}>
@@ -247,18 +236,6 @@ const CartPanel = ({
 
             {/* Footer with Print and Checkout buttons */}
             <Stack spacing={1} sx={{ mt: 2 }}>
-                <Button
-                    variant="outlined"
-                    color="primary"
-                    fullWidth
-                    startIcon={<PrintIcon />}
-                    disabled={cartItems.length === 0}
-                    onClick={onPrintOrder}
-                    sx={{ borderRadius: 2, py: 1, textTransform: 'none' }}
-                >
-                    Print Order
-                </Button>
-
                 <Button
                     variant="contained"
                     color="primary"

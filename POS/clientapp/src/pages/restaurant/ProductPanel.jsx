@@ -23,7 +23,6 @@ const ProductPanel = ({
             elevation={2}
             sx={{
                 p: 1.5,
-                height: '100%',
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: 3,
@@ -44,7 +43,7 @@ const ProductPanel = ({
                 onRefresh={onRefresh}
             />
 
-            <Box sx={{ flex: 1, overflow: 'auto', pt: 0.5 }}>
+            <Box sx={{ flex: 1, overflow: 'auto', p: 0.5 }}>
                 <ProductGrid
                     products={filteredProducts}
                     cartItems={cartItems}
