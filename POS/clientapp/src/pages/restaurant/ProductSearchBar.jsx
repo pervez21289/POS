@@ -21,7 +21,7 @@ const ProductSearchBar = ({
     onRefresh,
 }) => {
     return (
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.25} alignItems="center" mb={1.5}>
+        <Stack direction="row" sx={{ width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }} spacing={1.25} alignItems="center" mb={1.5}>
             <Autocomplete
                 value={null}
                 onChange={(_, newValue) => {
@@ -61,43 +61,14 @@ const ProductSearchBar = ({
                 )}
                 sx={{ flex: 2, width: '100%' }}
             />
-
-            <Stack
-                direction="row"
-                spacing={1}
-                sx={{ width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }}
+            <IconButton
+                onClick={onRefresh}
+                disabled={loading}
+                sx={{ border: '1px solid #e0e0e0', borderRadius: 2, width: 44,  flexShrink: 0 }}
             >
-                <TextField
-                    inputRef={barcodeRef}
-                    value={barcodeValue}
-                    onChange={(e) => onBarcodeValueChange(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && onBarcodeSubmit()}
-                    label="Scan Barcode"
-                    size="small"
-                    placeholder="Type or scan"
-                    sx={{ flex: 1, minWidth: 0 }}
-                    InputProps={{
-                        startAdornment: (
-                            <Box sx={{ ml: 1, mr: -1 }}>
-                                <QrCodeScannerIcon color="action" />
-                            </Box>
-                        ),
-                        endAdornment: (
-                            <IconButton onClick={onBarcodeSubmit} size="small" edge="end">
-                                <SearchIcon />
-                            </IconButton>
-                        ),
-                    }}
-                />
-
-                <IconButton
-                    onClick={onRefresh}
-                    disabled={loading}
-                    sx={{ border: '1px solid #e0e0e0', borderRadius: 2, width: 44, height: 44, flexShrink: 0 }}
-                >
-                    <RefreshIcon color={loading ? 'disabled' : 'primary'} />
-                </IconButton>
-            </Stack>
+                <RefreshIcon color={loading ? 'disabled' : 'primary'} />
+            </IconButton>
+           
         </Stack>
     );
 };

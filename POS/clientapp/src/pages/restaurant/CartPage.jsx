@@ -1,8 +1,8 @@
-﻿import React, { useState } from 'react';
+﻿import React from 'react';
 import {
     Box, Typography, Divider, Card, Stack,
-    IconButton, Button, TextField, useMediaQuery, Paper,
-    TableContainer, Table, TableHead, TableRow, TableCell, TableBody, FormControlLabel, Switch
+    IconButton, Button, TextField, Paper,
+    TableContainer, Table, TableHead, TableRow, TableCell, TableBody
 } from '@mui/material';
 import ClearIcon from '@mui/icons-material/Clear';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
@@ -15,13 +15,12 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import useIsMobile from './../../components/useIsMobile';
 
 const CartPage = () => {
-    const [notes, setNotes] = useState('');
     const dispatch = useDispatch();
-    const { receiptInfo, isSearch } = useSelector((state) => state.sales);
+    const { receiptInfo } = useSelector((state) => state.sales);
     const isMobile = useIsMobile();
     const fontSize = isMobile ? '11px' : '12px';
 
-
+    const lineTotal = (item) => item.quantity * (item.price - (item.discount || 0));
 
     const updateQty = (productID, qty) => {
         const currentCart = receiptInfo?.saleItems ?? [];
@@ -55,9 +54,8 @@ const CartPage = () => {
                         <Box>
                             <Typography fontWeight="bold">{item.name}</Typography>
                             <Typography variant="body2" color="text.secondary">Barcode: {item.barcode}</Typography>
-                            <Typography variant="body2">Price: ₹{item.costPrice.toFixed(2)}</Typography>
-                            
-                            <Typography variant="body2">Subtotal: ₹{(item.quantity * (item.price - (item.discount || 0))).toFixed(2)}</Typography>
+                            <Typography variant="body2">Price: ₹{item.price.toFixed(2)}</Typography>
+                            <Typography variant="body2">Subtotal: ₹{lineTotal(item).toFixed(2)}</Typography>
                         </Box>
                         <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
                             <ClearIcon />
@@ -91,7 +89,6 @@ const CartPage = () => {
                     <TableRow>
                         <TableCell sx={{ fontSize }}>Barcode</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Price</TableCell>
-                       
                         <TableCell sx={{ fontSize }} align="center">Qty</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Subtotal</TableCell>
                         <TableCell sx={{ fontSize }} align="right">Action</TableCell>
@@ -101,14 +98,13 @@ const CartPage = () => {
                     {receiptInfo?.saleItems?.map((item) => (
                         <React.Fragment key={item.productID}>
                             <TableRow>
-                                <TableCell colSpan={6} sx={{ p: 0.5, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
+                                <TableCell colSpan={5} sx={{ p: 0.5, fontWeight: 'bold', fontSize, borderBottom: 'none' }}>
                                     {item.name}
                                 </TableCell>
                             </TableRow>
                             <TableRow>
                                 <TableCell sx={{ p: 0.5, fontSize }}>{item.barcode}</TableCell>
-                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.costPrice?.toFixed(2)}</TableCell>
-                             
+                                <TableCell align="right" sx={{ p: 0.5, fontSize }}>{item.price?.toFixed(2)}</TableCell>
                                 <TableCell align="center" sx={{ fontSize }}>
                                     <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
                                         <IconButton
@@ -138,7 +134,7 @@ const CartPage = () => {
                                     </Stack>
                                 </TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>
-                                    {(item.quantity *item.price ).toFixed(2)}
+                                    {lineTotal(item).toFixed(2)}
                                 </TableCell>
                                 <TableCell align="right" sx={{ p: 0.5, fontSize }}>
                                     <IconButton color="error" onClick={() => removeFromCart(item.productID)}>
@@ -166,8 +162,6 @@ const CartPage = () => {
                         Cart
                     </Typography>
                 </Stack>
-
-               
             </Stack>
 
             {receiptInfo?.saleItems?.length === 0 ? (
@@ -178,15 +172,12 @@ const CartPage = () => {
                 isMobile ? renderMobileCart() : renderDesktopCart()
             )}
 
-         
-
             <Divider sx={{ my: 2 }} />
 
             <Stack direction={isMobile ? 'column' : 'row'} spacing={2} justifyContent="space-between" alignItems={isMobile ? 'flex-start' : 'center'}>
                 <Box>
                     <Typography variant="subtitle2" color="text.secondary">
-                      
-                        <Typography component="span" variant="h4" >
+                        <Typography component="span" variant="h4">
                             Total:&nbsp;
                         </Typography>
                         <Typography component="span" variant="h4" color="primary.main">
@@ -197,7 +188,6 @@ const CartPage = () => {
                             {receiptInfo?.totalItems}
                         </Typography>
                     </Typography>
-                    
                 </Box>
                 <Button
                     variant="contained"

@@ -259,12 +259,14 @@ const SalesPOSPage = () => {
             )}
 
             {/* KOT Manager Modal */}
+          
             <KOTManager
                 open={isKOTModalOpen}
                 onClose={() => setKOTModalOpen(false)}
                 drafts={draftCarts}
                 onLoad={handleLoadKOT}
                 onDelete={handleDeleteKOT}
+                onPrintKOT={handlePrintKOT}
             />
 
             {/* Payment Modal */}

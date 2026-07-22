@@ -21,23 +21,34 @@ import {
     FormControlLabel
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
 
-const SERVICE_URL = 'http://localhost:3001';
+const SERVICE_URL = import.meta.env.REACT_APP_PRINT_SERVICE_URL || 'http://localhost:3001';
 
-// Common fonts available on most Windows systems
+// Common fonts available on most Windows systems.
+// NOTE: this only affects single-line text (store name, footer, etc).
+// The item/qty/rate/total table always prints in monospace regardless of this
+// setting — that's required for the columns to stay aligned on any printer.
 const FONT_OPTIONS = [
-    'Courier New',
-    'Consolas',
-    'Lucida Console',
-    'Arial',
-    'Tahoma',
-    'Verdana',
-    'Times New Roman',
-    'Georgia'
+    'Segoe UI', 'Arial', 'Calibri', 'Roboto', 'Verdana', 'Tahoma',
+    'Courier New', 'Consolas', 'Lucida Console',
+    'Times New Roman', 'Georgia'
 ];
+
+// Suggested character width per paper size (56mm rolls are tighter than 58mm).
+// These are starting points — actual capacity depends on font size and printer,
+// so the field below stays editable.
+const PAGE_SIZE_OPTIONS = [
+    { value: '56mm', label: '56mm', defaultLineWidth: 26 },
+    { value: '58mm', label: '58mm', defaultLineWidth: 32 },
+    { value: '80mm', label: '80mm', defaultLineWidth: 48 },
+];
+
+const getDefaultLineWidth = (pageSize) =>
+    PAGE_SIZE_OPTIONS.find((p) => p.value === pageSize)?.defaultLineWidth || 32;
 
 const PrinterSettings = ({ open, onClose }) => {
     const [printers, setPrinters] = useState([]);
@@ -47,14 +58,14 @@ const PrinterSettings = ({ open, onClose }) => {
     const [saveStatus, setSaveStatus] = useState(null);
     const [serviceOnline, setServiceOnline] = useState(null);
 
-    // Print configuration state (logo & payment QR only)
+    // Print configuration state
     const [printConfig, setPrintConfig] = useState({
         fontSize: 10,
         pageSize: '58mm',
+        lineWidth: 32,
         fontFamily: 'Courier New',
         bold: true,
         logoBase64: null,
-        // Payment QR / Image (static)
         paymentQRBase64: null
     });
 
@@ -114,9 +125,11 @@ const PrinterSettings = ({ open, onClose }) => {
             const stored = localStorage.getItem('pos_print_config');
             if (stored) {
                 const config = JSON.parse(stored);
+                const pageSize = config.pageSize || '58mm';
                 setPrintConfig({
                     fontSize: config.fontSize || 10,
-                    pageSize: config.pageSize || '58mm',
+                    pageSize,
+                    lineWidth: config.lineWidth || getDefaultLineWidth(pageSize),
                     fontFamily: config.fontFamily || 'Courier New',
                     bold: config.bold !== undefined ? config.bold : true,
                     logoBase64: config.logoBase64 || null,
@@ -130,6 +143,15 @@ const PrinterSettings = ({ open, onClose }) => {
 
     const saveStoredConfig = () => {
         localStorage.setItem('pos_print_config', JSON.stringify(printConfig));
+    };
+
+    const handlePageSizeChange = (newPageSize) => {
+        setPrintConfig((prev) => ({
+            ...prev,
+            pageSize: newPageSize,
+            // Auto-suggest a width for the new paper size; user can still edit it below.
+            lineWidth: getDefaultLineWidth(newPageSize),
+        }));
     };
 
     const handleSave = () => {
@@ -147,7 +169,7 @@ const PrinterSettings = ({ open, onClose }) => {
         setTimeout(() => {
             onClose();
             setSaveStatus(null);
-        }, 2000);
+        }, 100);
     };
 
     // ----- Logo Handlers -----
@@ -198,15 +220,19 @@ const PrinterSettings = ({ open, onClose }) => {
         setSaveStatus(null);
 
         try {
-            const testText = `================================
-        TEST PRINT
-================================
+            const width = printConfig.lineWidth || 32;
+            const rule = '='.repeat(width);
+            const testText = `${rule}
+${' '.repeat(Math.max(Math.floor((width - 10) / 2), 0))}TEST PRINT
+${rule}
 Printer: ${selectedPrinter}
 Date: ${new Date().toLocaleString()}
-================================
-If you can read this, your
-printer is working correctly!
-================================
+Width: ${width} chars (${printConfig.pageSize})
+${rule}
+If you can read this clearly,
+your printer and paper width
+are configured correctly.
+${rule}
 `;
 
             const response = await fetch(`${SERVICE_URL}/api/print`, {
@@ -216,7 +242,13 @@ printer is working correctly!
                     data: [{
                         type: 'text',
                         value: testText,
-                        style: { fontSize: '12px', fontFamily: 'monospace' }
+                        style: {
+                            fontSize: `${printConfig.fontSize}px`,
+                            // Always monospace here too — this is a column-based test
+                            // and must reflect the same rendering rule as real receipts.
+                            fontFamily: 'monospace',
+                            fontWeight: printConfig.bold ? 'bold' : 'normal',
+                        }
                     }],
                     printerName: selectedPrinter,
                     config: printConfig // includes logo & payment QR
@@ -315,7 +347,7 @@ printer is working correctly!
                             Print Settings
                         </Typography>
 
-                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
                             <TextField
                                 label="Font Size"
                                 type="number"
@@ -329,16 +361,29 @@ printer is working correctly!
                                 <InputLabel>Paper Size</InputLabel>
                                 <Select
                                     value={printConfig.pageSize}
-                                    onChange={(e) => setPrintConfig({ ...printConfig, pageSize: e.target.value })}
+                                    onChange={(e) => handlePageSizeChange(e.target.value)}
                                     label="Paper Size"
                                 >
-                                    <MenuItem value="58mm">58mm</MenuItem>
-                                    <MenuItem value="80mm">80mm</MenuItem>
+                                    {PAGE_SIZE_OPTIONS.map((p) => (
+                                        <MenuItem key={p.value} value={p.value}>
+                                            {p.label}
+                                        </MenuItem>
+                                    ))}
                                 </Select>
                             </FormControl>
+                            <TextField
+                                label="Line Width (chars)"
+                                type="number"
+                                value={printConfig.lineWidth}
+                                onChange={(e) => setPrintConfig({ ...printConfig, lineWidth: parseInt(e.target.value) || getDefaultLineWidth(printConfig.pageSize) })}
+                                size="small"
+                                sx={{ width: 150 }}
+                                inputProps={{ min: 16, max: 64 }}
+                                helperText="Increase/decrease if columns overflow or leave gaps"
+                            />
                         </Stack>
 
-                        <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+                        <Stack direction="row" spacing={2} sx={{ mb: 0.5 }}>
                             <FormControl size="small" sx={{ minWidth: 180 }}>
                                 <InputLabel>Font Family</InputLabel>
                                 <Select
@@ -365,6 +410,10 @@ printer is working correctly!
                                 sx={{ ml: 0 }}
                             />
                         </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                            Font Family applies to single-line text only. Item/Qty table rows
+                            always print in monospace so columns stay aligned.
+                        </Typography>
 
                         {/* --- Logo Upload Section --- */}
                         <Divider sx={{ my: 2 }} />
@@ -378,7 +427,7 @@ printer is working correctly!
                                 variant="outlined"
                                 component="label"
                                 size="small"
-                                startIcon={<PrintIcon />}
+                                startIcon={<UploadFileIcon />}
                             >
                                 Upload Logo
                                 <input
@@ -428,7 +477,7 @@ printer is working correctly!
                                 variant="outlined"
                                 component="label"
                                 size="small"
-                                startIcon={<PrintIcon />}
+                                startIcon={<UploadFileIcon />}
                             >
                                 Upload QR/Image
                                 <input

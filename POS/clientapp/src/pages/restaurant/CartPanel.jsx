@@ -55,7 +55,6 @@ const CartPanel = ({
             <Divider />
 
             {isMobile ? (
-                // ---------- Mobile: card list (a 6-column table doesn't fit a phone screen) ----------
                 <Box sx={{ flex: 1, overflow: 'auto', mt: 1 }}>
                     {cartItems.length === 0 ? (
                         <Typography color="text.secondary" align="center" sx={{ py: 4 }}>
@@ -125,7 +124,6 @@ const CartPanel = ({
                     )}
                 </Box>
             ) : (
-                // ---------- Desktop / tablet: dense table ----------
                 <TableContainer sx={{ flex: 1, overflow: 'auto', mt: 1 }}>
                     <Table size="small" stickyHeader>
                         <TableHead>
@@ -249,6 +247,18 @@ const CartPanel = ({
 
             {/* Footer with Print and Checkout buttons */}
             <Stack spacing={1} sx={{ mt: 2 }}>
+                <Button
+                    variant="outlined"
+                    color="primary"
+                    fullWidth
+                    startIcon={<PrintIcon />}
+                    disabled={cartItems.length === 0}
+                    onClick={onPrintOrder}
+                    sx={{ borderRadius: 2, py: 1, textTransform: 'none' }}
+                >
+                    Print Order
+                </Button>
+
                 <Button
                     variant="contained"
                     color="primary"

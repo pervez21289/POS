@@ -12,6 +12,8 @@ import { formatDateTime } from '../../utils/common';
 import PaymentMode from './PaymentMode';
 import { printReceipt } from './receiptPrinter';
 
+const PAYMENT_STATUS_PAID = 1;
+
 const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
     const { receiptInfo, basicSettings } = useSelector(state => state.sales);
     const { userDetails } = useSelector((state) => state.users);
@@ -37,39 +39,18 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
     };
 
     const printReceipts = (sale) => {
-        // Print KOT first
-        // const kotNo = `KOT${Date.now().toString().slice(-6)}`;
-        // printReceipt({
-        //     type: 'kot',
-        //     items: sale.saleItems.map(item => ({
-        //         name: item.name,
-        //         barcode: item.barcode || '-',
-        //         quantity: item.quantity,
-        //         price: item.salePrice || item.price || 0,
-        //     })),
-        //     storeInfo: basicSettings,
-        //     tableNo: sale.tableNo || 'N/A',
-        //     kotNo: kotNo,
-        //     subtotal: sale.totalAmount || 0,
-        //     title: 'Kitchen Order',
-        //     useIframe: false,
-        // });
-
-        // Print Bill after a short delay
-       
-            printReceipt({
-                type: 'sale',
-                sale: sale,
-                items: sale.saleItems.map(item => ({
-                    name: item.name,
-                    barcode: item.barcode || '-',
-                    quantity: item.quantity,
-                    price: item.salePrice || item.price || 0,
-                })),
-                storeInfo: basicSettings,
-                title: 'Receipt',
-            });
-       
+        printReceipt({
+            type: 'sale',
+            sale: sale,
+            items: sale.saleItems.map(item => ({
+                name: item.name,
+                barcode: item.barcode || '-',
+                quantity: item.quantity,
+                price: item.salePrice || item.price || 0,
+            })),
+            storeInfo: basicSettings,
+            title: 'Receipt',
+        });
     };
 
     // Handle checkout (payment)
@@ -84,16 +65,17 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
             setMobileError('Invalid mobile number');
             return;
         }
-        debugger;
+
         setLoading(true);
         try {
             const sale = {
                 billNo: await generateInvoiceNumber(),
-                userID: 0,
+                userID: userDetails?.id || 0,
+                customerID: customerId || null,
                 totalAmount: receiptInfo?.totalAmount || 0,
                 discountAmount: receiptInfo?.discountAmount || 0,
                 taxAmount: receiptInfo?.taxAmount || 0,
-                paymentStatus: 1,
+                paymentStatus: PAYMENT_STATUS_PAID,
                 notes: receiptInfo?.notes || '',
                 mobileNumber: mobileNumber,
                 customerName: customerName,
@@ -133,7 +115,6 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
             sales: sale,
             isSynced: false
         });
-        console.log('Bill saved locally!');
     };
 
     const generateInvoiceNumber = async () => {
@@ -143,10 +124,10 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
         const day = String(now.getDate()).padStart(2, '0');
         const datePart = `${year}${month}${day}`;
 
-        const lastSynced = await db.bills.orderBy('id').reverse().first();
-        const lastSyncedId = lastSynced?.id ?? 1;
+        const lastLocalBill = await db.bills.orderBy('id').reverse().first();
+        const lastLocalId = lastLocalBill?.id ?? 1;
 
-        return `INV${datePart}${lastSyncedId}`;
+        return `INV${datePart}${lastLocalId}`;
     };
 
     return (

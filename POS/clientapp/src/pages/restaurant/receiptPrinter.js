@@ -2,10 +2,20 @@
  * Universal receipt printer - uses HTTP API with full configuration (logo, bold, fonts, static payment QR)
  */
 
-const SERVICE_URL = 'http://localhost:3001';
+const SERVICE_URL = import.meta.env.REACT_APP_PRINT_SERVICE_URL || 'http://localhost:3001';
 
 // ---------- Text formatting helpers ----------
-const LINE_WIDTH = 32;
+// 56mm rolls typically fit ~28-32 chars depending on font size; 28 is a safe default.
+// Override via config.lineWidth if a specific printer/paper needs more/less.
+const DEFAULT_LINE_WIDTH = 28;
+const QTY_COL_WIDTH = 3;
+
+// Column-aligned text (padRight/padLeft) is only valid in a TRUE monospace font.
+// Named fonts (Tahoma, Arial, even "Courier New" if not installed) can silently
+// fall back to a proportional font on the print-service host, breaking alignment
+// no matter what name is configured. The CSS generic keyword `monospace` is the
+// only choice guaranteed to resolve to *some* real monospace font everywhere.
+const PRINT_FONT_FAMILY = 'monospace';
 
 const padRight = (text, length) =>
     (text + ' '.repeat(Math.max(length - text.length, 0))).slice(0, length);
@@ -13,44 +23,50 @@ const padRight = (text, length) =>
 const padLeft = (text, length) =>
     (' '.repeat(Math.max(length - text.length, 0)) + text).slice(-length);
 
-const center = (text) => {
-    const space = Math.floor((LINE_WIDTH - text.length) / 2);
+const center = (text, lineWidth) => {
+    const space = Math.floor((lineWidth - text.length) / 2);
     return ' '.repeat(Math.max(space, 0)) + text;
 };
 
-const safeText = (text) =>
-    (text || '').toString().slice(0, LINE_WIDTH);
+const safeText = (text, lineWidth) =>
+    (text || '').toString().slice(0, lineWidth);
+
+// Accepts either `quantity` or `qty` in case an upstream mapping uses a different key
+const getItemQty = (item) => item?.quantity ?? item?.qty ?? 0;
 
 // ---------- Receipt text generator ----------
 const generateReceiptText = (params) => {
-    debugger;
     const { type, storeInfo, items } = params;
+    const config = getStoredConfig();
+    // Resolution order: explicit param > stored printer config > safe default
+    const lineWidth = params.lineWidth || config?.lineWidth || DEFAULT_LINE_WIDTH;
+    const nameColWidth = lineWidth - QTY_COL_WIDTH - 1; // -1 = guaranteed gap before qty
+
     const lines = [];
-    console.log('Generating receipt text with params:', params);
     const storeName = storeInfo?.storeName || 'Store Name';
     const address = storeInfo?.address || 'Store Address';
     const gst = storeInfo?.gstin || '-';
 
-    lines.push(center(safeText(storeName)));
-    lines.push(center(safeText(address)));
-    lines.push(center(`GST: ${safeText(gst)}`));
-    lines.push('-'.repeat(LINE_WIDTH));
+    lines.push(center(safeText(storeName, lineWidth), lineWidth));
+    lines.push(center(safeText(address, lineWidth), lineWidth));
+    lines.push(center(`GST: ${safeText(gst, lineWidth)}`, lineWidth));
+    lines.push('-'.repeat(lineWidth));
 
     if (type === 'summary') {
         const { tableNo } = params;
-        lines.push(center('ORDER SUMMARY'));
-        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push(center('ORDER SUMMARY', lineWidth));
+        lines.push('-'.repeat(lineWidth));
         lines.push(`Date: ${new Date().toLocaleString()}`);
         lines.push(`Table: ${tableNo || '--'}`);
-        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push('-'.repeat(lineWidth));
     } else if (type === 'kot') {
         const { tableNo, kotNo } = params;
-        lines.push(center('*** KITCHEN ORDER ***'));
-        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push(center('*** KITCHEN ORDER ***', lineWidth));
+        lines.push('-'.repeat(lineWidth));
         lines.push(`KOT#: ${kotNo || 'N/A'}`);
         lines.push(`Date: ${new Date().toLocaleString()}`);
         lines.push(`Table: ${tableNo || '--'}`);
-        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push('-'.repeat(lineWidth));
     } else if (type === 'sale') {
         const sale = params.sale;
         if (!sale) throw new Error('Sale object is required for type "sale"');
@@ -59,33 +75,47 @@ const generateReceiptText = (params) => {
         lines.push(`Cashier: ${sale.userName || ''}`);
         if (sale.customerName) lines.push(`Name: ${sale.customerName}`);
         if (sale.mobileNumber) lines.push(`Mobile: ${sale.mobileNumber}`);
-        lines.push('-'.repeat(LINE_WIDTH));
+        lines.push('-'.repeat(lineWidth));
     }
 
-    lines.push('Item       Qty   Rt  Total');
-    (items || []).forEach(item => {
-        lines.push(safeText(item.name));
-        const qty = padLeft(item.quantity?.toString() || '0', 2);
-        const rate = padLeft(item.price?.toFixed(0) || '0', 4);
-        const total = padLeft((item.quantity * item.price).toFixed(0), 7);
-        const barcode = padRight(item.barcode || '-', 10);
-        lines.push(`${barcode} ${qty} ${rate} ${total}`);
-    });
+    // ---------- Item lines ----------
+    // KOT is for kitchen staff: show only name + quantity, never price/total.
+    // Sale and summary receipts show the full name/rate/total breakdown.
+    if (type === 'kot') {
+        lines.push(padRight('Item', nameColWidth) + ' ' + padLeft('Qty', QTY_COL_WIDTH));
+        (items || []).forEach(item => {
+            const qty = padLeft(String(getItemQty(item)), QTY_COL_WIDTH);
+            const name = padRight(safeText(item.name, nameColWidth), nameColWidth);
+            lines.push(`${name} ${qty}`);
+        });
+    } else {
+        lines.push('Item       Qty   Rt  Total');
+        (items || []).forEach(item => {
+            lines.push(safeText(item.name, lineWidth));
+            const qty = padLeft(String(getItemQty(item)), 2);
+            const rate = padLeft(item.price?.toFixed(0) || '0', 4);
+            const total = padLeft((getItemQty(item) * item.price).toFixed(0), 7);
+            const barcode = padRight(item.barcode || '-', 10);
+            lines.push(`${barcode} ${qty} ${rate} ${total}`);
+        });
+    }
 
-    lines.push('-'.repeat(LINE_WIDTH));
+    lines.push('-'.repeat(lineWidth));
 
-    // ---------- Declare variables that will be used later ----------
+    // ---------- Totals ----------
+    // KOT never shows money totals — only item count.
     let subtotal = 0, cgst = 0, sgst = 0, halfGstRate = 0, netAmount = 0;
-    let itemCount = params.itemCount || items?.length || 0;
+    const itemCount = params.itemCount || items?.length || 0;
 
-    if (type === 'summary' || type === 'kot') {
-        subtotal = params.subtotal || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+    if (type === 'summary') {
+        subtotal = params.subtotal || items?.reduce((sum, item) => sum + (item.price * getItemQty(item)), 0) || 0;
         netAmount = subtotal;
+        lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
+    } else if (type === 'kot') {
         lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
     } else if (type === 'sale') {
         const sale = params.sale;
-        // Safely convert all monetary values to numbers
-        subtotal = parseFloat(sale.totalAmount) || items?.reduce((sum, item) => sum + (item.price * item.quantity), 0) || 0;
+        subtotal = parseFloat(sale.totalAmount) || items?.reduce((sum, item) => sum + (item.price * getItemQty(item)), 0) || 0;
         cgst = parseFloat(sale.cgst) || 0;
         sgst = parseFloat(sale.sgst) || 0;
         halfGstRate = parseFloat(sale.halfGstRate) || 0;
@@ -94,37 +124,25 @@ const generateReceiptText = (params) => {
 
         lines.push(`${padRight('Items:', 14)}${padLeft(itemCount.toString(), 12)}`);
         lines.push(`${padRight('Subtotal:', 14)}${padLeft(totalAmount.toFixed(2), 12)}`);
-
-        // Always print CGST and SGST lines (even if zero) for clarity
         lines.push(`${padRight(`CGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(cgst.toFixed(2), 14)}`);
         lines.push(`${padRight(`SGST (${halfGstRate.toFixed(2)}%):`, 16)}${padLeft(sgst.toFixed(2), 14)}`);
     }
 
-    lines.push('-'.repeat(LINE_WIDTH));
+    lines.push('-'.repeat(lineWidth));
 
     if (type === 'kot') {
-        lines.push(center('=== FOR KITCHEN ==='));
-        lines.push(center('Please prepare'));
+        lines.push(center('=== FOR KITCHEN ===', lineWidth));
+        lines.push(center('Please prepare', lineWidth));
     } else {
-        // For summary and sale, we show the total payable
         if (type === 'summary') {
-            // In summary mode, subtotal was already set; we need to display it as Total Payable
-            // But we already printed "Subtotal" in the summary block? Actually we didn't.
-            // For summary, we only printed items count, not subtotal. Let's add it.
-            // To keep consistent, we'll add subtotal line if not already printed.
-            // But we have not printed subtotal for summary, so do it now:
-            if (type === 'summary') {
-                // re-add subtotal if not already shown
-                lines.push(`${padRight('Subtotal:', 14)}${padLeft(subtotal.toFixed(2), 12)}`);
-                lines.push('-'.repeat(LINE_WIDTH));
-            }
-            // For summary, netAmount = subtotal
+            lines.push(`${padRight('Subtotal:', 14)}${padLeft(subtotal.toFixed(2), 12)}`);
+            lines.push('-'.repeat(lineWidth));
             netAmount = subtotal;
         }
         lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${netAmount.toFixed(2)}`, 14)}`);
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push(center('Thank you!'));
-        lines.push(center('Visit again!'));
+        lines.push('-'.repeat(lineWidth));
+        lines.push(center('Thank you!', lineWidth));
+        lines.push(center('Visit again!', lineWidth));
     }
 
     return lines.join('\n');
@@ -169,7 +187,7 @@ const setStoredConfig = (config) => {
 export const printReceipt = async (params) => {
     const receiptText = generateReceiptText(params);
     const printerName = params.printerName || getStoredPrinter();
-    const config = getStoredConfig(); // includes logoBase64 and paymentQRBase64
+    const config = getStoredConfig();
 
     const printData = {
         data: [{
@@ -177,18 +195,18 @@ export const printReceipt = async (params) => {
             value: receiptText,
             style: {
                 fontSize: config?.fontSize ? `${config.fontSize}px` : '12px',
-                fontFamily: config?.fontFamily || 'monospace',
+                fontFamily: PRINT_FONT_FAMILY, // always monospace, see comment above
+                fontWeight: config?.bold ? 'bold' : 'normal', // ➕ now actually applied
                 whiteSpace: 'pre'
             }
         }],
         printerName: printerName,
-        config: config // contains logo and payment QR images (if any)
+        config: config
     };
 
     try {
         const result = await callApi('/api/print', printData);
         if (result.success) {
-            console.log('✅ Receipt printed successfully');
             return result;
         } else {
             throw new Error(result.error || 'Print failed');
@@ -204,7 +222,6 @@ export const printRawText = async (text, printerName = null) => {
         const finalPrinter = printerName || getStoredPrinter();
         const result = await callApi('/api/print-text', { text, printerName: finalPrinter });
         if (result.success) {
-            console.log('✅ Raw text printed');
             return result;
         } else {
             throw new Error(result.error || 'Print failed');
@@ -232,7 +249,6 @@ export const testPrinter = async (printerName = null) => {
     try {
         const result = await callApi('/api/print', testData);
         if (result.success) {
-            console.log('✅ Test print successful!');
             return result;
         } else {
             throw new Error(result.error || 'Test failed');

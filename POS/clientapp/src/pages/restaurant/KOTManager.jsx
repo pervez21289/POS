@@ -11,18 +11,13 @@ import {
     Button,
     Stack,
     Chip,
-    Typography,   // <-- This was missing
+    Typography,
 } from '@mui/material';
 import RestoreIcon from '@mui/icons-material/Restore';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PrintIcon from '@mui/icons-material/Print';
 
-const KOTManager = ({ open, onClose, drafts, onLoad, onDelete }) => {
-    const handlePrintKOT = (draft) => {
-        // Implement print logic or pass a callback from parent
-        alert(`Print KOT for Table ${draft.tableNo}`);
-    };
-
+const KOTManager = ({ open, onClose, drafts, onLoad, onDelete, onPrintKOT }) => {
     return (
         <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
             <DialogTitle>Saved Orders (KOTs)</DialogTitle>
@@ -38,7 +33,7 @@ const KOTManager = ({ open, onClose, drafts, onLoad, onDelete }) => {
                                     <Stack direction="row" spacing={1}>
                                         <IconButton
                                             edge="end"
-                                            onClick={() => handlePrintKOT(draft)}
+                                            onClick={() => onPrintKOT?.(draft.tableNo, draft.saleItems)}
                                             color="primary"
                                         >
                                             <PrintIcon />
