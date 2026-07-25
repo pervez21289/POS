@@ -18,29 +18,26 @@ import {
     Stack,
     TextField,
     Switch,
-    FormControlLabel
+    FormControlLabel,
+    RadioGroup,
+    Radio,
+    FormLabel
 } from '@mui/material';
 import PrintIcon from '@mui/icons-material/Print';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import DeleteIcon from '@mui/icons-material/Delete';
+import useIsMobile from './useIsMobile';
 
 const SERVICE_URL = import.meta.env.REACT_APP_PRINT_SERVICE_URL || 'http://localhost:3001';
 
-// Common fonts available on most Windows systems.
-// NOTE: this only affects single-line text (store name, footer, etc).
-// The item/qty/rate/total table always prints in monospace regardless of this
-// setting — that's required for the columns to stay aligned on any printer.
 const FONT_OPTIONS = [
     'Segoe UI', 'Arial', 'Calibri', 'Roboto', 'Verdana', 'Tahoma',
     'Courier New', 'Consolas', 'Lucida Console',
     'Times New Roman', 'Georgia'
 ];
 
-// Suggested character width per paper size (56mm rolls are tighter than 58mm).
-// These are starting points — actual capacity depends on font size and printer,
-// so the field below stays editable.
 const PAGE_SIZE_OPTIONS = [
     { value: '56mm', label: '56mm', defaultLineWidth: 26 },
     { value: '58mm', label: '58mm', defaultLineWidth: 32 },
@@ -51,6 +48,8 @@ const getDefaultLineWidth = (pageSize) =>
     PAGE_SIZE_OPTIONS.find((p) => p.value === pageSize)?.defaultLineWidth || 32;
 
 const PrinterSettings = ({ open, onClose }) => {
+    const isMobile = useIsMobile();
+
     const [printers, setPrinters] = useState([]);
     const [selectedPrinter, setSelectedPrinter] = useState('');
     const [currentPrinter, setCurrentPrinter] = useState('');
@@ -58,7 +57,6 @@ const PrinterSettings = ({ open, onClose }) => {
     const [saveStatus, setSaveStatus] = useState(null);
     const [serviceOnline, setServiceOnline] = useState(null);
 
-    // Print configuration state
     const [printConfig, setPrintConfig] = useState({
         fontSize: 10,
         pageSize: '58mm',
@@ -69,12 +67,25 @@ const PrinterSettings = ({ open, onClose }) => {
         paymentQRBase64: null
     });
 
+    const [printMethod, setPrintMethod] = useState('service');
+
+    useEffect(() => {
+        const storedMethod = localStorage.getItem('pos_print_method');
+        if (storedMethod) setPrintMethod(storedMethod);
+    }, []);
+
     useEffect(() => {
         if (open) {
-            checkService();
+            loadStoredPrinter();
             loadStoredConfig();
+            if (printMethod === 'service') {
+                checkService();
+            } else {
+                setServiceOnline(true);
+                setSaveStatus(null);
+            }
         }
-    }, [open]);
+    }, [open, printMethod]);
 
     const checkService = async () => {
         setLoading(true);
@@ -84,7 +95,6 @@ const PrinterSettings = ({ open, onClose }) => {
             if (response.ok) {
                 setServiceOnline(true);
                 await loadPrinters();
-                await loadStoredPrinter();
             } else {
                 setServiceOnline(false);
                 setSaveStatus({ type: 'error', message: 'Print service is not responding.' });
@@ -149,21 +159,34 @@ const PrinterSettings = ({ open, onClose }) => {
         setPrintConfig((prev) => ({
             ...prev,
             pageSize: newPageSize,
-            // Auto-suggest a width for the new paper size; user can still edit it below.
             lineWidth: getDefaultLineWidth(newPageSize),
         }));
     };
 
+    const handlePrintMethodChange = (event) => {
+        const method = event.target.value;
+        setPrintMethod(method);
+        localStorage.setItem('pos_print_method', method);
+        if (method === 'browser') {
+            setServiceOnline(true);
+            setSaveStatus(null);
+        } else {
+            checkService();
+        }
+    };
+
     const handleSave = () => {
-        if (!selectedPrinter) {
+        if (printMethod === 'service' && !selectedPrinter) {
             setSaveStatus({ type: 'error', message: 'Please select a printer' });
             return;
         }
 
-        localStorage.setItem('pos_default_printer', selectedPrinter);
+        if (selectedPrinter) {
+            localStorage.setItem('pos_default_printer', selectedPrinter);
+        }
         saveStoredConfig();
 
-        setCurrentPrinter(selectedPrinter);
+        setCurrentPrinter(selectedPrinter || currentPrinter);
         setSaveStatus({ type: 'success', message: 'Settings saved successfully!' });
 
         setTimeout(() => {
@@ -176,7 +199,6 @@ const PrinterSettings = ({ open, onClose }) => {
     const handleLogoUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             const base64 = e.target.result.split(',')[1];
@@ -190,11 +212,10 @@ const PrinterSettings = ({ open, onClose }) => {
         setPrintConfig({ ...printConfig, logoBase64: null });
     };
 
-    // ----- Payment QR / Image Handlers -----
+    // ----- Payment QR Handlers -----
     const handlePaymentQRUpload = (event) => {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = (e) => {
             const base64 = e.target.result.split(',')[1];
@@ -208,16 +229,41 @@ const PrinterSettings = ({ open, onClose }) => {
         setPrintConfig({ ...printConfig, paymentQRBase64: null });
     };
 
-    // ------------------------------------------------------------
-
     const handleTestPrint = async () => {
-        if (!selectedPrinter) {
-            setSaveStatus({ type: 'error', message: 'Please select a printer first' });
+        setLoading(true);
+        setSaveStatus(null);
+
+        if (printMethod === 'browser') {
+            try {
+                const width = printConfig.lineWidth || 32;
+                const rule = '='.repeat(width);
+                const testText = `${rule}
+${' '.repeat(Math.max(Math.floor((width - 10) / 2), 0))}TEST PRINT
+${rule}
+Method: Browser Print
+Date: ${new Date().toLocaleString()}
+Width: ${width} chars (${printConfig.pageSize})
+${rule}
+If you can read this clearly,
+your browser print is working.
+${rule}
+`;
+                const { printViaBrowser } = await import('./../pages/restaurant/receiptPrinter');
+                printViaBrowser(testText);
+                setSaveStatus({ type: 'success', message: 'Test print sent to browser!' });
+            } catch (error) {
+                setSaveStatus({ type: 'error', message: 'Browser test failed: ' + error.message });
+            } finally {
+                setLoading(false);
+            }
             return;
         }
 
-        setLoading(true);
-        setSaveStatus(null);
+        if (!selectedPrinter) {
+            setSaveStatus({ type: 'error', message: 'Please select a printer first' });
+            setLoading(false);
+            return;
+        }
 
         try {
             const width = printConfig.lineWidth || 32;
@@ -244,14 +290,12 @@ ${rule}
                         value: testText,
                         style: {
                             fontSize: `${printConfig.fontSize}px`,
-                            // Always monospace here too — this is a column-based test
-                            // and must reflect the same rendering rule as real receipts.
                             fontFamily: 'monospace',
                             fontWeight: printConfig.bold ? 'bold' : 'normal',
                         }
                     }],
                     printerName: selectedPrinter,
-                    config: printConfig // includes logo & payment QR
+                    config: printConfig
                 })
             });
 
@@ -275,254 +319,84 @@ ${rule}
     };
 
     return (
-        <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+        <Dialog
+            open={open}
+            onClose={onClose}
+            maxWidth="sm"
+            fullWidth
+            fullScreen={isMobile}
+        >
             <DialogTitle>
                 <Box display="flex" alignItems="center" gap={1}>
                     <PrintIcon />
                     Printer Settings
                 </Box>
             </DialogTitle>
-            <DialogContent>
-                {loading && serviceOnline === null ? (
-                    <Box display="flex" justifyContent="center" p={3}>
-                        <CircularProgress />
-                    </Box>
-                ) : serviceOnline === false ? (
-                    <Box>
-                        <Alert severity="error" sx={{ mb: 2 }}>
-                            Print service is not running.
-                        </Alert>
-                        <Button
-                            variant="contained"
-                            startIcon={<RefreshIcon />}
-                            onClick={checkService}
-                            fullWidth
-                        >
-                            Retry Connection
-                        </Button>
-                    </Box>
-                ) : (
+            <DialogContent sx={{ px: { xs: 1.5, sm: 3 } }}>
+                <FormControl component="fieldset" sx={{ my: 2 }}>
+                    <FormLabel component="legend">Print Method</FormLabel>
+                    <RadioGroup
+                        row
+                        value={printMethod}
+                        onChange={handlePrintMethodChange}
+                    >
+                        <FormControlLabel value="service" control={<Radio />} label="Print Service" />
+                        <FormControlLabel value="browser" control={<Radio />} label="Browser Print" />
+                    </RadioGroup>
+                    <Typography variant="caption" color="text.secondary">
+                        Browser Print uses the system print dialog (no service required).
+                    </Typography>
+                </FormControl>
+
+                {printMethod === 'service' && (
                     <>
-                        {currentPrinter && (
-                            <Alert severity="info" sx={{ mb: 2 }}>
-                                Current printer: <strong>{currentPrinter}</strong>
+                        {serviceOnline === false ? (
+                            <Alert severity="error" sx={{ mb: 2 }}>
+                                Print service is not running. Please start the service or switch to Browser Print.
                             </Alert>
-                        )}
-
-                        {printers.length === 0 && !loading && (
-                            <Alert severity="warning" sx={{ mb: 2 }}>
-                                No printers found. Please connect a printer and refresh.
-                            </Alert>
-                        )}
-
-                        <FormControl fullWidth sx={{ mb: 2 }}>
-                            <InputLabel>Select Default Printer</InputLabel>
-                            <Select
-                                value={selectedPrinter}
-                                onChange={(e) => setSelectedPrinter(e.target.value)}
-                                label="Select Default Printer"
-                                disabled={printers.length === 0}
-                            >
-                                {printers.map((printer) => (
-                                    <MenuItem key={printer.name} value={printer.name}>
-                                        <Box display="flex" alignItems="center" gap={1} width="100%">
-                                            {printer.name}
-                                            {printer.isDefault && (
-                                                <Chip
-                                                    label="System Default"
-                                                    size="small"
-                                                    color="primary"
-                                                    icon={<CheckCircleIcon />}
-                                                />
-                                            )}
-                                        </Box>
-                                    </MenuItem>
-                                ))}
-                            </Select>
-                        </FormControl>
-
-                        <Divider sx={{ my: 2 }} />
-
-                        <Typography variant="subtitle2" gutterBottom>
-                            Print Settings
-                        </Typography>
-
-                        <Stack direction="row" spacing={2} sx={{ mb: 1 }}>
-                            <TextField
-                                label="Font Size"
-                                type="number"
-                                value={printConfig.fontSize}
-                                onChange={(e) => setPrintConfig({ ...printConfig, fontSize: parseInt(e.target.value) || 10 })}
-                                size="small"
-                                sx={{ width: 100 }}
-                                inputProps={{ min: 8, max: 20 }}
-                            />
-                            <FormControl size="small" sx={{ minWidth: 120 }}>
-                                <InputLabel>Paper Size</InputLabel>
-                                <Select
-                                    value={printConfig.pageSize}
-                                    onChange={(e) => handlePageSizeChange(e.target.value)}
-                                    label="Paper Size"
-                                >
-                                    {PAGE_SIZE_OPTIONS.map((p) => (
-                                        <MenuItem key={p.value} value={p.value}>
-                                            {p.label}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <TextField
-                                label="Line Width (chars)"
-                                type="number"
-                                value={printConfig.lineWidth}
-                                onChange={(e) => setPrintConfig({ ...printConfig, lineWidth: parseInt(e.target.value) || getDefaultLineWidth(printConfig.pageSize) })}
-                                size="small"
-                                sx={{ width: 150 }}
-                                inputProps={{ min: 16, max: 64 }}
-                                helperText="Increase/decrease if columns overflow or leave gaps"
-                            />
-                        </Stack>
-
-                        <Stack direction="row" spacing={2} sx={{ mb: 0.5 }}>
-                            <FormControl size="small" sx={{ minWidth: 180 }}>
-                                <InputLabel>Font Family</InputLabel>
-                                <Select
-                                    value={printConfig.fontFamily}
-                                    onChange={(e) => setPrintConfig({ ...printConfig, fontFamily: e.target.value })}
-                                    label="Font Family"
-                                >
-                                    {FONT_OPTIONS.map((font) => (
-                                        <MenuItem key={font} value={font}>
-                                            {font}
-                                        </MenuItem>
-                                    ))}
-                                </Select>
-                            </FormControl>
-                            <FormControlLabel
-                                control={
-                                    <Switch
-                                        checked={printConfig.bold}
-                                        onChange={(e) => setPrintConfig({ ...printConfig, bold: e.target.checked })}
-                                        size="small"
-                                    />
-                                }
-                                label="Bold"
-                                sx={{ ml: 0 }}
-                            />
-                        </Stack>
-                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-                            Font Family applies to single-line text only. Item/Qty table rows
-                            always print in monospace so columns stay aligned.
-                        </Typography>
-
-                        {/* --- Logo Upload Section --- */}
-                        <Divider sx={{ my: 2 }} />
-
-                        <Typography variant="subtitle2" gutterBottom>
-                            Company Logo
-                        </Typography>
-
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                size="small"
-                                startIcon={<UploadFileIcon />}
-                            >
-                                Upload Logo
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    hidden
-                                    onChange={handleLogoUpload}
-                                />
-                            </Button>
-
-                            {printConfig.logoBase64 && (
-                                <>
-                                    <Box
-                                        component="img"
-                                        src={`data:image/png;base64,${printConfig.logoBase64}`}
-                                        alt="Logo preview"
-                                        sx={{
-                                            height: 40,
-                                            maxWidth: 100,
-                                            objectFit: 'contain',
-                                            border: '1px solid #ddd',
-                                            borderRadius: 1,
-                                            p: 0.5
-                                        }}
-                                    />
-                                    <Button
-                                        size="small"
-                                        color="error"
-                                        onClick={handleRemoveLogo}
-                                        startIcon={<DeleteIcon />}
+                        ) : serviceOnline === true ? (
+                            <>
+                                {currentPrinter && (
+                                    <Alert severity="info" sx={{ mb: 2 }}>
+                                        Current printer: <strong>{currentPrinter}</strong>
+                                    </Alert>
+                                )}
+                                {printers.length === 0 && !loading && (
+                                    <Alert severity="warning" sx={{ mb: 2 }}>
+                                        No printers found. Please connect a printer and refresh.
+                                    </Alert>
+                                )}
+                                <FormControl fullWidth sx={{ mb: 2 }}>
+                                    <InputLabel>Select Default Printer</InputLabel>
+                                    <Select
+                                        value={selectedPrinter}
+                                        onChange={(e) => setSelectedPrinter(e.target.value)}
+                                        label="Select Default Printer"
+                                        disabled={printers.length === 0}
                                     >
-                                        Remove
-                                    </Button>
-                                </>
-                            )}
-                        </Stack>
-
-                        {/* --- PAYMENT QR / IMAGE SECTION --- */}
-                        <Divider sx={{ my: 2 }} />
-
-                        <Typography variant="subtitle2" gutterBottom>
-                            Payment QR / Image (Static)
-                        </Typography>
-
-                        <Stack direction="row" spacing={2} alignItems="center" sx={{ mt: 1 }}>
-                            <Button
-                                variant="outlined"
-                                component="label"
-                                size="small"
-                                startIcon={<UploadFileIcon />}
-                            >
-                                Upload QR/Image
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    hidden
-                                    onChange={handlePaymentQRUpload}
-                                />
-                            </Button>
-
-                            {printConfig.paymentQRBase64 && (
-                                <>
-                                    <Box
-                                        component="img"
-                                        src={`data:image/png;base64,${printConfig.paymentQRBase64}`}
-                                        alt="Payment QR preview"
-                                        sx={{
-                                            height: 40,
-                                            maxWidth: 100,
-                                            objectFit: 'contain',
-                                            border: '1px solid #ddd',
-                                            borderRadius: 1,
-                                            p: 0.5
-                                        }}
-                                    />
-                                    <Button
-                                        size="small"
-                                        color="error"
-                                        onClick={handleRemovePaymentQR}
-                                        startIcon={<DeleteIcon />}
-                                    >
-                                        Remove
-                                    </Button>
-                                </>
-                            )}
-                        </Stack>
-
-                        {selectedPrinter && (
-                            <Box sx={{ mb: 2, mt: 2 }}>
-                                <Typography variant="body2" color="text.secondary">
-                                    Selected: <strong>{selectedPrinter}</strong>
-                                </Typography>
+                                        {printers.map((printer) => (
+                                            <MenuItem key={printer.name} value={printer.name}>
+                                                <Box display="flex" alignItems="center" gap={1} width="100%">
+                                                    {printer.name}
+                                                    {printer.isDefault && (
+                                                        <Chip
+                                                            label="System Default"
+                                                            size="small"
+                                                            color="primary"
+                                                            icon={<CheckCircleIcon />}
+                                                        />
+                                                    )}
+                                                </Box>
+                                            </MenuItem>
+                                        ))}
+                                    </Select>
+                                </FormControl>
+                            </>
+                        ) : (
+                            <Box display="flex" justifyContent="center" p={2}>
+                                <CircularProgress size={24} />
                             </Box>
                         )}
-
                         {saveStatus && (
                             <Alert severity={saveStatus.type} sx={{ mt: 2 }}>
                                 {saveStatus.message}
@@ -530,23 +404,208 @@ ${rule}
                         )}
                     </>
                 )}
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" gutterBottom>
+                    Print Settings
+                </Typography>
+
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1.5, sm: 2 }}
+                    sx={{ mb: 1 }}
+                >
+                    <TextField
+                        label="Font Size"
+                        type="number"
+                        value={printConfig.fontSize}
+                        onChange={(e) => setPrintConfig({ ...printConfig, fontSize: parseInt(e.target.value) || 10 })}
+                        size="small"
+                        fullWidth={isMobile}
+                        sx={{ width: isMobile ? '100%' : 100 }}
+                        inputProps={{ min: 8, max: 20 }}
+                    />
+                    <FormControl size="small" fullWidth={isMobile} sx={{ minWidth: isMobile ? '100%' : 120 }}>
+                        <InputLabel>Paper Size</InputLabel>
+                        <Select
+                            value={printConfig.pageSize}
+                            onChange={(e) => handlePageSizeChange(e.target.value)}
+                            label="Paper Size"
+                        >
+                            {PAGE_SIZE_OPTIONS.map((p) => (
+                                <MenuItem key={p.value} value={p.value}>
+                                    {p.label}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <TextField
+                        label="Line Width (chars)"
+                        type="number"
+                        value={printConfig.lineWidth}
+                        onChange={(e) => setPrintConfig({ ...printConfig, lineWidth: parseInt(e.target.value) || getDefaultLineWidth(printConfig.pageSize) })}
+                        size="small"
+                        fullWidth={isMobile}
+                        sx={{ width: isMobile ? '100%' : 150 }}
+                        inputProps={{ min: 16, max: 64 }}
+                        helperText={isMobile ? '' : 'Increase/decrease if columns overflow or leave gaps'}
+                    />
+                </Stack>
+
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1.5, sm: 2 }}
+                    sx={{ mb: 0.5 }}
+                >
+                    <FormControl size="small" fullWidth={isMobile} sx={{ minWidth: isMobile ? '100%' : 180 }}>
+                        <InputLabel>Font Family</InputLabel>
+                        <Select
+                            value={printConfig.fontFamily}
+                            onChange={(e) => setPrintConfig({ ...printConfig, fontFamily: e.target.value })}
+                            label="Font Family"
+                        >
+                            {FONT_OPTIONS.map((font) => (
+                                <MenuItem key={font} value={font}>
+                                    {font}
+                                </MenuItem>
+                            ))}
+                        </Select>
+                    </FormControl>
+                    <FormControlLabel
+                        control={
+                            <Switch
+                                checked={printConfig.bold}
+                                onChange={(e) => setPrintConfig({ ...printConfig, bold: e.target.checked })}
+                                size="small"
+                            />
+                        }
+                        label="Bold"
+                        sx={{ ml: 0 }}
+                    />
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    Font Family applies to single-line text only. Item/Qty table rows
+                    always print in monospace so columns stay aligned.
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" gutterBottom>Company Logo</Typography>
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1, sm: 2 }}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    sx={{ mt: 1 }}
+                >
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        size="small"
+                        startIcon={<UploadFileIcon />}
+                    >
+                        Upload Logo
+                        <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onChange={handleLogoUpload}
+                        />
+                    </Button>
+                    {printConfig.logoBase64 && (
+                        <>
+                            <Box
+                                component="img"
+                                src={`data:image/png;base64,${printConfig.logoBase64}`}
+                                alt="Logo preview"
+                                sx={{
+                                    height: 40,
+                                    maxWidth: 100,
+                                    objectFit: 'contain',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 1,
+                                    p: 0.5
+                                }}
+                            />
+                            <Button size="small" color="error" onClick={handleRemoveLogo} startIcon={<DeleteIcon />}>
+                                Remove
+                            </Button>
+                        </>
+                    )}
+                </Stack>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" gutterBottom>Payment QR / Image (Static)</Typography>
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1, sm: 2 }}
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    sx={{ mt: 1 }}
+                >
+                    <Button
+                        variant="outlined"
+                        component="label"
+                        size="small"
+                        startIcon={<UploadFileIcon />}
+                    >
+                        Upload QR/Image
+                        <input
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onChange={handlePaymentQRUpload}
+                        />
+                    </Button>
+                    {printConfig.paymentQRBase64 && (
+                        <>
+                            <Box
+                                component="img"
+                                src={`data:image/png;base64,${printConfig.paymentQRBase64}`}
+                                alt="Payment QR preview"
+                                sx={{
+                                    height: 40,
+                                    maxWidth: 100,
+                                    objectFit: 'contain',
+                                    border: '1px solid #ddd',
+                                    borderRadius: 1,
+                                    p: 0.5
+                                }}
+                            />
+                            <Button size="small" color="error" onClick={handleRemovePaymentQR} startIcon={<DeleteIcon />}>
+                                Remove
+                            </Button>
+                        </>
+                    )}
+                </Stack>
+
+                {saveStatus && (
+                    <Alert severity={saveStatus.type} sx={{ mt: 2 }}>
+                        {saveStatus.message}
+                    </Alert>
+                )}
             </DialogContent>
-            <DialogActions>
-                <Button onClick={onClose} disabled={loading}>
+            <DialogActions sx={{ flexWrap: 'wrap', justifyContent: isMobile ? 'center' : 'flex-end', px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 } }}>
+                <Button onClick={onClose} disabled={loading} fullWidth={isMobile}>
                     Cancel
                 </Button>
                 <Button
                     onClick={handleTestPrint}
-                    disabled={loading || !selectedPrinter || printers.length === 0}
+                    disabled={
+                        loading ||
+                        (printMethod === 'service' && (serviceOnline === false || !selectedPrinter || printers.length === 0))
+                    }
                     variant="outlined"
+                    fullWidth={isMobile}
                 >
                     Test Print
                 </Button>
                 <Button
                     onClick={handleSave}
-                    disabled={loading || !selectedPrinter || printers.length === 0}
+                    disabled={
+                        loading ||
+                        (printMethod === 'service' && (serviceOnline === false || !selectedPrinter || printers.length === 0))
+                    }
                     variant="contained"
                     color="primary"
+                    fullWidth={isMobile}
                 >
                     {loading ? <CircularProgress size={24} /> : 'Save'}
                 </Button>

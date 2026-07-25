@@ -67,6 +67,7 @@ const ProductForm = ({ initialData = {} }) => {
 
     useEffect(() => {
         setProduct(initialData);
+        console.log('ProductForm initialData:', initialData);
     }, [initialData]);
 
     return (

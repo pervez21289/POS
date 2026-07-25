@@ -120,7 +120,7 @@ const SalesPOSPage = () => {
                 cartItemCount={cartItems.length}
                 onSaveKOT={handleSaveKOT}
                 onViewKOTs={() => {
-                    setShowTableLayout(true);   // expand the active tables section
+                    setShowTableLayout(!showTableLayout);   // expand the active tables section
                    
                 }}
                 onNewOrder={handleNewOrder}

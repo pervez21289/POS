@@ -33,7 +33,11 @@ const KOTManager = ({ open, onClose, drafts, onLoad, onDelete, onPrintKOT }) => 
                                     <Stack direction="row" spacing={1}>
                                         <IconButton
                                             edge="end"
-                                            onClick={() => onPrintKOT?.(draft.tableNo, draft.saleItems)}
+                                            onClick={() => onPrintKOT?.({
+                                                tableNo: draft.tableNo,
+                                                items: draft.saleItems,
+                                                kotNo: draft.kotNo,
+                                            })}
                                             color="primary"
                                         >
                                             <PrintIcon />

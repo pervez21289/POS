@@ -51,7 +51,7 @@ const ProductManager = () => {
             setDrawerComponent({
                 DrawerComponentChild: ProductForm,
                 drawerProps: {
-                    initialData: row,
+                    initialData: row ? { ...row } : null, // always a fresh object reference
                 },
                 drawerOpen: true
             })

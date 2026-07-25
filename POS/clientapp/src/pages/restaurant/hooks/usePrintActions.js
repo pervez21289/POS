@@ -1,116 +1,190 @@
-import { useDispatch } from 'react-redux';
-import { showAlert } from '../../../store/reducers/alert';
-import { printReceipt, testPrinter } from '../receiptPrinter';
+import {
+    printReceipt,
+    testPrinter,
+    generateReceiptText,
+    printViaBrowser,
+    getStoredConfig,
+    getStoredPrinter,
+    generateReceiptHTML
+} from '../receiptPrinter';
+import { useSelector } from 'react-redux';
+// Helper to get print method from localStorage
+const getPrintMethod = () => localStorage.getItem('pos_print_method') || 'service';
 
-const buildStoreInfo = (basicSettings) => ({
-    storeName: basicSettings?.storeName || 'My Store',
-    address: basicSettings?.address || 'Store Address',
-    gstin: basicSettings?.gstin || '-',
-});
+const usePrintActions = ({ basicSettings, receiptInfo, selectedTable }) => {
+    // Generic print dispatcher
+    const printWithMethod = async (params, servicePrinterName = null) => {
+        const method = getPrintMethod();
+        const config = getStoredConfig();
+        const lineWidth = config?.lineWidth || 28;
 
-const mapItems = (items) => items.map(item => ({
-    name: item.name,
-    barcode: item.barcode || '-',
-    quantity: item.quantity,
-    price: item.salePrice || item.price || 0,
-}));
+        // Merge store info from basicSettings
+        const fullParams = {
+            ...params,
+            storeInfo: {
+                storeName: basicSettings?.storeName || 'Store Name',
+                address: basicSettings?.address || 'Store Address',
+                gstin: basicSettings?.gstin || '-'
+            },
+            lineWidth: params.lineWidth || lineWidth
+        };
 
-const sumItems = (items) => items.reduce((sum, item) => sum + ((item.salePrice || item.price || 0) * item.quantity), 0);
-
-// All printer interactions: KOT for a given table, KOT for the current cart,
-// the final sale receipt, and the printer self-test.
-export default function usePrintActions({ basicSettings, receiptInfo, selectedTable }) {
-    const dispatch = useDispatch();
-
-    const printKOTFor = async (tableNo, items) => {
-        if (!items?.length) {
-            dispatch(showAlert({ open: true, message: 'No items to print!', severity: 'warning' }));
-            return;
-        }
-        try {
-            const kotNo = `KOT${Date.now().toString().slice(-6)}`;
-            const totalAmount = sumItems(items);
-            console.log('Print result:', basicSettings);
-            const result = await printReceipt({
-                type: 'kot',
-                storeInfo: buildStoreInfo(basicSettings),
-                items: mapItems(items),
-                tableNo,
-                kotNo,
-                subtotal: totalAmount,
-                itemCount: items.length,
+        if (method === 'browser') {
+            const qrData = basicSettings?.upiPaymentString || ''; // e.g., 'upi://pay?pa=...'
+            const logoUrl = basicSettings?.logoUrl || '';
+            const html = await generateReceiptHTML({
+                ...fullParams,
+                logoUrl,
+                qrData,
             });
+            printViaBrowser(html, config, true); // pass isHtml=true
+            return { success: true, method: 'browser' };
+        } else {
+            // Service mode
+            const printerName = servicePrinterName || getStoredPrinter();
+            if (!printerName) {
+                throw new Error('No default printer selected. Please set one in Printer Settings.');
+            }
+            return await printReceipt({ ...fullParams, printerName });
+        }
+    };
 
-            if (result.success) {
-                dispatch(showAlert({ open: true, message: `✅ KOT printed for Table ${tableNo}`, severity: 'success' }));
+    // ---------- KOT print ----------
+
+
+    const draftCarts = useSelector(state => state.sales.draftCarts);
+    const handlePrintKOT = async (kotData) => {
+        try {
+            let tableNo, items, kotNo;
+
+            // ----- Handle number (tableNo only) -----
+            if (typeof kotData === 'number') {
+                tableNo = kotData;
+                const draft = draftCarts.find(d => d.tableNo === tableNo);
+                if (!draft) throw new Error(`No draft for table ${tableNo}`);
+                items = draft.saleItems || [];
+                kotNo = draft.kotNo || 'KOT-' + Date.now();
+            }
+            // ----- Handle object -----
+            else if (kotData && typeof kotData === 'object') {
+                tableNo = kotData.tableNo || selectedTable;
+                items = kotData.items || [];
+                kotNo = kotData.kotNo || 'KOT-' + Date.now();
+
+                // If items are missing, recover from Redux
+                if (!items || items.length === 0) {
+                    const draft = draftCarts.find(d => d.tableNo === tableNo);
+                    if (draft?.saleItems?.length) {
+                        items = draft.saleItems;
+                    }
+                }
             } else {
-                throw new Error(result.error || 'Print failed');
+                throw new Error('Invalid kotData: expected number or object');
             }
+
+            // ----- Normalise items -----
+            const normalizedItems = items.map(item => ({
+                name: item.name || item.productName || item.itemName || 'Unknown',
+                quantity: item.quantity ?? item.qty ?? 0,
+                price: item.price ?? 0,
+                barcode: item.barcode || ''
+            }));
+
+            // ----- Print -----
+            const params = {
+                type: 'kot',
+                items: normalizedItems,
+                tableNo,
+                kotNo
+            };
+            return await printWithMethod(params);
         } catch (error) {
-            dispatch(showAlert({ open: true, message: `❌ Print failed: ${error.message}`, severity: 'error' }));
-        }
-    };
-
-    // Print KOT for a specific table (used by TableCard's print button)
-    const handlePrintKOT = (tableNo, items) => printKOTFor(tableNo, items);
-
-    // Print KOT for the current cart / selected table
-    const handlePrintOrder = () => {
-        if (!receiptInfo?.saleItems?.length) {
-            dispatch(showAlert({ open: true, message: 'Cart is empty!', severity: 'warning' }));
-            return;
-        }
-        return printKOTFor(selectedTable, receiptInfo.saleItems);
-    };
-
-    // Print the final sale receipt (called after successful payment)
-    const handlePrintReceipt = async (saleData) => {
-        try {
-            const totalAmount = sumItems(saleData.items);
-            debugger;
-            const result = await printReceipt({
-                type: 'sale',
-                storeInfo: buildStoreInfo(basicSettings),
-                items: mapItems(saleData.items),
-                sale: {
-                    billNo: saleData.billNo || `BILL-${Date.now()}`,
-                    saleTime: new Date().toLocaleString(),
-                    userName: saleData.userName || 'Cashier',
-                    customerName: saleData.customerName || '',
-                    mobileNumber: saleData.mobileNumber || '',
-                    totalAmount,
-                    cgst: saleData.cgst || 0,
-                    sgst: saleData.sgst || 0,
-                    halfGstRate: saleData.halfGstRate || 0,
-                    netAmount: saleData.netAmount || totalAmount,
-                },
-                itemCount: saleData.items.length,
-            });
-
-            if (result.success) {
-                console.log('✅ Sale receipt printed successfully');
-                return result;
-            }
-            throw new Error(result.error || 'Print failed');
-        } catch (error) {
-            console.error('❌ Receipt print error:', error);
-            dispatch(showAlert({ open: true, message: `❌ Receipt print failed: ${error.message}`, severity: 'error' }));
+            console.error('KOT print failed:', error);
             throw error;
         }
     };
 
-    const handleTestPrinter = async () => {
+
+
+    // ---------- Order Summary (for table) ----------
+    const handlePrintOrder = async () => {
         try {
-            const result = await testPrinter();
-            if (result.success) {
-                dispatch(showAlert({ open: true, message: '✅ Test print successful!', severity: 'success' }));
-            } else {
-                throw new Error(result.error || 'Test failed');
+            const items = receiptInfo?.saleItems || [];
+            if (items.length === 0) {
+                alert('No items to print.');
+                return;
             }
+
+            const params = {
+                type: 'summary',
+                items,
+                tableNo: selectedTable,
+                subtotal: receiptInfo?.totalAmount || 0,
+                itemCount: receiptInfo?.totalItems || items.length
+            };
+            const result = await printWithMethod(params);
+            console.log('Order summary printed:', result);
+            return result;
         } catch (error) {
-            dispatch(showAlert({ open: true, message: `❌ Test print failed: ${error.message}`, severity: 'error' }));
+            console.error('Order print failed:', error);
+            throw error;
         }
     };
 
-    return { handlePrintKOT, handlePrintOrder, handlePrintReceipt, handleTestPrinter };
-}
+    // ---------- Final Sale Receipt ----------
+    const handlePrintReceipt = async (saleData) => {
+        try {
+            const params = {
+                type: 'sale',
+                sale: saleData || receiptInfo,
+                items: (saleData?.saleItems || receiptInfo?.saleItems) || []
+            };
+            const result = await printWithMethod(params);
+            console.log('Sale receipt printed:', result);
+            return result;
+        } catch (error) {
+            console.error('Receipt print failed:', error);
+            throw error;
+        }
+    };
+
+    // ---------- Test printer ----------
+    const handleTestPrinter = async () => {
+        const method = getPrintMethod();
+        if (method === 'browser') {
+            const testText = `
+========================================
+           TEST PRINT
+========================================
+Method: Browser Print
+Date: ${new Date().toLocaleString()}
+========================================
+If you can read this, your browser print
+is working correctly.
+========================================
+            `;
+            printViaBrowser(testText);
+            return { success: true, method: 'browser' };
+        } else {
+            try {
+                const printerName = getStoredPrinter();
+                if (!printerName) {
+                    throw new Error('No default printer selected.');
+                }
+                return await testPrinter(printerName);
+            } catch (error) {
+                console.error('Test print failed:', error);
+                throw error;
+            }
+        }
+    };
+
+    return {
+        handlePrintKOT,
+        handlePrintOrder,
+        handlePrintReceipt,
+        handleTestPrinter,
+    };
+};
+
+export default usePrintActions;

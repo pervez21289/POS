@@ -1,20 +1,15 @@
 /**
  * Universal receipt printer - uses HTTP API with full configuration (logo, bold, fonts, static payment QR)
+ * Now also supports browser-based printing as a fallback.
  */
+import QRCode from 'qrcode';
 
 const SERVICE_URL = import.meta.env.REACT_APP_PRINT_SERVICE_URL || 'http://localhost:3001';
 
 // ---------- Text formatting helpers ----------
-// 56mm rolls typically fit ~28-32 chars depending on font size; 28 is a safe default.
-// Override via config.lineWidth if a specific printer/paper needs more/less.
-const DEFAULT_LINE_WIDTH = 28;
+const DEFAULT_LINE_WIDTH = 58;
 const QTY_COL_WIDTH = 3;
 
-// Column-aligned text (padRight/padLeft) is only valid in a TRUE monospace font.
-// Named fonts (Tahoma, Arial, even "Courier New" if not installed) can silently
-// fall back to a proportional font on the print-service host, breaking alignment
-// no matter what name is configured. The CSS generic keyword `monospace` is the
-// only choice guaranteed to resolve to *some* real monospace font everywhere.
 const PRINT_FONT_FAMILY = 'monospace';
 
 const padRight = (text, length) =>
@@ -31,14 +26,12 @@ const center = (text, lineWidth) => {
 const safeText = (text, lineWidth) =>
     (text || '').toString().slice(0, lineWidth);
 
-// Accepts either `quantity` or `qty` in case an upstream mapping uses a different key
 const getItemQty = (item) => item?.quantity ?? item?.qty ?? 0;
 
-// ---------- Receipt text generator ----------
-const generateReceiptText = (params) => {
+// ---------- EXPORTED: Receipt text generator ----------
+export const generateReceiptText = (params) => {
     const { type, storeInfo, items } = params;
     const config = getStoredConfig();
-    // Resolution order: explicit param > stored printer config > safe default
     const lineWidth = params.lineWidth || config?.lineWidth || DEFAULT_LINE_WIDTH;
     const nameColWidth = lineWidth - QTY_COL_WIDTH - 1; // -1 = guaranteed gap before qty
 
@@ -79,8 +72,6 @@ const generateReceiptText = (params) => {
     }
 
     // ---------- Item lines ----------
-    // KOT is for kitchen staff: show only name + quantity, never price/total.
-    // Sale and summary receipts show the full name/rate/total breakdown.
     if (type === 'kot') {
         lines.push(padRight('Item', nameColWidth) + ' ' + padLeft('Qty', QTY_COL_WIDTH));
         (items || []).forEach(item => {
@@ -103,7 +94,6 @@ const generateReceiptText = (params) => {
     lines.push('-'.repeat(lineWidth));
 
     // ---------- Totals ----------
-    // KOT never shows money totals — only item count.
     let subtotal = 0, cgst = 0, sgst = 0, halfGstRate = 0, netAmount = 0;
     const itemCount = params.itemCount || items?.length || 0;
 
@@ -148,6 +138,56 @@ const generateReceiptText = (params) => {
     return lines.join('\n');
 };
 
+// ---------- NEW: Browser print helper ----------
+const PAGE_WIDTH_MM = { '56mm': 56, '58mm': 58, '80mm': 80 };
+
+const escapeHtml = (text) =>
+    (text || '')
+        .toString()
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+export const printViaBrowser = (content, config = null, isHtml = false) => {
+    const win = window.open('', '_blank');
+    if (!win) {
+        alert('Please allow popups for printing.');
+        return;
+    }
+
+    const cfg = config || getStoredConfig() || {};
+    const pageWidthMm = PAGE_WIDTH_MM[cfg.pageSize] || 58;
+
+    // If content is plain text, wrap it in a pre element
+    const bodyContent = isHtml ? content : `<pre style="white-space:pre;font-family:monospace;">${escapeHtml(content)}</pre>`;
+
+    win.document.write(`
+        <html>
+            <head>
+                <meta charset="UTF-8">
+                <title>Print Receipt</title>
+                <style>
+                    @page { size: ${pageWidthMm}mm auto; margin: 0; }
+                    html, body { margin: 0; padding: 0; }
+                    body { 
+                        font-family: ${PRINT_FONT_FAMILY}; 
+                        width: ${pageWidthMm}mm; 
+                        box-sizing: border-box; 
+                        padding: 4px 6px;
+                        background: white;
+                    }
+                    @media print { body { margin: 0; } }
+                </style>
+            </head>
+            <body>${bodyContent}</body>
+        </html>
+    `);
+    win.document.close();
+    win.focus();
+    win.print();
+    win.onafterprint = () => win.close();
+};
+
 // ---------- HTTP API Calls ----------
 async function callApi(endpoint, data) {
     const response = await fetch(`${SERVICE_URL}${endpoint}`, {
@@ -163,6 +203,8 @@ async function callApi(endpoint, data) {
 }
 
 // ---------- Storage Helpers ----------
+const getStoredPrintMethod = () => localStorage.getItem('pos_print_method') || 'service';
+
 const getStoredPrinter = () => localStorage.getItem('pos_default_printer') || null;
 
 const getStoredConfig = () => {
@@ -185,9 +227,19 @@ const setStoredConfig = (config) => {
 // ---------- Public API ----------
 
 export const printReceipt = async (params) => {
+    const config = getStoredConfig();
+
+    // Browser Print selected in Printer Settings: skip the HTTP print service
+    // entirely and open the system print dialog instead. Uses the HTML
+    // template (not plain text) so the logo/QR actually render.
+    if (getStoredPrintMethod() === 'browser') {
+        const receiptHtml = await generateReceiptHTML(params);
+        printViaBrowser(receiptHtml, config, true);
+        return { success: true, method: 'browser' };
+    }
+
     const receiptText = generateReceiptText(params);
     const printerName = params.printerName || getStoredPrinter();
-    const config = getStoredConfig();
 
     const printData = {
         data: [{
@@ -195,8 +247,8 @@ export const printReceipt = async (params) => {
             value: receiptText,
             style: {
                 fontSize: config?.fontSize ? `${config.fontSize}px` : '12px',
-                fontFamily: PRINT_FONT_FAMILY, // always monospace, see comment above
-                fontWeight: config?.bold ? 'bold' : 'normal', // ➕ now actually applied
+                fontFamily: PRINT_FONT_FAMILY,
+                fontWeight: config?.bold ? 'bold' : 'normal',
                 whiteSpace: 'pre'
             }
         }],
@@ -233,8 +285,14 @@ export const printRawText = async (text, printerName = null) => {
 };
 
 export const testPrinter = async (printerName = null) => {
-    const finalPrinter = printerName || getStoredPrinter();
     const config = getStoredConfig();
+
+    if (getStoredPrintMethod() === 'browser') {
+        printViaBrowser('=== POS58 SYSTEM TEST ===\nBrowser print is live.\n\n\n\n', config);
+        return { success: true, method: 'browser' };
+    }
+
+    const finalPrinter = printerName || getStoredPrinter();
 
     const testData = {
         data: [{
@@ -243,7 +301,7 @@ export const testPrinter = async (printerName = null) => {
             style: { textAlign: 'center', fontSize: '14px' }
         }],
         printerName: finalPrinter,
-        config: config // includes logo and payment QR (if uploaded)
+        config: config
     };
 
     try {
@@ -292,7 +350,190 @@ export const checkService = async () => {
     }
 };
 
-export { getStoredPrinter, setStoredPrinter, getStoredConfig, setStoredConfig };
+
+// Convert image URL to Base64 (if needed)
+async function imageToBase64(url) {
+    const response = await fetch(url);
+    const blob = await response.blob();
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+    });
+}
+
+export const generateReceiptHTML = async (params) => {
+    const { type, storeInfo, items, tableNo, kotNo, sale, qrData } = params;
+    const config = getStoredConfig();
+    // Prefer an explicitly passed logoUrl, otherwise fall back to the logo
+    // saved in Printer Settings (stored as raw base64, no data-URI prefix).
+    const logoUrl = params.logoUrl || (config?.logoBase64 ? `data:image/png;base64,${config.logoBase64}` : null);
+    const storeName = storeInfo?.storeName || 'Store';
+    const address = storeInfo?.address || '';
+    const gst = storeInfo?.gstin || '';
+
+    // Build the item list HTML
+    const isKOT = type === 'kot';
+    let itemRows = '';
+    let total = 0;
+    (items || []).forEach(item => {
+        const qty = item.quantity ?? 0;
+        const price = item.price ?? 0;
+        const subtotal = qty * price;
+        total += subtotal;
+        itemRows += isKOT
+            ? `<tr>
+            <td>${item.name}</td>
+            <td style="text-align:center">${qty}</td>
+        </tr>`
+            : `<tr>
+            <td>${item.name}</td>
+            <td style="text-align:center">${qty}</td>
+            <td style="text-align:right">₹${price.toFixed(2)}</td>
+            <td style="text-align:right">₹${subtotal.toFixed(2)}</td>
+        </tr>`;
+    });
+
+    // Generate QR code as data URL (if qrData provided)
+    let qrImage = '';
+    if (qrData) {
+        try {
+            qrImage = await QRCode.toDataURL(qrData, { width: 120, margin: 2 });
+        } catch (e) {
+            console.warn('QR generation failed', e);
+        }
+    }
+
+    // Logo image (if provided as URL or Base64)
+    let logoImage = '';
+    if (logoUrl) {
+        try {
+            // If it's already a data URL, use as is; otherwise fetch and convert
+            if (logoUrl.startsWith('data:image')) {
+                logoImage = logoUrl;
+            } else {
+                logoImage = await imageToBase64(logoUrl);
+            }
+        } catch (e) {
+            console.warn('Logo load failed', e);
+        }
+    }
+
+    // Build the full HTML
+    const bodyFontFamily = config?.fontFamily ? `'${config.fontFamily}', monospace` : "'Courier New', monospace";
+    const bodyFontSize = config?.fontSize ? `${config.fontSize}px` : '12px';
+    const bodyFontWeight = config?.bold ? 'bold' : 'normal';
+
+    return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <title>Receipt</title>
+            <style>
+                @page { size: 58mm auto; margin: 0; }
+                body {
+                    font-family: ${bodyFontFamily};
+                    font-weight: ${bodyFontWeight};
+                    width: 58mm;
+                    padding: 6px 4px;
+                    margin: 0;
+                    font-size: ${bodyFontSize};
+                    box-sizing: border-box;
+                    -webkit-font-smoothing: antialiased;
+                    text-rendering: optimizeLegibility;
+                }
+                @media print {
+                    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+                }
+                .receipt {
+                    text-align: center;
+                }
+                .logo img {
+                    max-width: 80%;
+                    height: auto;
+                    margin-bottom: 4px;
+                }
+                .store-name {
+                    font-size: 16px;
+                    font-weight: bold;
+                }
+                .address, .gst {
+                    font-size: 11px;
+                }
+                .hr {
+                    border-top: 1px dashed #000;
+                    margin: 4px 0;
+                }
+                table {
+                    width: 100%;
+                    border-collapse: collapse;
+                    font-size: 11px;
+                }
+                th, td {
+                    padding: 2px 0;
+                }
+                th {
+                    border-bottom: 1px solid #000;
+                    text-align: left;
+                }
+                .amount-row td {
+                    padding-top: 4px;
+                    font-weight: bold;
+                }
+                .qr-code img {
+                    width: 80px;
+                    height: 80px;
+                    margin-top: 6px;
+                }
+                .footer {
+                    margin-top: 8px;
+                    font-size: 11px;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="receipt">
+                ${logoImage ? `<div class="logo"><img src="${logoImage}" alt="Logo" /></div>` : ''}
+                <div class="store-name">${storeName}</div>
+                <div class="address">${address}</div>
+                <div class="gst">GST: ${gst}</div>
+                <div class="hr"></div>
+                ${type === 'kot' ? `<div><strong>KITCHEN ORDER</strong></div>` : ''}
+                ${type === 'summary' ? `<div><strong>ORDER SUMMARY</strong></div>` : ''}
+                ${type === 'sale' ? `<div><strong>BILL</strong></div>` : ''}
+                ${type === 'sale' ? `<div>Bill#: ${sale?.billNo || ''}</div>` : ''}
+                ${type !== 'sale' ? `<div>Table: ${tableNo || '--'}</div>` : ''}
+                ${kotNo ? `<div>KOT#: ${kotNo}</div>` : ''}
+                <div>Date: ${new Date().toLocaleString()}</div>
+                <div class="hr"></div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th style="text-align:center">Qty</th>
+                            ${isKOT ? '' : `<th style="text-align:right">Rate</th>
+                            <th style="text-align:right">Total</th>`}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${itemRows}
+                        ${isKOT ? '' : `<tr class="amount-row">
+                            <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
+                            <td style="text-align:right"><strong>₹${total.toFixed(2)}</strong></td>
+                        </tr>`}
+                    </tbody>
+                </table>
+                <div class="hr"></div>
+                ${isKOT ? '' : `<div class="footer">Thank you! Visit again!</div>
+                ${qrImage ? `<div class="qr-code"><img src="${qrImage}" alt="QR Code" /></div>` : ''}`}
+            </div>
+        </body>
+        </html>
+    `;
+};
+
+export { getStoredPrinter, setStoredPrinter, getStoredConfig, setStoredConfig, getStoredPrintMethod };
 
 export default {
     printReceipt,
@@ -304,5 +545,9 @@ export default {
     getStoredPrinter,
     setStoredPrinter,
     getStoredConfig,
-    setStoredConfig
+    setStoredConfig,
+    getStoredPrintMethod,
+    generateReceiptText,
+    printViaBrowser,
+    generateReceiptHTML
 };

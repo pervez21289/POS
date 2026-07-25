@@ -41,19 +41,23 @@ const ActiveTablesSection = ({
 
             <Box
                 sx={{
-                    display: 'grid',
-                    gridAutoFlow: { xs: 'column', sm: 'row' },
-                    gridAutoColumns: { xs: '38%', sm: 'unset' },
+                    display: { xs: 'flex', sm: 'grid' },
+                    flexWrap: { xs: 'nowrap', sm: 'wrap' },
+                    overflowX: { xs: 'auto', sm: 'visible' },
+                    gap: { xs: 1.25, sm: 2 },
+                    pb: { xs: 0.5, sm: 0 },
+                    // Grid styles for sm and up
                     gridTemplateColumns: {
                         sm: 'repeat(2, 1fr)',
                         md: 'repeat(3, 1fr)',
                         lg: 'repeat(4, 1fr)',
                     },
-                    gap: { xs: 1.25, sm: 2 },
-                    overflowX: { xs: 'auto', sm: 'visible' },
-                    pb: { xs: 0.5, sm: 0 },
+                    // Flex child sizing for mobile
+                    '& > *': {
+                        flex: { xs: '0 0 38%', sm: 'unset' },
+                        scrollSnapAlign: { xs: 'start', sm: 'unset' },
+                    },
                     scrollSnapType: { xs: 'x mandatory', sm: 'none' },
-                    '& > *': { scrollSnapAlign: { xs: 'start', sm: 'unset' } },
                 }}
             >
                 {draftCarts.map((draft) => (
