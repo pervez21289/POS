@@ -28,6 +28,35 @@ const safeText = (text, lineWidth) =>
 
 const getItemQty = (item) => item?.quantity ?? item?.qty ?? 0;
 
+// ---------- EXPORTED: UPI QR string builder ----------
+// Builds a standard UPI deep-link, e.g.
+// upi://pay?pa=merchant@upi&pn=Store%20Name&am=250.00&cu=INR&tn=Bill%20123
+export const buildUpiQrString = ({ upiId, payeeName, amount, note }) => {
+    if (!upiId) return '';
+    const params = new URLSearchParams();
+    params.set('pa', upiId);
+    if (payeeName) params.set('pn', payeeName);
+    if (amount !== undefined && amount !== null && !isNaN(amount) && Number(amount) > 0) {
+        params.set('am', Number(amount).toFixed(2));
+    }
+    params.set('cu', 'INR');
+    if (note) params.set('tn', note);
+    return `upi://pay?${params.toString()}`;
+};
+
+// Compute the final payable amount for a receipt payload (used to populate the QR "am" field)
+const computeNetAmount = (params) => {
+    const { type, items, sale } = params;
+    if (type === 'sale' && sale) {
+        const subtotal = parseFloat(sale.totalAmount) || items?.reduce((s, i) => s + (i.price * getItemQty(i)), 0) || 0;
+        return parseFloat(sale.netAmount) || subtotal;
+    }
+    if (type === 'summary') {
+        return params.subtotal || items?.reduce((s, i) => s + (i.price * getItemQty(i)), 0) || 0;
+    }
+    return 0;
+};
+
 // ---------- EXPORTED: Receipt text generator ----------
 export const generateReceiptText = (params) => {
     const { type, storeInfo, items } = params;
@@ -183,9 +212,40 @@ export const printViaBrowser = (content, config = null, isHtml = false) => {
         </html>
     `);
     win.document.close();
-    win.focus();
-    win.print();
-    win.onafterprint = () => win.close();
+
+    // ---------- Wait for images (logo/QR) to finish loading before printing ----------
+    // win.print() called right after document.write() can fire before the browser has
+    // decoded/painted <img> tags (even data-URI ones), which can print a blank spot
+    // where the logo or QR code should be. So we wait for every image to settle first.
+    let printed = false;
+    const triggerPrint = () => {
+        if (printed) return;
+        printed = true;
+        win.focus();
+        win.print();
+        win.onafterprint = () => win.close();
+    };
+
+    const images = Array.from(win.document.images || []);
+    if (images.length === 0) {
+        triggerPrint();
+    } else {
+        let settledCount = 0;
+        const onImgSettled = () => {
+            settledCount += 1;
+            if (settledCount >= images.length) triggerPrint();
+        };
+        images.forEach((img) => {
+            if (img.complete && img.naturalWidth > 0) {
+                onImgSettled();
+            } else {
+                img.addEventListener('load', onImgSettled);
+                img.addEventListener('error', onImgSettled); // don't block printing forever on a broken image
+            }
+        });
+        // Safety net: print anyway after 1.5s even if some image never settles
+        setTimeout(triggerPrint, 1500);
+    }
 };
 
 // ---------- HTTP API Calls ----------
@@ -255,6 +315,39 @@ export const printReceipt = async (params) => {
         printerName: printerName,
         config: config
     };
+
+    // ---------- Payment QR (skip for KOTs — kitchen tickets don't need payment info) ----------
+    if (params.type !== 'kot') {
+        const upiId = params.upiId || config?.upiId;
+        let qrBase64 = null;
+
+        if (upiId) {
+            const netAmount = computeNetAmount(params);
+            const upiString = buildUpiQrString({
+                upiId,
+                payeeName: params.payeeName || config?.payeeName || params.storeInfo?.storeName,
+                amount: netAmount,
+                note: params.type === 'sale' ? `Bill ${params.sale?.billNo || ''}` : 'Order Payment'
+            });
+            try {
+                const dataUrl = await QRCode.toDataURL(upiString, { width: 200, margin: 1 });
+                qrBase64 = dataUrl.split(',')[1]; // strip the data:image/png;base64, prefix
+            } catch (e) {
+                console.warn('QR generation failed', e);
+            }
+        } else if (config?.paymentQRBase64) {
+            // Fall back to a static uploaded QR/image if no UPI ID is configured
+            qrBase64 = config.paymentQRBase64;
+        }
+
+        if (qrBase64) {
+            printData.data.push({
+                type: 'image',
+                value: qrBase64,
+                style: { align: 'center', width: 160 }
+            });
+        }
+    }
 
     try {
         const result = await callApi('/api/print', printData);
@@ -405,12 +498,25 @@ export const generateReceiptHTML = async (params) => {
               </tr>`;
     });
 
-    // Generate QR code
+    // Generate QR code (priority: explicit qrData param > dynamic UPI string from config > static uploaded QR/image)
     let qrImage = '';
-    if (qrData) {
+    const upiId = params.upiId || config?.upiId;
+    const dynamicUpiString = (type !== 'kot' && upiId)
+        ? buildUpiQrString({
+            upiId,
+            payeeName: params.payeeName || config?.payeeName || storeName,
+            amount: netAmount,
+            note: type === 'sale' ? `Bill ${sale?.billNo || ''}` : 'Order Payment'
+        })
+        : '';
+    const finalQrData = qrData || dynamicUpiString;
+
+    if (finalQrData) {
         try {
-            qrImage = await QRCode.toDataURL(qrData, { width: 120, margin: 2 });
+            qrImage = await QRCode.toDataURL(finalQrData, { width: 120, margin: 2 });
         } catch (e) { console.warn('QR generation failed', e); }
+    } else if (config?.paymentQRBase64) {
+        qrImage = `data:image/png;base64,${config.paymentQRBase64}`;
     }
 
     // Logo image
@@ -461,9 +567,14 @@ export const generateReceiptHTML = async (params) => {
                 th, td { padding: 2px 0; }
                 th { border-bottom: 1px solid #000; text-align: left; }
                 .amount-row td { padding-top: 4px; font-weight: bold; }
-                .qr-code img { width: 80px; height: 80px; margin-top: 6px; }
-                .footer { margin-top: 8px; font-size: 11px; }
+                .qr-code img { width: 80px; height: 80px; margin-top: 6px; margin-bottom: 2px; }
+                .qr-code { padding-bottom: 1mm; }
+                .footer { margin-top: 1px; font-size: 11px; }
                 .gst-row td { padding-top: 2px; }
+                /* Extra blank space at the very end of the receipt so the
+                   printer's auto-cutter doesn't slice through the bottom
+                   of the QR code image. */
+                .print-spacer { height: 15mm; width: 100%; }
             </style>
         </head>
         <body>
@@ -519,9 +630,11 @@ export const generateReceiptHTML = async (params) => {
                     <div style="font-weight:bold;">=== FOR KITCHEN ===</div>
                     <div>Please prepare</div>
                 ` : `
-                    <div class="footer">Thank you! Visit again!</div>
+                    
                     ${qrImage ? `<div class="qr-code"><img src="${qrImage}" alt="QR Code" /></div>` : ''}
                 `}
+                <div class="footer">Thank you! Visit again!</div>
+                <div class="print-spacer"></div>
             </div>
         </body>
         </html>

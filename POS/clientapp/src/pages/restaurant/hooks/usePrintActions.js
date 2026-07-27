@@ -30,12 +30,15 @@ const usePrintActions = ({ basicSettings, receiptInfo, selectedTable }) => {
         };
 
         if (method === 'browser') {
-            const qrData = basicSettings?.upiPaymentString || ''; // e.g., 'upi://pay?pa=...'
             const logoUrl = basicSettings?.logoUrl || '';
             const html = await generateReceiptHTML({
                 ...fullParams,
                 logoUrl,
-                qrData,
+                // upiId/payeeName let generateReceiptHTML build a dynamic UPI QR (with the
+                // correct bill amount) itself. If Printer Settings already has a UPI ID saved,
+                // omit these and it'll be picked up from there automatically.
+                upiId: basicSettings?.upiId,
+                payeeName: basicSettings?.storeName,
             });
             printViaBrowser(html, config, true); // pass isHtml=true
             return { success: true, method: 'browser' };
@@ -45,7 +48,7 @@ const usePrintActions = ({ basicSettings, receiptInfo, selectedTable }) => {
             if (!printerName) {
                 throw new Error('No default printer selected. Please set one in Printer Settings.');
             }
-            return await printReceipt({ ...fullParams, printerName });
+            return await printReceipt({ ...fullParams, printerName, payeeName: basicSettings?.storeName });
         }
     };
 

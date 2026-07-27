@@ -64,7 +64,9 @@ const PrinterSettings = ({ open, onClose }) => {
         fontFamily: 'Courier New',
         bold: true,
         logoBase64: null,
-        paymentQRBase64: null
+        paymentQRBase64: null,
+        upiId: '',
+        payeeName: ''
     });
 
     const [printMethod, setPrintMethod] = useState('service');
@@ -143,7 +145,9 @@ const PrinterSettings = ({ open, onClose }) => {
                     fontFamily: config.fontFamily || 'Courier New',
                     bold: config.bold !== undefined ? config.bold : true,
                     logoBase64: config.logoBase64 || null,
-                    paymentQRBase64: config.paymentQRBase64 || null
+                    paymentQRBase64: config.paymentQRBase64 || null,
+                    upiId: config.upiId || '',
+                    payeeName: config.payeeName || ''
                 });
             }
         } catch (error) {
@@ -533,7 +537,39 @@ ${rule}
                 </Stack>
 
                 <Divider sx={{ my: 2 }} />
-                <Typography variant="subtitle2" gutterBottom>Payment QR / Image (Static)</Typography>
+                <Typography variant="subtitle2" gutterBottom>UPI Payment QR (Dynamic)</Typography>
+                <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    spacing={{ xs: 1.5, sm: 2 }}
+                    sx={{ mb: 0.5 }}
+                >
+                    <TextField
+                        label="UPI ID (VPA)"
+                        placeholder="yourstore@upi"
+                        value={printConfig.upiId}
+                        onChange={(e) => setPrintConfig({ ...printConfig, upiId: e.target.value.trim() })}
+                        size="small"
+                        fullWidth={isMobile}
+                        sx={{ width: isMobile ? '100%' : 220 }}
+                    />
+                    <TextField
+                        label="Payee Name (optional)"
+                        placeholder="Defaults to store name"
+                        value={printConfig.payeeName}
+                        onChange={(e) => setPrintConfig({ ...printConfig, payeeName: e.target.value })}
+                        size="small"
+                        fullWidth={isMobile}
+                        sx={{ width: isMobile ? '100%' : 220 }}
+                    />
+                </Stack>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+                    When a UPI ID is set, every sale/order receipt (not KOTs) prints a QR code
+                    with the exact bill amount pre-filled — no need to upload a static image.
+                    Leave blank to fall back to the uploaded QR/image below.
+                </Typography>
+
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="subtitle2" gutterBottom>Payment QR / Image (Static Fallback)</Typography>
                 <Stack
                     direction={{ xs: 'column', sm: 'row' }}
                     spacing={{ xs: 1, sm: 2 }}
@@ -545,6 +581,7 @@ ${rule}
                         component="label"
                         size="small"
                         startIcon={<UploadFileIcon />}
+                        disabled={!!printConfig.upiId}
                     >
                         Upload QR/Image
                         <input
