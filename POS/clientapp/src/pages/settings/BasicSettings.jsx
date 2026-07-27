@@ -16,12 +16,15 @@ import {
 } from './../../services/basicSettingAPI';
 import { useSelector } from 'react-redux';
 
+import { manualProductSync } from '../../hooks/useProductSync';
+
 const initialState = {
     id: 0,
     storeName: '',
     address: '',
     contactEmail: '',
-    gstin: ''
+    gstin: '',
+    gst: ''
 };
 
 
@@ -45,6 +48,7 @@ export default function BasicSettingForm() {
     const validate = () => {
         const temp = {};
         temp.storeName = formData.storeName ? '' : 'Store Name is required';
+        temp.address = formData.address ? '' : 'Address is required';
         temp.contactEmail = /\S+@\S+\.\S+/.test(formData.contactEmail)
             ? ''
             : 'Invalid email';
@@ -57,12 +61,20 @@ export default function BasicSettingForm() {
         e.preventDefault();
         if (!validate()) return;
 
-        if (formData.id === 0) {
-            await createBasicSetting(formData);
-        } else {
-            await updateBasicSetting(formData);
+        try {
+            let result;
+            if (formData.id === 0) {
+                result = await createBasicSetting(formData).unwrap();
+            } else {
+                result = await updateBasicSetting(formData).unwrap();
+            }
+            // 👈 sync local state with what the server actually saved (including new id)
+            await manualProductSync();
+            setSuccess(true);
+        } catch (err) {
+            console.error('Failed to save settings:', err);
+            // e.g. dispatch(showAlert({ open: true, message: 'Failed to save settings!', severity: 'error' }));
         }
-        setSuccess(true);
     };
 
     const handleChange = (e) => {
@@ -99,6 +111,9 @@ export default function BasicSettingForm() {
                             rows={3}
                             value={formData.address}
                             onChange={handleChange}
+                            error={!!errors.address}
+                            helperText={errors.address}
+                            required
                         />
 
                         <TextField

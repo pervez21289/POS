@@ -13,7 +13,7 @@ import { openDrawer } from "./../../store/reducers/drawer";
 import { showAlert } from "./../../store/reducers/alert";
 import { useGetCategoriesQuery } from './../../services/categoryApi';
 
-const ProductForm = ({ initialData = {} }) => {
+const ProductForm = ({initialData=null}) => {
     const [product, setProduct] = useState(null);
     const [createProduct] = useCreateProductMutation();
     const [updateProduct] = useUpdateProductMutation();
@@ -59,6 +59,7 @@ const ProductForm = ({ initialData = {} }) => {
                 await createProduct(product).unwrap();
                 dispatch(showAlert({ open: true, message: 'Product saved successfully!', severity: 'success' }));
             }
+            setProduct(null); 
             dispatch(openDrawer({ drawerOpen: false }));
         } catch {
             dispatch(showAlert({ open: true, message: 'Failed to save product!', severity: 'error' }));
@@ -187,7 +188,10 @@ const ProductForm = ({ initialData = {} }) => {
                         <Button
                             variant="outlined"
                             color="secondary"
-                            onClick={() => dispatch(openDrawer({ drawerOpen: false }))}
+                            onClick={() => {
+                                dispatch(openDrawer({ drawerOpen: false }));
+                                setProduct(null);
+                            }}
                         >
                             Cancel
                         </Button>

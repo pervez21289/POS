@@ -365,61 +365,67 @@ async function imageToBase64(url) {
 export const generateReceiptHTML = async (params) => {
     const { type, storeInfo, items, tableNo, kotNo, sale, qrData } = params;
     const config = getStoredConfig();
-    // Prefer an explicitly passed logoUrl, otherwise fall back to the logo
-    // saved in Printer Settings (stored as raw base64, no data-URI prefix).
     const logoUrl = params.logoUrl || (config?.logoBase64 ? `data:image/png;base64,${config.logoBase64}` : null);
     const storeName = storeInfo?.storeName || 'Store';
     const address = storeInfo?.address || '';
     const gst = storeInfo?.gstin || '';
 
-    // Build the item list HTML
+    // ---------- Compute totals and GST ----------
+    let subtotal = 0;
+    let cgst = 0, sgst = 0, halfGstRate = 0, netAmount = 0;
+
+    // If sale object is provided (for type 'sale'), use its values
+    if (type === 'sale' && sale) {
+        subtotal = parseFloat(sale.totalAmount) || 0;
+        cgst = parseFloat(sale.cgst) || 0;
+        sgst = parseFloat(sale.sgst) || 0;
+        halfGstRate = parseFloat(sale.halfGstRate) || 0;
+        netAmount = parseFloat(sale.netAmount) || subtotal + cgst + sgst;
+    } else {
+        // For summary or kot, compute from items
+        subtotal = items?.reduce((sum, item) => sum + (item.price * (item.quantity ?? 0)), 0) || 0;
+        netAmount = subtotal;
+        // If we have a halfGstRate in params, we could compute – but not needed for non-sale
+    }
+
+    // Build item rows
     const isKOT = type === 'kot';
     let itemRows = '';
-    let total = 0;
     (items || []).forEach(item => {
         const qty = item.quantity ?? 0;
         const price = item.price ?? 0;
-        const subtotal = qty * price;
-        total += subtotal;
+        const subtotalItem = qty * price;
         itemRows += isKOT
-            ? `<tr>
-            <td>${item.name}</td>
-            <td style="text-align:center">${qty}</td>
-        </tr>`
+            ? `<tr><td>${item.name}</td><td style="text-align:center">${qty}</td></tr>`
             : `<tr>
-            <td>${item.name}</td>
-            <td style="text-align:center">${qty}</td>
-            <td style="text-align:right">₹${price.toFixed(2)}</td>
-            <td style="text-align:right">₹${subtotal.toFixed(2)}</td>
-        </tr>`;
+                <td>${item.name}</td>
+                <td style="text-align:center">${qty}</td>
+                <td style="text-align:right">₹${price.toFixed(2)}</td>
+                <td style="text-align:right">₹${subtotalItem.toFixed(2)}</td>
+              </tr>`;
     });
 
-    // Generate QR code as data URL (if qrData provided)
+    // Generate QR code
     let qrImage = '';
     if (qrData) {
         try {
             qrImage = await QRCode.toDataURL(qrData, { width: 120, margin: 2 });
-        } catch (e) {
-            console.warn('QR generation failed', e);
-        }
+        } catch (e) { console.warn('QR generation failed', e); }
     }
 
-    // Logo image (if provided as URL or Base64)
+    // Logo image
     let logoImage = '';
     if (logoUrl) {
         try {
-            // If it's already a data URL, use as is; otherwise fetch and convert
             if (logoUrl.startsWith('data:image')) {
                 logoImage = logoUrl;
             } else {
                 logoImage = await imageToBase64(logoUrl);
             }
-        } catch (e) {
-            console.warn('Logo load failed', e);
-        }
+        } catch (e) { console.warn('Logo load failed', e); }
     }
 
-    // Build the full HTML
+    // Build HTML
     const bodyFontFamily = config?.fontFamily ? `'${config.fontFamily}', monospace` : "'Courier New', monospace";
     const bodyFontSize = config?.fontSize ? `${config.fontSize}px` : '12px';
     const bodyFontWeight = config?.bold ? 'bold' : 'normal';
@@ -446,50 +452,18 @@ export const generateReceiptHTML = async (params) => {
                 @media print {
                     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
                 }
-                .receipt {
-                    text-align: center;
-                }
-                .logo img {
-                    max-width: 80%;
-                    height: auto;
-                    margin-bottom: 4px;
-                }
-                .store-name {
-                    font-size: 16px;
-                    font-weight: bold;
-                }
-                .address, .gst {
-                    font-size: 11px;
-                }
-                .hr {
-                    border-top: 1px dashed #000;
-                    margin: 4px 0;
-                }
-                table {
-                    width: 100%;
-                    border-collapse: collapse;
-                    font-size: 11px;
-                }
-                th, td {
-                    padding: 2px 0;
-                }
-                th {
-                    border-bottom: 1px solid #000;
-                    text-align: left;
-                }
-                .amount-row td {
-                    padding-top: 4px;
-                    font-weight: bold;
-                }
-                .qr-code img {
-                    width: 80px;
-                    height: 80px;
-                    margin-top: 6px;
-                }
-                .footer {
-                    margin-top: 8px;
-                    font-size: 11px;
-                }
+                .receipt { text-align: center; }
+                .logo img { max-width: 80%; height: auto; margin-bottom: 4px; }
+                .store-name { font-size: 16px; font-weight: bold; }
+                .address, .gst { font-size: 11px; }
+                .hr { border-top: 1px dashed #000; margin: 4px 0; }
+                table { width: 100%; border-collapse: collapse; font-size: 11px; }
+                th, td { padding: 2px 0; }
+                th { border-bottom: 1px solid #000; text-align: left; }
+                .amount-row td { padding-top: 4px; font-weight: bold; }
+                .qr-code img { width: 80px; height: 80px; margin-top: 6px; }
+                .footer { margin-top: 8px; font-size: 11px; }
+                .gst-row td { padding-top: 2px; }
             </style>
         </head>
         <body>
@@ -519,14 +493,35 @@ export const generateReceiptHTML = async (params) => {
                     <tbody>
                         ${itemRows}
                         ${isKOT ? '' : `<tr class="amount-row">
-                            <td colspan="3" style="text-align:right"><strong>Total:</strong></td>
-                            <td style="text-align:right"><strong>₹${total.toFixed(2)}</strong></td>
+                            <td colspan="3" style="text-align:right"><strong>Subtotal:</strong></td>
+                            <td style="text-align:right"><strong>₹${subtotal.toFixed(2)}</strong></td>
                         </tr>`}
                     </tbody>
                 </table>
+                ${!isKOT && type === 'sale' ? `
+                    <div class="hr"></div>
+                    <div style="text-align:right; font-size:11px; line-height:1.6;">
+                        <div>CGST (${halfGstRate.toFixed(2)}%): ₹${cgst.toFixed(2)}</div>
+                        <div>SGST (${halfGstRate.toFixed(2)}%): ₹${sgst.toFixed(2)}</div>
+                        <div style="font-weight:bold; font-size:13px; margin-top:4px;">
+                            Net Amount: ₹${netAmount.toFixed(2)}
+                        </div>
+                    </div>
+                ` : ''}
+                ${!isKOT && type !== 'sale' ? `
+                    <div class="hr"></div>
+                    <div style="text-align:right; font-size:12px; font-weight:bold; margin-top:4px;">
+                        Total: ₹${netAmount.toFixed(2)}
+                    </div>
+                ` : ''}
                 <div class="hr"></div>
-                ${isKOT ? '' : `<div class="footer">Thank you! Visit again!</div>
-                ${qrImage ? `<div class="qr-code"><img src="${qrImage}" alt="QR Code" /></div>` : ''}`}
+                ${isKOT ? `
+                    <div style="font-weight:bold;">=== FOR KITCHEN ===</div>
+                    <div>Please prepare</div>
+                ` : `
+                    <div class="footer">Thank you! Visit again!</div>
+                    ${qrImage ? `<div class="qr-code"><img src="${qrImage}" alt="QR Code" /></div>` : ''}
+                `}
             </div>
         </body>
         </html>
