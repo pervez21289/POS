@@ -23,7 +23,17 @@ export default function PaymentMode({ setPaymentModeID, PaymentModeID }) {
                         variant={PaymentModeID === item.value ? "filled" : "outlined"}
                         color={PaymentModeID === item.value ? "primary" : "default"}
                         onClick={() => setPaymentModeID(item.value)}
-                        sx={{ px: 2, py: 1, fontWeight: "bold" }}
+                        sx={{
+                            px: 3,
+                            py: 2.5,
+                            fontWeight: "bold",
+                            fontSize: '1.1rem',
+                            height: '48px',
+                            '& .MuiChip-label': {
+                                fontSize: '1.1rem',
+                                px: 1.5,
+                            }
+                        }}
                     />
                 ))}
             </Stack>

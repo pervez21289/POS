@@ -45,7 +45,8 @@ const usePrintActions = ({ basicSettings, receiptInfo, selectedTable }) => {
         } else {
             // Service mode
             const printerName = servicePrinterName || getStoredPrinter();
-            if (!printerName) {
+
+                if (!printerName && !window.ReactNativeWebView) {
                 throw new Error('No default printer selected. Please set one in Printer Settings.');
             }
             return await printReceipt({ ...fullParams, printerName, payeeName: basicSettings?.storeName });
@@ -59,7 +60,7 @@ const usePrintActions = ({ basicSettings, receiptInfo, selectedTable }) => {
     const handlePrintKOT = async (kotData) => {
         try {
             let tableNo, items, kotNo;
-
+            debugger;
             // ----- Handle number (tableNo only) -----
             if (typeof kotData === 'number') {
                 tableNo = kotData;

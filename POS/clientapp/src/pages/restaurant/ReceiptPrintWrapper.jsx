@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+﻿import React, { useState, useRef, useEffect } from 'react';
 import {
     Box, Button, TextField, Typography, CircularProgress,
     Stack, Divider
@@ -26,6 +26,18 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
     const [customerId, setCustomerId] = useState(null);
     const [paymentModeError, setPaymentModeError] = useState('');
     const [loading, setLoading] = useState(false);
+
+    // Ref for mobile number input to auto-focus
+    const mobileInputRef = useRef(null);
+
+    // Auto-focus mobile number input when component mounts
+    useEffect(() => {
+        if (mobileInputRef.current) {
+            setTimeout(() => {
+                mobileInputRef.current.focus();
+            }, 100);
+        }
+    }, []);
 
     // Handle mobile search
     const handleMobileSearch = async (value) => {
@@ -138,7 +150,91 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
             <Divider sx={{ mb: 3 }} />
 
             <Stack spacing={3}>
-                {/* Payment Mode */}
+                {/* Mobile Number - Big and Prominent */}
+                <Box>
+                    <Typography variant="subtitle1" fontWeight="bold" color="text.secondary" sx={{ mb: 1 }}>
+                        Mobile Number <span style={{ color: 'red' }}>*</span>
+                    </Typography>
+                    <TextField
+                        fullWidth
+                        type="tel"
+                        placeholder="Enter 10-digit mobile number"
+                        inputMode="numeric"
+                        value={mobileNumber}
+                        inputRef={mobileInputRef}
+                        onChange={(e) => {
+                            const value = e.target.value;
+                            if (!/^\d*$/.test(value)) return;
+
+                            setMobileNumber(value);
+
+                            if (value.length === 10) {
+                                if (!/^[6-9]\d{9}$/.test(value)) {
+                                    setMobileError('Invalid mobile number');
+                                    setCustomerName('');
+                                } else {
+                                    setMobileError('');
+                                    handleMobileSearch(value);
+                                }
+                            } else {
+                                setMobileError('');
+                            }
+                        }}
+                        error={!!mobileError}
+                        helperText={mobileError || 'Enter a valid 10-digit mobile number'}
+                        inputProps={{
+                            maxLength: 10,
+                            style: {
+                                fontSize: '1.5rem',
+                                textAlign: 'center',
+                                letterSpacing: '2px',
+                                fontWeight: 'bold',
+                                padding: '12px 10px',
+                            }
+                        }}
+                        autoFocus
+                        sx={{
+                            '& .MuiInputBase-root': {
+                                height: '60px',
+                                fontSize: '1.5rem',
+                                borderRadius: 2,
+                                backgroundColor: '#f8f9fa',
+                                transition: 'all 0.3s ease',
+                                '&:hover': {
+                                    backgroundColor: '#f0f0f0',
+                                },
+                                '&.Mui-focused': {
+                                    backgroundColor: '#fff',
+                                    boxShadow: '0 0 0 3px rgba(25, 118, 210, 0.2)',
+                                }
+                            },
+                            '& .MuiInputLabel-root': {
+                                fontSize: '1rem',
+                            },
+                            '& .MuiFormHelperText-root': {
+                                fontSize: '0.85rem',
+                                marginTop: '6px',
+                            }
+                        }}
+                    />
+                </Box>
+
+                {/* Customer Name */}
+                <TextField
+                    fullWidth
+                    label="Customer Name"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    disabled={!!customerId}
+                    sx={{
+                        '& .MuiInputBase-root': {
+                            height: '50px',
+                            fontSize: '1.5rem',
+                        }
+                    }}
+                />
+
+                {/* Payment Mode - Now Below Customer Name */}
                 <Box>
                     <PaymentMode
                         PaymentModeID={PaymentModeID}
@@ -150,45 +246,6 @@ const ReceiptPrintWrapper = ({ onClose, onSuccess, tableNo }) => {
                         </Typography>
                     )}
                 </Box>
-
-                {/* Mobile Number */}
-                <TextField
-                    fullWidth
-                    type="tel"
-                    label="Mobile Number"
-                    inputMode="numeric"
-                    value={mobileNumber}
-                    onChange={(e) => {
-                        const value = e.target.value;
-                        if (!/^\d*$/.test(value)) return;
-
-                        setMobileNumber(value);
-
-                        if (value.length === 10) {
-                            if (!/^[6-9]\d{9}$/.test(value)) {
-                                setMobileError('Invalid mobile number');
-                                setCustomerName('');
-                            } else {
-                                setMobileError('');
-                                handleMobileSearch(value);
-                            }
-                        } else {
-                            setMobileError('');
-                        }
-                    }}
-                    error={!!mobileError}
-                    helperText={mobileError || ' '}
-                    inputProps={{ maxLength: 10 }}
-                />
-
-                {/* Customer Name */}
-                <TextField
-                    fullWidth
-                    label="Customer Name"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    disabled={!!customerId}
-                />
 
                 {/* Total Amount */}
                 <Box sx={{ textAlign: 'center', py: 1 }}>

@@ -287,6 +287,17 @@ const setStoredConfig = (config) => {
 // ---------- Public API ----------
 
 export const printReceipt = async (params) => {
+    // Mobile (React Native WebView) build: skip the HTTP print service and
+    // the browser print dialog entirely — just post the plain text back to
+    // the native shell so it can hand it off to the device's print bridge.
+    console.log('printReceipt called with params:', params);
+   
+    if (window.ReactNativeWebView) {
+        //const newParams = { ...params, action: 'PRINT' };
+        window.ReactNativeWebView.postMessage(JSON.stringify(params));
+        return { success: true, method: 'mobile' };
+    }
+
     const config = getStoredConfig();
 
     // Browser Print selected in Printer Settings: skip the HTTP print service

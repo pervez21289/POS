@@ -91,18 +91,9 @@ const POSHeader = ({
         </>
     );
 
-    // More menu items (only for mobile)
+    // More menu items - only print options now
     const MoreMenuItems = () => (
         <>
-            <MenuItem onClick={() => runAction(onSaveKOT)}>
-                <ListItemIcon><SaveIcon fontSize="small" /></ListItemIcon>
-                <ListItemText>Save KOT</ListItemText>
-            </MenuItem>
-            <MenuItem onClick={() => runAction(onViewKOTs)}>
-                <ListItemIcon><ListAltIcon fontSize="small" /></ListItemIcon>
-                <ListItemText>View KOTs</ListItemText>
-            </MenuItem>
-            <Divider />
             <PrintMenuItems />
         </>
     );
@@ -121,13 +112,37 @@ const POSHeader = ({
                     justifyContent: 'space-between',
                     borderRadius: 2,
                     bgcolor: 'background.paper',
+                    flexWrap: 'wrap',
+                    gap: 0.5,
                 }}
             >
                 {/* Left: Table chip */}
                 <TableChip />
 
-                {/* Right: New Order, Cart, More */}
-                <Stack direction="row" spacing={0.5} alignItems="center">
+                {/* Right: All action buttons */}
+                <Stack direction="row" spacing={0.5} alignItems="center" flexWrap="wrap">
+                    {/* Save KOT - now visible */}
+                    <Tooltip title="Save KOT">
+                        <IconButton
+                            onClick={onSaveKOT}
+                            size="small"
+                            color="primary"
+                        >
+                            <SaveIcon />
+                        </IconButton>
+                    </Tooltip>
+
+                    {/* View KOTs - now visible */}
+                    <Tooltip title="View KOTs">
+                        <IconButton
+                            onClick={onViewKOTs}
+                            size="small"
+                            color="primary"
+                        >
+                            <ListAltIcon />
+                        </IconButton>
+                    </Tooltip>
+
                     <Tooltip title="New Order">
                         <IconButton
                             color="primary"
@@ -147,6 +162,7 @@ const POSHeader = ({
                         </IconButton>
                     </Tooltip>
 
+                    {/* More menu - now only contains print options */}
                     <Tooltip title="More">
                         <IconButton onClick={handleMoreMenuOpen} size="small">
                             <MoreVertIcon />

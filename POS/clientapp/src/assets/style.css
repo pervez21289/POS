@@ -6,25 +6,104 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
-
+/* ----- Base Logo Container ----- */
 .logo {
-    font-size: 2rem;
-    font-weight: 600;
-    font-family: "font-sans", sans-serif;
-    color: #1976d2;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+    cursor: pointer;
+    user-select: none;
+    font-family: 'Inter', sans-serif; /* Make sure Inter is loaded */
+    transition: all 0.3s ease;
 }
 
-    /* Highlight Bill */
-    .logo .highlight {
-        color: #1976d2;
-        font-weight: 700;
+/* ----- Icon ----- */
+.logo-icon {
+    width: 52px;
+    height: 52px;
+    background: linear-gradient(135deg, #0055FF, #00D4FF);
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(0, 85, 255, 0.30);
+    transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+    .logo-icon svg {
+        width: 28px;
+        height: 28px;
+        fill: none;
+        stroke: white;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
     }
 
-    /* POS style */
-    .logo .pos {
-        font-family: "font-sans", sans-serif;
-        font-weight: 700;
-        color: #1976d2;
-        font-style: italic;
-        text-transform: uppercase;
+/* ----- Text Styling ----- */
+.logo-text {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    display: flex;
+    align-items: center;
+    line-height: 1;
+}
+
+/* "Nex" - Solid dark blue */
+.nex {
+    color: #0B1A33;
+}
+
+/* "Bill" - Gradient (your existing .highlight) */
+.highlight {
+    background: linear-gradient(to right, #0055FF, #00D4FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    transition: all 0.4s ease;
+}
+
+/* "POS" - Light grey (your existing .pos) */
+.pos {
+    color: #94a3b8;
+    font-weight: 300;
+    margin-left: 4px;
+}
+
+/* ----- Hover Effects (optional but nice) ----- */
+.logo:hover .logo-icon {
+    transform: scale(1.08) rotate(-3deg);
+    box-shadow: 0 12px 32px rgba(0, 85, 255, 0.45);
+}
+
+.logo:hover .highlight {
+    background: linear-gradient(to right, #7B61FF, #00D4FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.logo:hover .pos {
+    color: #475569;
+    transition: color 0.3s ease;
+}
+
+/* ----- Responsive (mobile) ----- */
+@media (max-width: 480px) {
+    .logo-text {
+        font-size: 24px;
     }
+
+    .logo-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 12px;
+    }
+
+        .logo-icon svg {
+            width: 22px;
+            height: 22px;
+        }
+}

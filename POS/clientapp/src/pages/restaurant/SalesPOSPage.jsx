@@ -50,7 +50,7 @@ const SalesPOSPage = () => {
         receiptInfo, draftCarts, selectedTable, setSelectedTable, setKOTModalOpen,
     });
 
-    
+
     const { handlePrintKOT, handlePrintOrder, handlePrintReceipt, handleTestPrinter } = usePrintActions({
         basicSettings, receiptInfo, selectedTable,
     });
@@ -107,7 +107,7 @@ const SalesPOSPage = () => {
                 display: 'flex',
                 flexDirection: 'column',
                 px: 2,          // left & right padding
-                pt: 0, 
+                pt: 0,
                 width: 'auto',
                 mx: { xs: -2, sm: -5 },
                 // leave room so the sticky bottom cart bar never covers the last product row
@@ -121,7 +121,7 @@ const SalesPOSPage = () => {
                 onSaveKOT={handleSaveKOT}
                 onViewKOTs={() => {
                     setShowTableLayout(!showTableLayout);   // expand the active tables section
-                   
+
                 }}
                 onNewOrder={handleNewOrder}
                 onPrintOrder={handlePrintOrder}
@@ -187,7 +187,7 @@ const SalesPOSPage = () => {
                 )}
             </Grid>
 
-            {/* Mobile Cart Drawer */}
+            {/* Mobile Cart Drawer - FIXED: Added onClose prop */}
             {isMobile && (
                 <Drawer
                     anchor="bottom"
@@ -210,7 +210,8 @@ const SalesPOSPage = () => {
                         onUpdateQuantity={updateQuantity}
                         onRemoveItem={removeFromCart}
                         onPrintOrder={handlePrintOrder}
-                        isMobile
+                        isMobile={true}
+                        onClose={toggleCartDrawer}  // <-- THIS WAS MISSING
                     />
                 </Drawer>
             )}
@@ -259,7 +260,7 @@ const SalesPOSPage = () => {
             )}
 
             {/* KOT Manager Modal */}
-          
+
             <KOTManager
                 open={isKOTModalOpen}
                 onClose={() => setKOTModalOpen(false)}
