@@ -3,20 +3,18 @@ import { Paper, Box } from '@mui/material';
 import ProductSearchBar from './ProductSearchBar';
 import ProductGrid from './ProductGrid';
 
-// Left-hand panel: search/barcode row on top, scrollable product grid below.
 const ProductPanel = ({
     filteredProducts,
     searchInput,
     onSearchInputChange,
     onSelectProduct,
-    barcodeRef,
-    barcodeValue,
-    onBarcodeValueChange,
-    onBarcodeSubmit,
     loading,
     onRefresh,
     cartItems,
     onAddToCart,
+    categories,
+    selectedCategory,
+    onCategoryChange,
 }) => {
     return (
         <Paper
@@ -28,6 +26,7 @@ const ProductPanel = ({
                 borderRadius: 3,
                 bgcolor: 'white',
                 overflow: 'hidden',
+                height: '100%',
             }}
         >
             <ProductSearchBar
@@ -35,15 +34,14 @@ const ProductPanel = ({
                 searchInput={searchInput}
                 onSearchInputChange={onSearchInputChange}
                 onSelectProduct={onSelectProduct}
-                barcodeRef={barcodeRef}
-                barcodeValue={barcodeValue}
-                onBarcodeValueChange={onBarcodeValueChange}
-                onBarcodeSubmit={onBarcodeSubmit}
                 loading={loading}
                 onRefresh={onRefresh}
+                categories={categories}           // pass through
+                selectedCategory={selectedCategory}
+                onCategoryChange={onCategoryChange}
             />
 
-            <Box sx={{ flex: 1, overflow: 'auto', p: 0.5 }}>
+            <Box sx={{ flex: 1, overflow: 'auto', p: 0.5, mt: 1 }}>
                 <ProductGrid
                     products={filteredProducts}
                     cartItems={cartItems}

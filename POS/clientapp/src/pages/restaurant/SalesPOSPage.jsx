@@ -16,12 +16,17 @@ import useKOTActions from './hooks/useKOTActions';
 import usePrintActions from './hooks/usePrintActions';
 import { manualProductSync, getProductsSync } from '../../hooks/useProductSync';
 import { showAlert } from '../../store/reducers/alert';
+import { useGetCategoriesQuery } from './../../services/categoryApi';
 
 const SalesPOSPage = () => {
     const dispatch = useDispatch();
     const isMobile = useIsMobile();
 
     const { receiptInfo, draftCarts, basicSettings } = useSelector(state => state.sales);
+    // Inside the component:
+    const { data: categories = [], isLoading: categoriesLoading } = useGetCategoriesQuery();
+    // Add state for selected category (null = show all)
+    const [selectedCategory, setSelectedCategory] = useState(null);
 
     // ---------- Local UI state ----------
     const [printerSettingsOpen, setPrinterSettingsOpen] = useState(false);
@@ -61,14 +66,23 @@ const SalesPOSPage = () => {
 
     const toggleCartDrawer = () => setCartDrawerOpen(!isCartDrawerOpen);
 
+
+
+    // Modify filteredProducts useMemo
     const filteredProducts = useMemo(() => {
-        if (!searchInput) return products;
-        const lower = searchInput.toLowerCase();
-        return products.filter(p =>
-            p.name.toLowerCase().includes(lower) ||
-            p.barcode?.includes(searchInput)
-        );
-    }, [products, searchInput]);
+        let result = products;
+        if (searchInput) {
+            const lower = searchInput.toLowerCase();
+            result = result.filter(p =>
+                p.name.toLowerCase().includes(lower) ||
+                p.barcode?.includes(searchInput)
+            );
+        }
+        if (selectedCategory) {
+            result = result.filter(p => p.categoryID === selectedCategory);
+        }
+        return result;
+    }, [products, searchInput, selectedCategory]);
 
     const refreshProducts = async () => {
         setLoading(true);
@@ -162,6 +176,9 @@ const SalesPOSPage = () => {
                             onRefresh={refreshProducts}
                             cartItems={cartItems}
                             onAddToCart={addToCart}
+                            categories={categories}
+                            selectedCategory={selectedCategory}
+                            onCategoryChange={setSelectedCategory}
                         />
                     </Box>
                 </Grid>

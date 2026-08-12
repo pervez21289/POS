@@ -1,27 +1,31 @@
 import React from 'react';
-import { Stack, TextField, Box, IconButton, Autocomplete, CircularProgress } from '@mui/material';
+import {
+    Stack, TextField, Box, IconButton, Autocomplete, CircularProgress,
+    Select, MenuItem, FormControl, InputLabel
+} from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import QrCodeScannerIcon from '@mui/icons-material/QrCodeScanner';
 import RefreshIcon from '@mui/icons-material/Refresh';
 
-// Product autocomplete search + barcode scan input + refresh button.
-// On mobile, search gets its own full-width row and barcode+refresh share a
-// row underneath, instead of three separate full-width rows stacking up and
-// pushing the product grid down.
 const ProductSearchBar = ({
     filteredProducts,
     searchInput,
     onSearchInputChange,
     onSelectProduct,
-    barcodeRef,
-    barcodeValue,
-    onBarcodeValueChange,
-    onBarcodeSubmit,
     loading,
     onRefresh,
+    categories = [],
+    selectedCategory,
+    onCategoryChange,
 }) => {
     return (
-        <Stack direction="row" sx={{ width: { xs: '100%', sm: 'auto' }, flex: { sm: 1 } }} spacing={1.25} alignItems="center" mb={1.5}>
+        <Stack
+            direction="row"                     // always row, never column
+            spacing={{ xs: 0.5, sm: 1 }}        // tighter spacing on mobile
+            alignItems="center"
+            mb={1}
+            sx={{ width: '100%' }}
+        >
+            {/* Search autocomplete – takes remaining space */}
             <Autocomplete
                 value={null}
                 onChange={(_, newValue) => {
@@ -38,37 +42,69 @@ const ProductSearchBar = ({
                 renderInput={(params) => (
                     <TextField
                         {...params}
-                        label="Search products"
+                        label="Search"
                         variant="outlined"
                         size="small"
                         fullWidth
                         InputProps={{
                             ...params.InputProps,
                             startAdornment: (
-                                <Box sx={{ ml: 1, mr: -1 }}>
-                                    <SearchIcon color="action" />
+                                <Box sx={{ ml: 0.5, mr: -0.5 }}>
+                                    <SearchIcon color="action" fontSize="small" />
                                 </Box>
                             ),
                             endAdornment: (
                                 <>
-                                    {loading && <CircularProgress size={20} />}
+                                    {loading && <CircularProgress size={18} />}
                                     {params.InputProps.endAdornment}
                                 </>
                             ),
                         }}
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                        sx={{
+                            '& .MuiOutlinedInput-root': { borderRadius: 2 },
+                            '& .MuiInputLabel-root': { fontSize: '0.8rem' },
+                        }}
                     />
                 )}
-                sx={{ flex: 2, width: '100%' }}
+                sx={{ flex: 1, minWidth: 0 }}    // allows shrinking
             />
+
+            {/* Category dropdown – fixed small width */}
+            <FormControl size="small" sx={{ minWidth: 120, maxWidth: 150 }}>
+                <InputLabel id="category-select-label" sx={{ fontSize: '0.75rem' }}>
+                    Category
+                </InputLabel>
+                <Select
+                    labelId="category-select-label"
+                    value={selectedCategory ?? ''}
+                    label="Category"
+                    onChange={(e) => onCategoryChange(e.target.value || null)}
+                    sx={{ fontSize: '0.8rem' }}
+                >
+                    <MenuItem value="">All</MenuItem>
+                    {categories.map(cat => (
+                        <MenuItem key={cat.categoryID} value={cat.categoryID}>
+                            {cat.categoryName}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+            {/* Refresh button – fixed size */}
             <IconButton
                 onClick={onRefresh}
                 disabled={loading}
-                sx={{ border: '1px solid #e0e0e0', borderRadius: 2, width: 44,  flexShrink: 0 }}
+                size="small"
+                sx={{
+                    border: '1px solid #e0e0e0',
+                    borderRadius: 2,
+                    width: 36,
+                    height: 36,
+                    flexShrink: 0,
+                }}
             >
-                <RefreshIcon color={loading ? 'disabled' : 'primary'} />
+                <RefreshIcon fontSize="small" color={loading ? 'disabled' : 'primary'} />
             </IconButton>
-           
         </Stack>
     );
 };
