@@ -59,7 +59,20 @@ export const productApi = createApi({
         }),
         getInventoryLogs: builder.query({
             query: (productId) => `products/${productId}/inventory-logs`,
-        })
+        }),
+        uploadProductImage: builder.mutation({
+            query: ({ productId, file }) => {
+                const formData = new FormData();
+                formData.append('file', file);
+                return {
+                    url: `products/${productId}/image`,
+                    method: 'POST',
+                    body: formData,
+                    // RTK Query will automatically set Content-Type to multipart/form-data when body is FormData
+                };
+            },
+            invalidatesTags: ['Products'],
+        }),
     }),
 });
 
@@ -70,5 +83,6 @@ export const {
     useUpdateProductMutation,
     useDeleteProductMutation,
     useAdjustStockMutation,
-    useGetInventoryLogsQuery
+    useGetInventoryLogsQuery,
+    useUploadProductImageMutation
 } = productApi;

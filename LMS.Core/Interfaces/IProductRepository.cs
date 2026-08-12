@@ -17,5 +17,6 @@ namespace LMS.Core.Interfaces
         Task<IEnumerable<Product>> SearchProductsAsync(string searchTerm, int CompanyID);
         Task<bool> AdjustStockAsync(int productId, int quantity, string reason, int userId);
         Task<IEnumerable<ProductInventoryLog>> GetInventoryLogsAsync(int productId);
+        Task<bool> UpdateProductImageAsync(int productId, string imageUrl);
     }
 }

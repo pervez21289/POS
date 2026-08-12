@@ -13,7 +13,7 @@ const AlertBox = () => {
 
     return (
         <Snackbar
-            anchorOrigin={{ vertical: alertData.vertical || 'top', horizontal: alertData.horizontal||'right' }}
+            anchorOrigin={{ vertical: alertData.vertical || 'bottom', horizontal: alertData.horizontal||'left' }}
             open={alertData.open}
             autoHideDuration={3000}
             onClose={() => dispatch(showAlert({ ...alertData, open: false }))}

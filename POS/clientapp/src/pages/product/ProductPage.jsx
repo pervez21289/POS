@@ -1,17 +1,18 @@
-﻿import React, { useState, useMemo, useCallback } from 'react';
+﻿import React, { useState, useCallback } from 'react';
 import {
-    TextField, Box,  IconButton, Paper, Typography, 
-    Container, Button  ,   Dialog, DialogTitle, DialogContent, DialogContentText,
-    DialogActions
+    TextField, Box, IconButton, Paper, Typography,
+    Button
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import SearchIcon from '@mui/icons-material/Search';
+import ImageIcon from '@mui/icons-material/Image';
 import { DataGrid } from '@mui/x-data-grid';
 import debounce from 'lodash/debounce';
 import ProductInventoryManager from './ProductInventoryManager';
 import ProductForm from './ProductForm';
+import ProductImageUploadDialog from './ProductImageUploadDialog';
 import { setDrawerComponent } from "./../../store/reducers/drawer";
 import { useDispatch } from 'react-redux';
 import {
@@ -23,24 +24,23 @@ import { showAlert } from "./../../store/reducers/alert";
 import { useTheme, useMediaQuery } from '@mui/material';
 import { Chip } from '@mui/material';
 
-
 const ProductManager = () => {
     const [searchText, setSearchText] = useState('');
-    const { data: products = [], isLoading } = useGetProductsQuery(searchText, { refetchOnMountOrArgChange: true });
-    
-
+    const { data: products = [], isLoading, refetch } = useGetProductsQuery(searchText, { refetchOnMountOrArgChange: true });
     const [deleteProduct] = useDeleteProductMutation();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
     const dispatch = useDispatch();
 
+    // Dialog state
+    const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+    const [selectedProduct, setSelectedProduct] = useState(null);
+
     const handleAddInventory = async (row) => {
         dispatch(
             setDrawerComponent({
                 DrawerComponentChild: ProductInventoryManager,
-                drawerProps: {
-                    product: row
-                },
+                drawerProps: { product: row },
                 drawerOpen: true
             })
         );
@@ -50,9 +50,7 @@ const ProductManager = () => {
         dispatch(
             setDrawerComponent({
                 DrawerComponentChild: ProductForm,
-                drawerProps: {
-                    initialData: row ? { ...row } : null, // always a fresh object reference
-                },
+                drawerProps: { initialData: row ? { ...row } : null },
                 drawerOpen: true
             })
         );
@@ -71,17 +69,14 @@ const ProductManager = () => {
         );
     };
 
-
-
     const handleDelete = async (id) => {
         try {
             await deleteProduct(id).unwrap();
-            dispatch(showAlert({ open: true, message: 'Deleted succefully!', severity: 'success' }));
+            dispatch(showAlert({ open: true, message: 'Deleted successfully!', severity: 'success' }));
         } catch {
-            dispatch(showAlert({ open: true, message: 'Deleted succefully!', severity: 'error' }));
+            dispatch(showAlert({ open: true, message: 'Delete failed!', severity: 'error' }));
         }
     };
-
 
     const debouncedSearch = useCallback(
         debounce((value) => {
@@ -94,7 +89,19 @@ const ProductManager = () => {
         debouncedSearch(e.target.value);
     };
 
+    const handleOpenUploadDialog = (product) => {
+        setSelectedProduct(product);
+        setUploadDialogOpen(true);
+    };
 
+    const handleCloseUploadDialog = () => {
+        setUploadDialogOpen(false);
+        setSelectedProduct(null);
+    };
+
+    const handleImageUploaded = () => {
+        refetch(); // refresh product list
+    };
 
     const columns = [
         {
@@ -125,7 +132,6 @@ const ProductManager = () => {
             minWidth: 100,
             align: 'right',
             headerAlign: 'right'
-
         },
         {
             field: 'isActive',
@@ -142,13 +148,12 @@ const ProductManager = () => {
                     sx={{ fontWeight: 600 }}
                 />
             )
-        }
-,
+        },
         {
             field: 'actions',
             headerName: 'Actions',
-            flex: 0.8,
-            minWidth: 150,
+            flex: 1.2,
+            minWidth: 200,
             sortable: false,
             align: 'center',
             headerAlign: 'center',
@@ -188,28 +193,28 @@ const ProductManager = () => {
                     >
                         <InventoryIcon fontSize="small" />
                     </IconButton>
+                    <IconButton
+                        onClick={() => handleOpenUploadDialog(params.row)}
+                        color="info"
+                        size="small"
+                        title="Upload Image"
+                    >
+                        <ImageIcon fontSize="small" />
+                    </IconButton>
                 </Box>
             ),
         }
-
     ];
 
     if (isLoading) return <p>Loading...</p>;
 
     return (
-    
         <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-
-            {/* ✅ Shared header for both desktop and mobile */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexDirection: { xs: 'column', sm: 'row' }, gap: 2 }}>
                 <Typography
                     variant="h4"
                     component="h1"
-                    sx={{
-                        fontWeight: 600,
-                        color: 'primary.main',
-                        textAlign: { xs: 'center', sm: 'left' }
-                    }}
+                    sx={{ fontWeight: 600, color: 'primary.main', textAlign: { xs: 'center', sm: 'left' } }}
                 >
                     Product Management
                 </Typography>
@@ -217,18 +222,12 @@ const ProductManager = () => {
                     variant="contained"
                     onClick={() => handleAddProduct(null)}
                     color="primary"
-                    sx={{
-                        minWidth: 120,
-                        height: 40,
-                        textTransform: 'none',
-                        fontWeight: 600
-                    }}
+                    sx={{ minWidth: 120, height: 40, textTransform: 'none', fontWeight: 600 }}
                 >
                     Add Product
                 </Button>
             </Box>
 
-            {/* 🔍 Search input (shared) */}
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                 <SearchIcon sx={{ color: 'action.active', mr: 1 }} />
                 <TextField
@@ -237,15 +236,10 @@ const ProductManager = () => {
                     fullWidth
                     size="small"
                     onChange={handleSearchChange}
-                    sx={{
-                        '& .MuiOutlinedInput-root': {
-                            borderRadius: 1
-                        }
-                    }}
+                    sx={{ '& .MuiOutlinedInput-root': { borderRadius: 1 } }}
                 />
             </Box>
 
-            {/* 📱 Conditional content: card for mobile, grid for desktop */}
             {isMobile ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     {products.map(product => (
@@ -264,6 +258,9 @@ const ProductManager = () => {
                                 <IconButton onClick={() => handleAddInventory(product)} color="success">
                                     <InventoryIcon />
                                 </IconButton>
+                                <IconButton onClick={() => handleOpenUploadDialog(product)} color="info">
+                                    <ImageIcon />
+                                </IconButton>
                             </Box>
                         </Paper>
                     ))}
@@ -278,8 +275,15 @@ const ProductManager = () => {
                     pageSize={10}
                 />
             )}
-        </Paper>
 
+            {/* Image Upload Dialog Component */}
+            <ProductImageUploadDialog
+                open={uploadDialogOpen}
+                product={selectedProduct}
+                onClose={handleCloseUploadDialog}
+                onUploadSuccess={handleImageUploaded}
+            />
+        </Paper>
     );
 };
 

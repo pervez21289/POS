@@ -98,5 +98,15 @@ namespace LMS.Repository.Repo
             );
         }
 
+        public async Task<bool> UpdateProductImageAsync(int productId, string imageUrl)
+        {
+            var result = await ExecuteAsync(
+                "UpdateProductImage",
+                new { ProductID = productId, ImageUrl = imageUrl },
+                commandType: CommandType.StoredProcedure
+            );
+            return result > 0;
+        }
+
     }
 }

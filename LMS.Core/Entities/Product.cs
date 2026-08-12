@@ -22,6 +22,7 @@ namespace LMS.Core.Entities
         public bool IsActive { get; set; }
         public decimal? GstRate { get; set; }
         public int? CompanyID { get; set; }
+        public string ImageUrl { get; set; }
     }
 
     public class ProductInventoryLog

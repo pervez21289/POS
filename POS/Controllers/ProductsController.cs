@@ -139,6 +139,51 @@ namespace LMS.Controllers
                 return StatusCode(500, "Internal Server Error");
             }
         }
+
+        [HttpPost("{id}/image")]
+        public async Task<IActionResult> UploadProductImage(int id, IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("No file uploaded.");
+
+            // Optional: validate file type/size
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var extension = Path.GetExtension(file.FileName).ToLower();
+            if (!allowedExtensions.Contains(extension))
+                return BadRequest("Invalid file type. Allowed: jpg, jpeg, png, gif.");
+
+            if (file.Length > 5 * 1024 * 1024) // 5 MB limit
+                return BadRequest("File size exceeds 5 MB.");
+
+            try
+            {
+                // 1. Save the file to wwwroot/images/products
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
+                if (!Directory.Exists(uploadsFolder))
+                    Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await file.CopyToAsync(stream);
+                }
+
+                // 2. Build the URL to be stored
+            
+                var updated = await _repo.UpdateProductImageAsync(id, uniqueFileName);
+                if (!updated)
+                    return NotFound($"Product with ID {id} not found.");
+
+                return Ok(new { imageUrl = uniqueFileName });
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(ex);
+                return StatusCode(500, "Internal Server Error");
+            }
+        }
     }
 
 }
