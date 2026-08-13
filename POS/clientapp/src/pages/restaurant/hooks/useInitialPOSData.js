@@ -3,25 +3,20 @@ import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { setPlan } from '../../../store/reducers/users';
 import PaymentService from '../../../services/PaymentService';
-import { manualProductSync, getProductsSync } from '../../../hooks/useProductSync';
+import { getProductsSync } from '../../../hooks/useProductSync'; // only import getProductsSync
 import { checkService, listPrinters } from '../receiptPrinter';
 import { loadBasicSettings } from '../../../store/reducers/sales';
 
-// Handles the page's one-time startup work:
-// - verifies the active subscription plan (redirects if not active)
-// - loads the product catalog (syncing first if online)
-// - picks a sensible default table number
-// - checks printer service availability (best-effort, non-blocking)
-// - focuses the barcode input
 export default function useInitialPOSData({ draftCarts, selectedTable, setSelectedTable, barcodeRef }) {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const [products, setProducts] = useState([]);
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(true); // start with true to show loader
 
     useEffect(() => {
         const loadInitialData = async () => {
             try {
+                // 1. Check plan (this might be heavy, but it's needed)
                 const plan = await PaymentService.GetCurrentActivePlan();
                 dispatch(setPlan(plan));
                 dispatch(loadBasicSettings());
@@ -29,18 +24,21 @@ export default function useInitialPOSData({ draftCarts, selectedTable, setSelect
                     navigate('/subscriptionplan');
                     return;
                 }
-                if (navigator.onLine) {
-                    await manualProductSync();
-                }
+
+                // 2. Load products ONLY from local IndexedDB – no API sync
                 const productList = await getProductsSync();
                 setProducts(productList || []);
-                setLoading(false);
             } catch (err) {
+                // If anything fails, redirect to subscription plan (existing behaviour)
                 navigate('/subscriptionplan');
+            } finally {
+                setLoading(false);
             }
         };
+
         loadInitialData();
 
+        // 3. Table selection logic (unchanged)
         if (!selectedTable && draftCarts.length > 0) {
             const maxTable = Math.max(...draftCarts.map(d => d.tableNo), 0);
             setSelectedTable(maxTable + 1);
@@ -48,7 +46,7 @@ export default function useInitialPOSData({ draftCarts, selectedTable, setSelect
             setSelectedTable(1);
         }
 
-        // Check printer service on load (optional)
+        // 4. Printer check (non-blocking, unchanged)
         const checkPrinter = async () => {
             try {
                 const isAvailable = await checkService();
@@ -66,6 +64,7 @@ export default function useInitialPOSData({ draftCarts, selectedTable, setSelect
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Focus barcode input (unchanged)
     useEffect(() => {
         if (barcodeRef.current) barcodeRef.current.focus();
         // eslint-disable-next-line react-hooks/exhaustive-deps

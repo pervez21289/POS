@@ -1,47 +1,54 @@
-﻿// src/hooks/useBillSync.js
-import { useEffect } from 'react';
+﻿import { useEffect } from 'react';
 import { db } from '../data/db';
-import { useCreateSaleMutation } from '../services/salesApi'; // adjust path if needed
-import { useGetProductsQuery } from '../services/productApi';
+import { useCreateSaleMutation } from '../services/salesApi';
 
 const SYNC_INTERVAL_MS = 10000;
+const MAX_RETRIES = 3;
 
 const useBillSync = () => {
-    const [createSale] = useCreateSaleMutation(); // RTK Mutation Hook
+    const [createSale] = useCreateSaleMutation();
 
     useEffect(() => {
         const syncBills = async () => {
-           
             if (!navigator.onLine) {
-                console.log('[Sync] Offline. Skipping sync...');
+                console.log('[Sync] Offline. Skipping...');
                 return;
             }
-
+         
             try {
-                //const unsyncedBills = await db.bills.where('isSynced').toArray();
-
-                const billData = await db.bills.toArray();
-                const unsyncedBills = billData.filter(x => x.isSynced === false)
-                    
+                // 1. Fetch all bills and filter unsynced ones
+                const allBills = await db.bills.toArray();
+                const unsyncedBills = allBills.filter(bill => bill.isSynced !== true);
 
                 if (unsyncedBills.length === 0) {
-                    console.log('[Sync] No bills to sync.');
+                    console.log('[Sync] No unsynced bills.');
                     return;
                 }
 
-                console.log(`[Sync] Found ${unsyncedBills.length} unsynced bills. Syncing...`);
+                console.log(`[Sync] Found ${unsyncedBills.length} unsynced bills.`);
 
+                // 2. Sync each bill
                 for (const bill of unsyncedBills) {
                     try {
-                        await createSale(bill.sales).unwrap(); // RTK Query mutation call
+                        console.log(`[Sync] Sending bill ${bill.id}:`, bill.sales);
+                        await createSale(bill.sales).unwrap();
                         await db.bills.update(bill.id, { isSynced: true });
-                        console.log(`[Sync] Bill ${bill.id} synced successfully.`);
+                        console.log(`[Sync] Bill ${bill.id} synced.`);
                     } catch (err) {
-                        console.error(`[Sync] Failed to sync bill ${bill.id}:`, err.message);
+                        console.error(`[Sync] Failed for bill ${bill.id}:`, err);
+
+                        // Optional: track retries to avoid infinite retries
+                        const retries = bill.retryCount || 0;
+                        if (retries >= MAX_RETRIES) {
+                            await db.bills.update(bill.id, { syncFailed: true });
+                            console.warn(`[Sync] Bill ${bill.id} permanently failed.`);
+                        } else {
+                            await db.bills.update(bill.id, { retryCount: retries + 1 });
+                        }
                     }
                 }
             } catch (err) {
-                console.error('[Sync] Unexpected sync error:', err);
+                console.error('[Sync] Unexpected error:', err);
             }
         };
 
@@ -52,7 +59,7 @@ const useBillSync = () => {
             clearInterval(interval);
             console.log('[Sync] Auto-sync stopped.');
         };
-    }, [createSale]); // Include mutation in dependency array
+    }, [createSale]);
 };
 
 export default useBillSync;
