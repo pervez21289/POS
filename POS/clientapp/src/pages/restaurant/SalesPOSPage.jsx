@@ -211,7 +211,14 @@ const SalesPOSPage = () => {
                     open={isCartDrawerOpen}
                     onClose={toggleCartDrawer}
                     PaperProps={{
-                        sx: { maxHeight: '85vh', borderTopLeftRadius: 16, borderTopRightRadius: 16, p: 2 },
+                        sx: {
+                            height: '100vh',                  // full screen height
+                            maxHeight: '100vh',
+                            borderTopLeftRadius: 16,
+                            borderTopRightRadius: 16,
+                            overflow: 'hidden',
+                            p: 0,                            // remove any extra padding
+                        },
                     }}
                 >
                     <CartPanel
@@ -228,7 +235,7 @@ const SalesPOSPage = () => {
                         onRemoveItem={removeFromCart}
                         onPrintOrder={handlePrintOrder}
                         isMobile={true}
-                        onClose={toggleCartDrawer}  // <-- THIS WAS MISSING
+                        onClose={toggleCartDrawer}
                     />
                 </Drawer>
             )}
