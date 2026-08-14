@@ -73,6 +73,13 @@ namespace LMS.Controllers
             return Ok(data);
         }
 
+        [HttpGet("GetTopSellingProducts")]
+        public async Task<IActionResult> GetTopSellingProducts()
+        {
+            string data = await _saleRepository.GetTopSellingProducts(_userContext.CompanyID);
+            return Ok(data);
+        }
+
     }
 
 }

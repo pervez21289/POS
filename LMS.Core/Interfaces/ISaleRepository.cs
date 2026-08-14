@@ -15,5 +15,6 @@ namespace LMS.Core.Interfaces
         Task<SaleListDto?> GetSaleWithItems(int saleId);
         Task<Customer> GetCustomerByNumber(long mobileNumber);
         Task<string> GetMonthlySalesSummary(int CompanyID);
+        Task<string> GetTopSellingProducts(int CompanyID);
     }               
 }

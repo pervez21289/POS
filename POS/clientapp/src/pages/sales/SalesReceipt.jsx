@@ -4,7 +4,7 @@ import { mobileStickyBottomBarStyles } from '../../components/commonStyles';
 import { useDispatch, useSelector } from 'react-redux';
 import { openDrawer } from "./../../store/reducers/drawer";
 import { setReceiptInfo } from "./../../store/reducers/sales";
-import { printReceipt, isElectron } from '../../utils/electronPrint';
+import { printReceipt } from './../restaurant/receiptPrinter';
 
 
 const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
@@ -13,101 +13,38 @@ const SalesReceipt = React.forwardRef(({ receiptInfo }, ref) => {
     const fontSize = '11px';
     const dispatch = useDispatch();
 
-    const handlePrint = () => {
-        if (window.ReactNativeWebView) {
-            handlePrintMobile();
-        } else {
-            handlePrintWeb();
+    const handlePrint = async () => {
+        debugger;
+        // Build the items array exactly like in ReceiptPrintWrapper
+        const items = receiptInfo?.saleItems?.map(item => ({
+            name: item.name,
+            barcode: item.barcode || '-',
+            quantity: item.quantity,
+            price: item.salePrice || item.price || 0,
+        })) || [];
+
+        // Prepare the same params structure
+        const params = {
+            type: 'sale',
+            sale: receiptInfo,           // the full sale object
+            items: items,
+            storeInfo: basicSettings,
+            // Optional overrides:
+            lineWidth: 32,               // to match your existing 32‑char layout
+            // upiId, payeeName, etc. – these will be taken from stored config automatically
+        };
+
+        try {
+            await printReceipt(params);
+        } catch (error) {
+            console.error('Print failed:', error);
+            // Optionally show a user-friendly alert
         }
+
+        // After printing, close the drawer and clear cart (same as before)
         dispatch(openDrawer({ drawerOpen: false }));
         dispatch(setReceiptInfo({ receiptInfo: { saleItems: [] } }));
     };
-
-    const handlePrintMobile = () => {
-        const receiptHTML = generateTextReceipt();
-        window.ReactNativeWebView?.postMessage(receiptHTML);
-    };
-
-    const handlePrintWeb = async () => {
-        const textToPrint = generateTextReceipt();
-        
-        // Check if running in Electron to determine HTML format
-        const isInElectron = window.electronPOS !== undefined;
-        
-        const htmlContent = `
-        <html>
-        <head>
-            <title>Receipt</title>
-            <style>
-                @media print {
-                    @page { margin: 0; }
-                    body { margin: 0; font-family: monospace; font-size: 12px; }
-                }
-                body { font-family: monospace; white-space: pre; font-size: 12px; }
-            </style>
-        </head>
-        <body${isInElectron ? '' : ' onload="window.print(); window.close();"'}>
-            <pre>${textToPrint}</pre>
-        </body>
-        </html>
-    `;
-        
-        // Use Electron print if available, otherwise fallback to browser popup
-        await printReceipt(htmlContent);
-    };
-
-    const generateTextReceipt = () => {
-        const LINE_WIDTH = 32;
-        const padRight = (text, length) => (text + ' '.repeat(Math.max(length - text.length, 0))).slice(0, length);
-        const padLeft = (text, length) => (' '.repeat(Math.max(length - text.length, 0)) + text).slice(-length);
-        const center = (text) => {
-            const space = Math.floor((LINE_WIDTH - text.length) / 2);
-            return ' '.repeat(Math.max(space, 0)) + text;
-        };
-        const safeText = (text) => (text || '').toString().slice(0, LINE_WIDTH);
-        const lines = [];
-
-        // Header
-        lines.push(center(safeText(basicSettings?.storeName || 'Store Name')));
-        lines.push(center(safeText(basicSettings?.address || 'Store Address')));
-        lines.push(center(`GST: ${safeText(basicSettings?.gstin || '-')}`));
-        lines.push('-'.repeat(LINE_WIDTH));
-
-        // Info
-        lines.push(`Bill#: ${receiptInfo?.billNo || ''}`);
-        lines.push(`Date: ${receiptInfo?.saleTime || ''}`);
-        lines.push(`Cashier: ${receiptInfo?.userName || ''}`);
-        if (receiptInfo.customerName) lines.push(`Name: ${receiptInfo?.customerName || ''}`);
-        lines.push(`Mobile: ${receiptInfo?.mobileNumber || ''}`);
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push('Item       Qty   Rt     Tot');
-
-        // Items
-        receiptInfo?.saleItems?.forEach(item => {
-            lines.push(safeText(item.name));
-            const qty = padLeft(item.quantity?.toString() || '0', 2);
-            const rate = padLeft(item.price?.toFixed(0) || '0', 4);
-            const total = padLeft((item.quantity * item.price ).toFixed(0), 7);
-            const barcode = padRight(item.barcode || '-', 10);
-            lines.push(`${barcode} ${qty} ${rate} ${total}`);
-        });
-
-        lines.push('-'.repeat(LINE_WIDTH));
-
-        // Summary
-        lines.push(`${padRight('Subtotal:', 16)}${padLeft(receiptInfo?.totalAmount?.toFixed(2) || '0.00', 14)}`);
-        lines.push(`${padRight(`CGST:`, 16)}${padLeft(receiptInfo?.cgst?.toFixed(2) || '0.00', 14)}`);
-        lines.push(`${padRight(`SGST:`, 16)}${padLeft(receiptInfo?.sgst?.toFixed(2) || '0.00', 14)}`);
-        lines.push(`${padRight(`Items:`, 16)}${padLeft(receiptInfo?.totalItems.toString() || '0.00', 14)}`);
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push(`${padRight('Total Payable:', 16)}${padLeft(`Rs.${receiptInfo?.netAmount?.toFixed(2) || '0.00'}`, 14)}`);
-        lines.push('-'.repeat(LINE_WIDTH));
-        lines.push(center('Thank you!'));
-        lines.push(center('Visit again!'));
-
-        return lines.join('\n');
-    };
-
 
     return (
         <Box sx={{ flex: 1, overflowY: 'auto', pr: 1, pb: 10 }}>

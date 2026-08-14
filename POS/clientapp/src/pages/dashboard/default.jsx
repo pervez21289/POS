@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 import MainCard from 'components/MainCard';
 import AnalyticEcommerce from 'components/cards/statistics/AnalyticEcommerce';
 import SaleReportCard from 'sections/dashboard/default/SaleReportCard';
+import MonthlyBarChart from 'sections/dashboard/default/MonthlyBarChart';
 import avatar1 from 'assets/images/users/avatar-1.png';
 import avatar2 from 'assets/images/users/avatar-2.png';
 import avatar3 from 'assets/images/users/avatar-3.png';
@@ -72,10 +73,14 @@ export default function DashboardDefault() {
       <Grid sx={{ display: { sm: 'none', md: 'block', lg: 'none' } }} size={{ md: 8 }} />
       
      
-      {/* row 4 */}
+          {/* row 4 */}
+          <Grid size={{ xs: 12, md: 7, lg: 12 }}>
+              <MonthlyBarChart />
+          </Grid>
           <Grid size={{ xs: 12, md: 7, lg: 12 }}>
               <SaleReportCard res={res} />
-      </Grid>
+          </Grid>
+        
           <Grid alignItems="center" justifyContent="space-between" size={{ xs: 12, md: 5, lg: 4 }}>
         <Grid container alignItems="center" justifyContent="space-between">
           <Grid>

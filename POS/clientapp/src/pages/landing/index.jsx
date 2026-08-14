@@ -254,7 +254,7 @@ function Footer() {
                         <h4>NexBill</h4>
                         <p>Simplify billing, manage inventory, and grow your business with NexBill.</p>
                         <p>Email: info@nexbill.com</p>
-                        <p>Phone: +91 8077599608</p>
+                        <p>Phone: +91 8279911831</p>
                     </div>
                     <div className="footer-col">
                         <h4>Quick Links</h4>

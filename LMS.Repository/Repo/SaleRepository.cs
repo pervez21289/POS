@@ -126,4 +126,10 @@ public class SaleRepository : BaseRepository,ISaleRepository
         return await QueryFirstOrDefaultAsync<string>(
             "GetSalesSummary", new { CompanyID = CompanyID }, commandType: CommandType.StoredProcedure);
     }
+
+    public async Task<string> GetTopSellingProducts(int CompanyID)
+    {
+        return await QueryFirstOrDefaultAsync<string>(
+            "GetTopSellingProducts", new { CompanyID = CompanyID }, commandType: CommandType.StoredProcedure);  
+    }
 }

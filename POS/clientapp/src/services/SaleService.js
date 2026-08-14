@@ -6,6 +6,10 @@ const url = Config.baseurl;
 class SaleService {
     constructor() { }
 
+    GetTopSellingProducts = async () => {
+        const res = await axios.get(`${url}Sales/GetTopSellingProducts`, {headers: Auth.getHeader() });
+        return res.data;
+    };
    
 
     GetSales = async (params) => {
